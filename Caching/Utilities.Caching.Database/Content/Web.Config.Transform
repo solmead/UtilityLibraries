@@ -1,0 +1,17 @@
+﻿<configuration >
+  <configSections>
+    <sectionGroup name="applicationSettings" type="System.Configuration.ApplicationSettingsGroup, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" >
+      <section name="DatabaseCaching.Properties.Settings" type="System.Configuration.ClientSettingsSection, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" requirePermission="false"  />
+    </sectionGroup>
+  </configSections>
+  <applicationSettings >
+    <DatabaseCaching.Properties.Settings >
+      <setting name="ConnectionName" serializeAs="String">
+        <value>connString</value>
+      </setting>
+    </DatabaseCaching.Properties.Settings>
+  </applicationSettings>
+  <HttpObjectCachingAreas>
+    <permanent_source class="DatabaseCaching.Context.StoreInDatabase, DatabaseCaching" />
+  </HttpObjectCachingAreas>
+</configuration>

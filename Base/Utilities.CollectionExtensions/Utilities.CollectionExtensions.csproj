@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>2.0.5</Version>
+    <Copyright>Copyright 2018</Copyright>
+    <PackageLicenseUrl>https://git.uc.edu/Development/UC_Libraries</PackageLicenseUrl>
+    <PackageProjectUrl>https://git.uc.edu/Development/UC_Libraries</PackageProjectUrl>
+    <PackageIconUrl></PackageIconUrl>
+    <RepositoryUrl>https://git.uc.edu/Development/UC_Libraries</RepositoryUrl>
+    <Description>Specialized Collections</Description>
+    <Authors>University of Cincinnatti</Authors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="PackNuget.bat" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Utilities.LinqDynamic" Version="2.0.1" />
+    <PackageReference Include="Utilities.Poco" Version="2.2.2" />
+  </ItemGroup>
+
+</Project>

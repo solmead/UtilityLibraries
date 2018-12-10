@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>6.0.0</Version>
+    <Authors>Solmead Productions</Authors>
+    <Company>Solmead Productions</Company>
+    <Description>Aspect support for caching</Description>
+    <Copyright>Copyright ©  2018</Copyright>
+    <PackageProjectUrl>https://github.com/solmead/HttpObjectCaching</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/solmead/HttpObjectCaching</RepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="PackNuget.bat" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PostSharp" Version="6.0.31" />
+    <PackageReference Include="Utilities.Caching" Version="6.5.0" />
+    <PackageReference Include="Utilities.SerializeExtensions" Version="6.2.0" />
+  </ItemGroup>
+
+</Project>

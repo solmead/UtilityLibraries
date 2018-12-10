@@ -1,0 +1,23 @@
+﻿<configuration>
+  <configSections>
+    <sectionGroup name="applicationSettings" type="System.Configuration.ApplicationSettingsGroup, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" >
+      <section name="AzureRedisCaching.Properties.Settings" type="System.Configuration.ClientSettingsSection, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" requirePermission="false" />
+    </sectionGroup>
+  </configSections>
+  <applicationSettings>
+    <AzureRedisCaching.Properties.Settings>
+      <setting name="HostName" serializeAs="String">
+        <value>[MyCacheNameHere].redis.cache.windows.net</value>
+      </setting>
+      <setting name="AllowNonSSL" serializeAs="String">
+        <value>False</value>
+      </setting>
+      <setting name="CacheKey" serializeAs="String">
+        <value>[CacheKeyHere]</value>
+      </setting>
+      <setting name="DefaultTimeoutMinutes" serializeAs="String">
+        <value>480</value>
+      </setting>
+    </AzureRedisCaching.Properties.Settings>
+  </applicationSettings>
+</configuration>

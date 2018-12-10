@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>6.2.2</Version>
+    <PackageId>Utilities.Caching.AspNetCore</PackageId>
+    <Authors>Solmead Productions</Authors>
+    <Company>Solmead Productions</Company>
+    <Product>Utilities.Caching.AspNetCore</Product>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="CacheSystem.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="PackNuget.bat" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.2.0" />
+    <PackageReference Include="Utilities.Caching" Version="6.5.0" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>6.1.8</Version>
+    <Company>University of Cincinnati</Company>
+    <Copyright>Copyright ©2018</Copyright>
+    
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="PackNuget.bat" />
+  </ItemGroup>
+</Project>

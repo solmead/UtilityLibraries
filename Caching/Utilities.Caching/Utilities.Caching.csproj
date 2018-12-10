@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>Caching System</Description>
+    <Company>Solmead Productions</Company>
+    <Authors>Solmead Productions</Authors>
+    <Version>6.5.0</Version>
+    <Copyright>Copyright ©  2018</Copyright>
+    <PackageProjectUrl>https://github.com/solmead/HttpObjectCaching</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/solmead/HttpObjectCaching</RepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="PackNuget.bat" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.2.0" />
+    <PackageReference Include="Utilities.CollectionExtensions" Version="2.0.5" />
+    <PackageReference Include="Utilities.SerializeExtensions" Version="6.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.Extensions.Caching.Memory">
+      <HintPath>C:\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.extensions.caching.memory\2.0.0\lib\netstandard2.0\Microsoft.Extensions.Caching.Memory.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
