@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using Utilities.Logging;
 
 namespace TestSite.Net462.Controllers
 {
@@ -10,6 +11,13 @@ namespace TestSite.Net462.Controllers
     {
         public ActionResult Index()
         {
+            Log.Debug("Index Debug");
+            Log.Error("Index Error");
+            //Log.Fatal("Index Fatal");
+            Log.Info("Index Info");
+            Log.Trace("Index Trace");
+            Log.Warn("Index Warn");
+
             return View();
         }
 
