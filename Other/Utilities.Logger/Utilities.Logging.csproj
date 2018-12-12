@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <!--<TargetFrameworks>netstandard2.0;net462</TargetFrameworks>-->
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>6.1.10</Version>
+    <Version>6.2.0</Version>
     <Company>University of Cincinnati</Company>
     <Copyright>Copyright ©2018 University of Cincinnati</Copyright>
     <Description>Logging Library using NLog</Description>
@@ -24,6 +24,7 @@
       <!--<Pack>true</Pack>-->
       <!--<PackagePath>\</PackagePath>-->
     </Content>
+    <Content Include="Tutorials\Logging.md" />
   </ItemGroup>
 
   <ItemGroup>
