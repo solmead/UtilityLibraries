@@ -1,24 +1,30 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <!--<TargetFramework>netstandard2.0</TargetFramework>-->
+    <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Version>2.3.2</Version>
+    <RuntimeIdentifiers>win10-x64;osx.10.11-x64;ubuntu.16.04-x64</RuntimeIdentifiers>
+    <Company>Solmead Productions</Company>
     <PackageLicenseUrl>https://github.com/solmead/PocoPropertyData</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/solmead/PocoPropertyData</PackageProjectUrl>
     <PackageIconUrl />
     <RepositoryUrl>https://github.com/solmead/PocoPropertyData</RepositoryUrl>
-    <Copyright>Copyright 2017</Copyright>
+    <Copyright>Copyright ©2018 </Copyright>
     <Description>Poco Property Extender</Description>
-    <Company>Solmead Productions</Company>
-    <Product>PocoPropertyData</Product>
-    <AssemblyVersion>2.2.2.0</AssemblyVersion>
-    <FileVersion>2.2.2.0</FileVersion>
-    <Version>2.2.2</Version>
+    <Product>Utilities.Poco</Product>
+    <AssemblyVersion>2.3.2.0</AssemblyVersion>
+    <FileVersion>2.3.2.0</FileVersion>
     <PackageId>Utilities.Poco</PackageId>
     <Authors>Solmead Productions</Authors>
     <AssemblyName>Utilities.Poco</AssemblyName>
     <RootNamespace>Utilities.Poco</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="PackNuget.bat" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
@@ -30,5 +36,30 @@
       <HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.ComponentModel.DataAnnotations.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
+    <DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
+  </PropertyGroup>
+
+
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net462' ">
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Configuration" />
+  </ItemGroup>
+
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net462'">
+    <DefineConstants>NET45;NETFULL</DefineConstants>
+  </PropertyGroup>
 
 </Project>

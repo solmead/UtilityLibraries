@@ -364,7 +364,7 @@ namespace System.Linq.Dynamic
             {
                 DynamicProperty dp = properties[i];
                 FieldBuilder fb = tb.DefineField("_" + dp.Name, dp.Type, FieldAttributes.Private);
-                PropertyBuilder pb = tb.DefineProperty(dp.Name, PropertyAttributes.HasDefault, dp.Type, null);
+                PropertyBuilder pb = tb.DefineProperty(dp.Name, Reflection.PropertyAttributes.HasDefault, dp.Type, null);
                 MethodBuilder mbGet = tb.DefineMethod("get_" + dp.Name,
                     MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
                     dp.Type, Type.EmptyTypes);

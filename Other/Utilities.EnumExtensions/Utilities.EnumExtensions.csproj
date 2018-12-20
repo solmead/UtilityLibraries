@@ -1,17 +1,43 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <!--<TargetFramework>netstandard2.0</TargetFramework>-->
+    <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>6.1.0</Version>
+    <Version>6.2.0</Version>
     <Copyright>Copyright ©2018</Copyright>
     <Authors>Solmead Productions</Authors>
     <Company>Solmead Productions</Company>
     <Description>Enum Extensions</Description>
+    <RepositoryUrl>https://github.com/solmead/UtilityLibraries</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/solmead/UtilityLibraries</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/solmead/UtilityLibraries</PackageLicenseUrl>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="PackNuget.bat" />
   </ItemGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
+    <DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
+  </PropertyGroup>
+
+
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net462' ">
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Configuration" />
+  </ItemGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net462'">
+    <DefineConstants>NET45;NETFULL</DefineConstants>
+  </PropertyGroup>
 
 </Project>

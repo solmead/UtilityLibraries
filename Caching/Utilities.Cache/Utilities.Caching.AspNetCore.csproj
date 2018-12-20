@@ -21,7 +21,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.2.0" />
-    <PackageReference Include="Utilities.Caching" Version="6.5.0" />
+    <PackageReference Include="Utilities.Caching" Version="6.6.0" />
   </ItemGroup>
 
 </Project>

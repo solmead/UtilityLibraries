@@ -15,7 +15,7 @@ namespace Utilities.Caching.Redis
     public static class Startup
     {
         
-        public static void Init(string hostName, string cacheKey, bool allowNonSSL = false, int defaultTimeoutMinutes = 5)
+        public static void InitRedis(string hostName, string cacheKey, bool allowNonSSL = false, int defaultTimeoutMinutes = 5)
         {
             Core.Setup(hostName, cacheKey, allowNonSSL, defaultTimeoutMinutes);
 
