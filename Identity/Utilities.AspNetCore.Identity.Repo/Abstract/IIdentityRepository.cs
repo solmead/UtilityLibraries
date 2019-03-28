@@ -35,10 +35,10 @@ namespace Utilities.AspNetCore.Identity.Repo.Abstract
 
     //}
 
-    //public interface IIdentityRepository : IIdentityRepository<IdentityUser<string>, IdentityRole<string>, string>
-    //{
+    public interface IIdentityRepository : IIdentityRepository<AppUser<string>, AppRole<string>, string>
+    {
 
-    //}
+    }
 
     /// <summary>
     /// The repository interface for the <see cref="Person"/> aggregate.
@@ -51,12 +51,12 @@ namespace Utilities.AspNetCore.Identity.Repo.Abstract
 
         Task<TUser> CreateUserAsync(TUser p);
         Task<TUser> UpdateUserAsync(TUser p);
+        Task DeleteUserAsync(TUser p);
 
 
-        Task DeletePersonAsync(TUser p);
+        IEnumerable<TUser> GetUsers();
 
-        Task<TUser> FindAsync(TKey id);
-        Task<TUser> FindUserByIdAsync(string id);
+        Task<TUser> FindUserByIdAsync(TKey id);
         Task<TUser> FindUserByEmailAsync(string email);
         Task<TUser> FindUserByUsernameAsync(string username);
 
@@ -65,18 +65,15 @@ namespace Utilities.AspNetCore.Identity.Repo.Abstract
         Task SetPasswordAsync(string name, string password);
         Task<bool> ValidateUserLoginAsync(string username, string password);
 
-        Task<TUser> AddUserLoginAsync(string personId, string username, string password, string socialCode);
-        Task<TUser> GetUserLogin(string personId, string username, string socialCode);
-        Task DeleteUserLogin(string personId, string username, string socialCode);
+        Task<TUser> AddUserLoginAsync(TKey personId, string username, string loginProvider, string providerKey);
+        Task<IEnumerable<TUser>> GetUserLoginsAsync(TKey personId);
+        Task<TUser> GetUserLoginAsync(TKey personId, string username, string loginProvider, string providerKey);
+        Task DeleteUserLoginAsync(TKey personId, string username, string loginProvider, string providerKey);
 
 
 
         IEnumerable<TRole> GetRoles();
-        //Task<TRole> CreateRoleAsync(TRole p);
-        //Task<TRole> UpdateRoleAsync(TRole p);
-
-        //Task DeleteRoleAsync(TRole p);
-        Task<TRole> FindRoleByIdAsync(string id);
+        Task<TRole> FindRoleByIdAsync(TKey id);
         Task<TRole> FindRoleByNameAsync(string name);
 
 

@@ -8,5 +8,11 @@ namespace Utilities.AspNetCore.Identity.Repo.Models
     public class AppUserLogin<TKey> : IdentityUserLogin<TKey>
         where TKey : IEquatable<TKey>
     {
+
+        public void test()
+        {
+            
+        }
+
     }
 }

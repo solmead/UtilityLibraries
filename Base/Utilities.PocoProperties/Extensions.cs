@@ -11,7 +11,7 @@ using System.Data;
 
 namespace Utilities.Poco
 {
-    public static class Poco
+    public static class Extensions
     {
 
         private static Dictionary<string, Dictionary<String, String>> mappings = new Dictionary<string, Dictionary<String, String>>();
@@ -345,14 +345,18 @@ namespace Utilities.Poco
         }
 
 
-
+        public static TItem Create<TItem>()
+        {
+            var tp = typeof(TItem);
+            var newItem = (TItem)tp.Assembly.CreateInstance(tp.FullName);
+            return newItem;
+        }
 
 
 
         public static TItem Clone<TItem>(this TItem item)
         {
-            var tp = item.GetType();
-            var newItem = (TItem)tp.Assembly.CreateInstance(tp.FullName);
+            var newItem = Create<TItem>();
             item.CopyInto(newItem);
             return newItem;
         }

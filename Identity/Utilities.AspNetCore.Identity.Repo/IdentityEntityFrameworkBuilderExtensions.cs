@@ -21,35 +21,57 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <typeparam name="TContext">The Entity Framework database context to use.</typeparam>
         /// <param name="builder">The <see cref="IdentityBuilder"/> instance this method extends.</param>
         /// <returns>The <see cref="IdentityBuilder"/> instance this method extends.</returns>
-        public static IdentityBuilder AddRepositoryStores<TUser, TRole, TKey>(this IdentityBuilder builder, IIdentityRepository<TUser, TRole, TKey> context)
-            where TRole : AppRole<TKey>
-            where TUser : AppUser<TKey>
-            where TKey : IEquatable<TKey>
+        public static IdentityBuilder AddRepositoryStores(this IdentityBuilder builder)//, IIdentityRepository<AppUser<string>, AppRole<string>, string> context)
         {
-            AddStores(builder.Services, builder.UserType, builder.RoleType, context);
+            AddStores<AppUser<string>, AppRole<string>, string>(builder.Services, builder.UserType, builder.RoleType);//, context);
             return builder;
         }
 
-        private static void AddStores<TUser, TRole, TKey>(IServiceCollection services, Type userType, Type roleType, IIdentityRepository<TUser, TRole, TKey> context)
+
+
+        /// <summary>
+        /// Adds an Entity Framework implementation of identity information stores.
+        /// </summary>
+        /// <typeparam name="TContext">The Entity Framework database context to use.</typeparam>
+        /// <param name="builder">The <see cref="IdentityBuilder"/> instance this method extends.</param>
+        /// <returns>The <see cref="IdentityBuilder"/> instance this method extends.</returns>
+        public static IdentityBuilder AddRepositoryStores<TUser, TRole, TKey>(this IdentityBuilder builder)//, IIdentityRepository<TUser, TRole, TKey> context)
             where TRole : AppRole<TKey>
             where TUser : AppUser<TKey>
             where TKey : IEquatable<TKey>
         {
-            var identityUserType = FindGenericBaseType(userType, typeof(IdentityUser<>));
+            AddStores<TUser,TRole,TKey>(builder.Services, builder.UserType, builder.RoleType);//, context);
+            return builder;
+        }
+
+        private static void AddStores<TUser, TRole, TKey>(IServiceCollection services, Type userType, Type roleType)//, IIdentityRepository<TUser, TRole, TKey> context)
+            where TRole : AppRole<TKey>
+            where TUser : AppUser<TKey>
+            where TKey : IEquatable<TKey>
+        {
+
+
+            var identityUserType = FindGenericBaseType(userType, typeof(AppUser<>));
             if (identityUserType == null)
             {
-                throw new InvalidOperationException(Resources.NotIdentityUser);
+                userType = typeof(TUser);
+                //throw new InvalidOperationException(Resources.NotIdentityUser);
             }
 
-            var keyType = identityUserType.GenericTypeArguments[0];
-
+            var keyType = userType.GenericTypeArguments[0];
+            if (keyType == null)
+            {
+                keyType = typeof(TKey);
+                //throw new InvalidOperationException(Resources.NotIdentityRole);
+            }
             //if (roleType != null)
             //{
-                var identityRoleType = FindGenericBaseType(roleType, typeof(IdentityRole<>));
+            var identityRoleType = FindGenericBaseType(roleType, typeof(AppRole<>));
                 if (identityRoleType == null)
-                {
-                    throw new InvalidOperationException(Resources.NotIdentityRole);
-                }
+            {
+                roleType = typeof(TRole);
+                //throw new InvalidOperationException(Resources.NotIdentityRole);
+            }
 
                 Type userStoreType = null;
                 Type roleStoreType = null;

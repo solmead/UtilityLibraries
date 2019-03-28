@@ -309,7 +309,7 @@ namespace Utilities.AspNetCore.Identity.Repo
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
             var roleId = ConvertIdFromString(id);
-            return Context.FindRoleByIdAsync(id);
+            return Context.FindRoleByIdAsync(roleId);
             //return Roles.FirstOrDefaultAsync(u => u.Id.Equals(roleId), cancellationToken);
         }
 

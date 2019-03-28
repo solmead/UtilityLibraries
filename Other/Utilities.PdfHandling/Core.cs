@@ -15,7 +15,31 @@ namespace Utilities.PdfHandling
             Portrait,
             Landscape
         }
-        
+
+
+        public static void SavePdfFromHtml(string html, string baseUrl, FileInfo file, PageOrientation orientation = PageOrientation.Portrait)
+        {
+            //Log("SavePdfFromUrl Start Url:" + url + " file:" + file.FullName);
+            if (!file.Directory.Exists)
+            {
+                file.Directory.Create();
+            }
+            if (file.Exists)
+            {
+                file.Delete();
+            }
+            var data = GetPdfFromHtml(html, baseUrl, orientation);
+            if (data != null)
+            {
+                var st = file.OpenWrite();
+                st.Write(data, 0, data.Length);
+                st.Close();
+            }
+            file.Refresh();
+
+
+            //Log("SavePdfFromUrl End");
+        }
 
         public static  void SavePdfFromUrl(string url, FileInfo file, PageOrientation orientation = PageOrientation.Portrait)
         {
@@ -41,6 +65,33 @@ namespace Utilities.PdfHandling
             //Log("SavePdfFromUrl End");
         }
 
+        public static Byte[] GetPdfFromHtml(string html, string baseUrl, PageOrientation orientation = PageOrientation.Portrait)
+        {
+
+
+            var htmlToPdfConverter = new HtmlToPdf()
+            {
+                SerialNumber = "DUVkXF1p-a0Fkb39s-f3Q8PSM9-LTwtPy01-PDUtPjwj-PD8jNDQ0-NA==",
+                BrowserWidth = 1300,
+                //LayoutWithHinting = true,
+                TriggerMode = ConversionTriggerMode.WaitTime,
+                WaitBeforeConvert = 5,
+                HtmlLoadedTimeout = 2400
+            };
+            htmlToPdfConverter.Document.PageSize = PdfPageSize.Letter;
+            htmlToPdfConverter.Document.Margins = new PdfMargins(5);
+            htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Portrait;
+            if ((orientation == PageOrientation.Landscape))
+            {
+                htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Landscape;
+            }
+            
+            Byte[] pdfBuffer;
+            
+            pdfBuffer = htmlToPdfConverter.ConvertHtmlToMemory(html, baseUrl);
+
+            return pdfBuffer;
+        }
         public static byte[] GetPdfFromUrl(string url, PageOrientation orientation = PageOrientation.Portrait)
         {
             //Log("GetPdfFromUrl Start Url:" + url);

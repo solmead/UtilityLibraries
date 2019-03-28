@@ -75,6 +75,10 @@ namespace Utilities.Logging
         {
             logger.Warn(getMessage(msg));
         }
+        public static void Error(Exception ex)
+        {
+            logger.Error(getMessage(ex.ToString()));
+        }
         public static void Error(string msg)
         {
             logger.Error(getMessage(msg));

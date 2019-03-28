@@ -5,12 +5,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Models\AppUserClaim.cs" />
+    <Compile Remove="Models\AppUserLogin.cs" />
     <Compile Remove="UserOnlyStore.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="2.2.0" />
+    <PackageReference Include="Utilities.Poco" Version="2.3.3" />
   </ItemGroup>
 
   <ItemGroup>

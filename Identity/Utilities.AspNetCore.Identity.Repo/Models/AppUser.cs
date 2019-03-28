@@ -10,6 +10,8 @@ namespace Utilities.AspNetCore.Identity.Repo.Models
         public AppUser()
         {
             Roles = new List<string>();
+            Claims = new Dictionary<string, string>();
+            TwoFactorTokens = new List<TwoFactorToken<TKey>>();
         }
 
         public AppUser(string userName) : this()
@@ -21,10 +23,18 @@ namespace Utilities.AspNetCore.Identity.Repo.Models
         //public string UserName { get; internal set; }
         
         //public string Email { get; set; }
-        public string SocialId { get; set; }
-        public List<string> Roles { get; set; }
-        
+        //public string SocialId { get; set; }
 
+
+        public List<string> Roles { get; set; }
+
+        public Dictionary<string, string> Claims { get; set; }
+
+        public List<TwoFactorToken<TKey>> TwoFactorTokens { get; set; }
+
+
+        public string LoginProvider { get; set; }
+        public string ProviderKey { get; set; }
         //public string PasswordHash { get; set; }
 
 
