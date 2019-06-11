@@ -193,7 +193,7 @@ namespace Utilities.Caching.Database.Context
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine(ex.ToString());
+                    Cache.LogError(ex.ToString());
                 }
             }
             
@@ -288,7 +288,7 @@ namespace Utilities.Caching.Database.Context
             if (itm != null && itm.TimeOut.HasValue && itm.TimeOut.Value >= DateTime.Now)
             {
                 var xml = itm.Object;
-                Debug.WriteLine("Data from DB:" + xml);
+                Cache.LogDebug("Data from DB:" + xml);
                 try
                 {
                     if (!string.IsNullOrWhiteSpace(xml))
@@ -299,7 +299,7 @@ namespace Utilities.Caching.Database.Context
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine(ex.ToString());
+                    Cache.LogError(ex.ToString());
                 }
             }
 
@@ -309,7 +309,7 @@ namespace Utilities.Caching.Database.Context
         public void Set(string name, byte[] value, TimeSpan? timeout)
         {
             var xml = Convert.ToBase64String(value);
-            Debug.WriteLine("Data to DB:" + xml);
+            Cache.LogDebug("Data to DB:" + xml);
             //var itm =  GetItem(name);
 
             //itm = itm ?? new CachedEntry()

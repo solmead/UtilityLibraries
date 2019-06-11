@@ -45,7 +45,7 @@ namespace Utilities.Caching.Core.Collections.List
 
         private void WriteLine(string msg)
         {
-            Debug.WriteLine(DateTime.Now.ToLongTimeString() + " : " + DateTime.Now.Millisecond + " - " + msg); 
+            Cache.LogDebug(msg); 
         }
 
         private async Task<IList<TT>> BaseListAsync()

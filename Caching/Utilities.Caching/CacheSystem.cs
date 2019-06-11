@@ -29,7 +29,10 @@ namespace Utilities.Caching
 
         public static ISerializer Serializer
         {
-            get => Cache.GetItem<ISerializer>(CacheArea.Global, "CachingSerializer", () => new BinarySerializer());
+            get => Cache.GetItem<ISerializer>(CacheArea.Global, "CachingSerializer", () => new BinarySerializer() {
+                LogMessage = CacheSystem.Instance.LogDebug,
+                BaseEncoding = Encoding.Unicode
+            });
             set => Cache.SetItem<ISerializer>(CacheArea.Global, "CachingSerializer", value);
         }
 

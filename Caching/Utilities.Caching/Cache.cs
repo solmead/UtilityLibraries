@@ -45,6 +45,16 @@ namespace Utilities.Caching
         }
 
 
+        public static void SetLogDebugFunction(Action<string> logCall)
+        {
+            CacheSystem.Instance.LogDebugMessage = logCall;
+        }
+        public static void SetLogErrorFunction(Action<string> logCall)
+        {
+            CacheSystem.Instance.LogErrorMessage = logCall;
+        }
+
+
         /// <summary>
         /// Pull an item from the cache
         /// </summary>

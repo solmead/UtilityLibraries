@@ -21,7 +21,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.2.0" />
     <PackageReference Include="Utilities.CollectionExtensions" Version="2.4.0" />
-    <PackageReference Include="Utilities.SerializeExtensions" Version="6.3.8" />
+    <PackageReference Include="Utilities.SerializeExtensions" Version="6.3.9" />
   </ItemGroup>
 
   <ItemGroup>

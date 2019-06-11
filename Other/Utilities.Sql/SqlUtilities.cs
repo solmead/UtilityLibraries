@@ -18,7 +18,7 @@ namespace Utilities.Sql
 
         public static void Log(string msg)
         {
-            Debug.WriteLine(msg);
+            //Debug.WriteLine(msg);
             LogMessage?.Invoke(msg);
         }
 
