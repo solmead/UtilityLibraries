@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Xml.Serialization;
 
 namespace Utilities.Caching.Helpers
@@ -12,13 +13,17 @@ namespace Utilities.Caching.Helpers
     public abstract class CachedEntryBase
     {
         protected abstract ICacheEntry GetMe();
+        //{
+        //    return null;
+        //}
         public string Name { get; set; }
-        public string Data { get { return GetMe().GetDataString(); } }
+        public string Data { get { return GetMe()?.GetDataString(); } }
         public DateTime Created { get; set; }
         public DateTime Changed { get; set; }
         public DateTime? TimeOut { get; set; }
         [XmlIgnore]
-        public object TheObject { get { return GetMe().ItemObject; } }
+        [JsonIgnore]
+        public object TheObject { get { return GetMe()?.ItemObject; } }
     }
 
 
@@ -33,7 +38,7 @@ namespace Utilities.Caching.Helpers
 
         public string GetDataString()
         {
-            return StartUp.Serializer.Serialize(Item);
+            return CacheSystem.Serializer.Serialize(Item);
         }
 
         [XmlIgnore]

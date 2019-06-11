@@ -13,6 +13,8 @@ using Microsoft.EntityFrameworkCore;
 using TestSite.Core.Identity.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Utilities.Caching.AspNetCore;
+using Utilities.Caching.Database.Context;
 
 namespace TestSite.Core.Identity
 {
@@ -36,6 +38,11 @@ namespace TestSite.Core.Identity
             });
 
             services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(
+                    Configuration.GetConnectionString("DefaultConnection")));
+
+
+            services.AddDbContext<DataCacheContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
 
@@ -73,6 +80,11 @@ namespace TestSite.Core.Identity
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
+
+            //app.CacheInit();
+
+
+
         }
     }
 }

@@ -6,17 +6,17 @@ namespace System.Collections.Extensions
 {
     public static class Extensions
     {
-        public static IAsyncList<Tt> AsAsyncList<Tt>(this List<Tt> baselst)
+        public static IAsynchronousList<Tt> AsAsynchronousList<Tt>(this List<Tt> baselst)
         {
-            return new AsyncList<Tt>(baselst);
+            return new AsynchronousList<Tt>(baselst);
         }
-        public static IAsyncList<Tt> AsAsyncList<Tt>(this IEnumerable<Tt> baselst)
+        public static IAsynchronousList<Tt> AsAsynchronousList<Tt>(this IEnumerable<Tt> baselst)
         {
-            return new AsyncList<Tt>(baselst.ToList());
+            return new AsynchronousList<Tt>(baselst.ToList());
         }
-        public static IAsyncList<Tt> AsAsyncList<Tt>(this IQueryable<Tt> baselst)
+        public static IAsynchronousList<Tt> AsAsynchronousList<Tt>(this IQueryable<Tt> baselst)
         {
-            return new AsyncList<Tt>(baselst.ToList());
+            return new AsynchronousList<Tt>(baselst.ToList());
         }
 
         public static IEnumerable<T> Randomize<T>(this IEnumerable<T> source)

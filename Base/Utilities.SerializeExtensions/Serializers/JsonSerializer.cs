@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Text;
 using Newtonsoft.Json;
 
@@ -6,12 +7,34 @@ namespace Utilities.SerializeExtensions.Serializers
 {
     public class JsonSerializer : ISerializer
     {
+
+        public Action<string> LogMessage { get; set; }
+
+        private void Log(string msg)
+        {
+            LogMessage?.Invoke(msg);
+        }
+
+        public Encoding BaseEncoding { get; set; } = Encoding.Unicode;
+
         public T Deserialize<T>(string data)
         {
-            if (string.IsNullOrWhiteSpace(data))
-                return default(T);
+            return (T)Deserialize(data, typeof(T));
+        }
+        public T Deserialize<T>(byte[] data)
+        {
+            return (T)Deserialize(data, typeof(T));
+        }
+        public object Deserialize(byte[] data, Type type)
+        {
 
-            return JsonConvert.DeserializeObject<T>(data);
+            object obj = null;
+            //baseEncoding
+            var encoding = BaseEncoding;
+            var s = encoding.GetString(data);
+            obj = Deserialize(s, type);
+            //var s = System.Text.Encoding.UTF8.GetString(data);
+            return obj;
         }
 
         public object Deserialize(string data, Type type)
@@ -19,24 +42,24 @@ namespace Utilities.SerializeExtensions.Serializers
             if (string.IsNullOrWhiteSpace(data))
                 return null;
 
-            return JsonConvert.DeserializeObject(data, type);
+            try
+            {
+                return JsonConvert.DeserializeObject(data, type);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+            
         }
 
-        public T Deserialize<T>(byte[] data)
-        {
-            var s = Encoding.UTF8.GetString(data);
-            return Deserialize<T>(s);
-        }
 
-        public object Deserialize(byte[] data, Type type)
-        {
-            var s = Encoding.UTF8.GetString(data);
-            return Deserialize(s, type);
-        }
+
+
 
         public string Serialize<T>(T item)
         {
-            return JsonConvert.SerializeObject(item);
+            return Serialize(item, typeof(T));
         }
 
         public string Serialize(object item, Type type)
@@ -46,12 +69,17 @@ namespace Utilities.SerializeExtensions.Serializers
 
         public byte[] SerializeToArray<T>(T item)
         {
-            return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(item));
+            return SerializeToArray(item, typeof(T));
         }
+
+
+
 
         public byte[] SerializeToArray(object item, Type type)
         {
-            return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(item));
+            return BaseEncoding.GetBytes(Serialize(item, type));
         }
+
+
     }
 }

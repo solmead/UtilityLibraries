@@ -61,8 +61,11 @@ namespace Utilities.Caching.Core.DataSources
             }
             try
             {
-                var t = _memoryCache.Get<CachedEntry<tt>>(name.ToUpper());
-                return t;
+                lock (_memoryCache)
+                {
+                    var t = _memoryCache.Get<CachedEntry<tt>>(name.ToUpper());
+                    return t;
+                }
             }
             catch
             {
@@ -85,15 +88,7 @@ namespace Utilities.Caching.Core.DataSources
             object empty = default(tt);
             if (comp != empty)
             {
-                try
-                {
-                    _memoryCache.Remove(item.Name.ToUpper());
-                    //HttpRuntime.Cache.Remove(item.Name.ToUpper());
-                }
-                catch (Exception)
-                {
-
-                }
+                
                 if (item.TimeOut.HasValue && item.TimeOut.Value.Subtract(DateTime.Now).TotalSeconds>0)
                 {
                     var lifeSpanSeconds = item.TimeOut.Value.Subtract(DateTime.Now).TotalSeconds;
@@ -102,11 +97,18 @@ namespace Utilities.Caching.Core.DataSources
                     int ms = (int)((lifeSpanSeconds - (1.0 * totSeconds)) * 1000.0);
                     try
                     {
-                        _memoryCache.Set(item.Name.ToUpper(), item, new TimeSpan(0, 0, 0, totSeconds, ms));
-                        //HttpRuntime.Cache.Insert(item.Name.ToUpper(), item, null,
-                        //    System.Web.Caching.Cache.NoAbsoluteExpiration,
-                        //    new TimeSpan(0, 0, 0, totSeconds, ms),
-                        //    CacheItemPriority.Default, null);
+                        lock (_memoryCache)
+                        {
+                            try
+                            {
+                                _memoryCache.Remove(item.Name.ToUpper());
+                            }
+                            catch (Exception)
+                            {
+
+                            }
+                            _memoryCache.Set(item.Name.ToUpper(), item, new TimeSpan(0, 0, 0, totSeconds, ms));
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -116,15 +118,36 @@ namespace Utilities.Caching.Core.DataSources
                 }
                 else
                 {
-                    _memoryCache.Set(item.Name.ToUpper(), item);
-                    //HttpRuntime.Cache[item.Name.ToUpper()] = item;
+                    lock (_memoryCache)
+                    {
+                        try
+                        {
+                            _memoryCache.Remove(item.Name.ToUpper());
+                        }
+                        catch (Exception)
+                        {
+
+                        }
+                        _memoryCache.Set(item.Name.ToUpper(), item);
+                    }
                 }
 
 
             }
             else
             {
-                _memoryCache.Remove(item.Name.ToUpper());
+                lock (_memoryCache)
+                {
+                    try
+                    {
+                        _memoryCache.Remove(item.Name.ToUpper());
+                    }
+                    catch (Exception)
+                    {
+
+                    }
+                }
+                    //_memoryCache.Remove(item.Name.ToUpper());
                 //HttpRuntime.Cache.Remove(item.Name.ToUpper());
             }
         }
@@ -138,10 +161,13 @@ namespace Utilities.Caching.Core.DataSources
             try
             {
 
-                var t = _memoryCache.Get<CachedEntry<object>>(name.ToUpper());
+                lock (_memoryCache)
+                {
+                    var t = _memoryCache.Get<CachedEntry<object>>(name.ToUpper());
 
-                //var t = (CachedEntry<object>)HttpRuntime.Cache[name.ToUpper()];
-                return t;
+                    //var t = (CachedEntry<object>)HttpRuntime.Cache[name.ToUpper()];
+                    return t;
+                }
             }
             catch
             {
@@ -164,22 +190,24 @@ namespace Utilities.Caching.Core.DataSources
             object empty = null;
             if (comp != empty)
             {
-                try
-                {
-                    _memoryCache.Remove(item.Name.ToUpper());
-                    //HttpRuntime.Cache.Remove(item.Name.ToUpper());
-                }
-                catch (Exception)
-                {
-
-                }
                 if (item.TimeOut.HasValue)
                 {
                     var lifeSpanSeconds = item.TimeOut.Value.Subtract(DateTime.Now).TotalSeconds;
                     int totSeconds = (int)lifeSpanSeconds;
                     int ms = (int)((lifeSpanSeconds - (1.0 * totSeconds)) * 1000.0);
 
-                    _memoryCache.Set(item.Name.ToUpper(), item, new TimeSpan(0, 0, 0, totSeconds, ms));
+                    lock (_memoryCache)
+                    {
+                        try
+                        {
+                            _memoryCache.Remove(item.Name.ToUpper());
+                        }
+                        catch (Exception)
+                        {
+
+                        }
+                        _memoryCache.Set(item.Name.ToUpper(), item, new TimeSpan(0, 0, 0, totSeconds, ms));
+                    }
                     //HttpRuntime.Cache.Insert(item.Name.ToUpper(), item, null,
                     //    System.Web.Caching.Cache.NoAbsoluteExpiration,
                     //    new TimeSpan(0, 0, 0, totSeconds, ms),
@@ -187,17 +215,39 @@ namespace Utilities.Caching.Core.DataSources
                 }
                 else
                 {
-                    _memoryCache.Set(item.Name.ToUpper(), item);
-                    //HttpRuntime.Cache[item.Name.ToUpper()] = item;
+                    lock (_memoryCache)
+                    {
+                        try
+                        {
+                            _memoryCache.Remove(item.Name.ToUpper());
+                        }
+                        catch (Exception)
+                        {
+
+                        }
+                        _memoryCache.Set(item.Name.ToUpper(), item);
+                        //HttpRuntime.Cache[item.Name.ToUpper()] = item;
+                    }
                 }
 
 
             }
             else
             {
-                _memoryCache.Remove(item.Name.ToUpper());
-                //HttpRuntime.Cache.Remove(item.Name.ToUpper());
-            }
+                lock (_memoryCache)
+                {
+                    try
+                    {
+                        _memoryCache.Remove(item.Name.ToUpper());
+                    }
+                    catch (Exception)
+                    {
+
+                    }
+                }
+                    // _memoryCache.Remove(item.Name.ToUpper());
+                    //HttpRuntime.Cache.Remove(item.Name.ToUpper());
+                }
         }
 
         public void DeleteItem(string name)
@@ -208,8 +258,11 @@ namespace Utilities.Caching.Core.DataSources
             }
             try
             {
-                _memoryCache.Remove(name.ToUpper());
-                //HttpRuntime.Cache.Remove(name.ToUpper());
+                lock (_memoryCache)
+                {
+                    _memoryCache.Remove(name.ToUpper());
+                    //HttpRuntime.Cache.Remove(name.ToUpper());
+                }
             }
             catch (Exception)
             {

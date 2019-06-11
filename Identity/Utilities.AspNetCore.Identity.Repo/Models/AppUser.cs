@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Identity;
 
 namespace Utilities.AspNetCore.Identity.Repo.Models
@@ -12,6 +13,8 @@ namespace Utilities.AspNetCore.Identity.Repo.Models
             Roles = new List<string>();
             Claims = new Dictionary<string, string>();
             TwoFactorTokens = new List<TwoFactorToken<TKey>>();
+
+            SocialLogins = new List<IdentityUserLogin<TKey>>();
         }
 
         public AppUser(string userName) : this()
@@ -26,15 +29,16 @@ namespace Utilities.AspNetCore.Identity.Repo.Models
         //public string SocialId { get; set; }
 
 
-        public List<string> Roles { get; set; }
+        public IList<string> Roles { get; set; }
 
-        public Dictionary<string, string> Claims { get; set; }
+        public IDictionary<string, string> Claims { get; set; }
 
-        public List<TwoFactorToken<TKey>> TwoFactorTokens { get; set; }
+        public IList<TwoFactorToken<TKey>> TwoFactorTokens { get; set; }
 
-
-        public string LoginProvider { get; set; }
-        public string ProviderKey { get; set; }
+        public IList<IdentityUserLogin<TKey>> SocialLogins { get; set; }
+        
+        //public string LoginProvider { get; set; }
+        //public string ProviderKey { get; set; }
         //public string PasswordHash { get; set; }
 
 

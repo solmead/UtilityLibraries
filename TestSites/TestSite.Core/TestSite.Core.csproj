@@ -9,9 +9,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0" PrivateAssets="All" />
-    <PackageReference Include="NLog" Version="4.5.11" />
-    <PackageReference Include="NLog.Web.AspNetCore" Version="4.8.0" />
-    <PackageReference Include="Utilities.Logging" Version="6.2.2" />
+    <PackageReference Include="NLog" Version="4.6.1" />
+    <PackageReference Include="NLog.Web.AspNetCore" Version="4.8.1" />
+    <PackageReference Include="Utilities.Logging" Version="6.2.3" />
   </ItemGroup>
 
 

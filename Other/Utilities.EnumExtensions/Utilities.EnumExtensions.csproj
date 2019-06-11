@@ -4,7 +4,7 @@
     <!--<TargetFramework>netstandard2.0</TargetFramework>-->
     <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>6.2.0</Version>
+    <Version>6.2.1</Version>
     <Copyright>Copyright ©2018</Copyright>
     <Authors>Solmead Productions</Authors>
     <Company>Solmead Productions</Company>

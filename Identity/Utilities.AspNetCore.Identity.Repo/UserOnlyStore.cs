@@ -293,7 +293,7 @@ namespace Utilities.AspNetCore.Identity.Repo
         protected override Task<TUserLogin> FindUserLoginAsync(TKey userId, string loginProvider, string providerKey, CancellationToken cancellationToken)
         {
             var p = Context.FindAsync(userId);
-            var u = Context.GetUserLogin(userId, providerKey + "@" + loginProvider, )
+            //var u = Context.GetUserLogin(userId, providerKey + "@" + loginProvider, )
 
             return UserLogins.SingleOrDefaultAsync(userLogin => userLogin.UserId.Equals(userId) && userLogin.LoginProvider == loginProvider && userLogin.ProviderKey == providerKey, cancellationToken);
         }

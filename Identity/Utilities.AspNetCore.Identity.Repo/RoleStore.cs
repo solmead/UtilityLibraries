@@ -393,6 +393,7 @@ namespace Utilities.AspNetCore.Identity.Repo
                 throw new ArgumentNullException(nameof(role));
             }
 
+            //throw new NotImplementedException();
             return new List<Claim>();
            // return await RoleClaims.Where(rc => rc.RoleId.Equals(role.Id)).Select(c => new Claim(c.ClaimType, c.ClaimValue)).ToListAsync(cancellationToken);
         }
@@ -416,8 +417,9 @@ namespace Utilities.AspNetCore.Identity.Repo
                 throw new ArgumentNullException(nameof(claim));
             }
 
+            throw new NotImplementedException();
             //RoleClaims.Add(CreateRoleClaim(role, claim));
-            return Task.FromResult(false);
+            //return Task.FromResult(false);
         }
         
         /// <summary>
@@ -438,6 +440,8 @@ namespace Utilities.AspNetCore.Identity.Repo
             {
                 throw new ArgumentNullException(nameof(claim));
             }
+
+            throw new NotImplementedException();
             //var claims = await RoleClaims.Where(rc => rc.RoleId.Equals(role.Id) && rc.ClaimValue == claim.Value && rc.ClaimType == claim.Type).ToListAsync(cancellationToken);
             //foreach (var c in claims)
             //{
@@ -461,9 +465,21 @@ namespace Utilities.AspNetCore.Identity.Repo
         protected virtual TRoleClaim CreateRoleClaim(TRole role, Claim claim)
             => new TRoleClaim { RoleId = role.Id, ClaimType = claim.Type, ClaimValue = claim.Value };
 
-        public IQueryable<TRole> Roles => Context.GetRoles().AsQueryable();
+        public IQueryable<TRole> Roles
+        {
+            get
+            {
+                throw new NotSupportedException("Roles list not supported");
+            }
+        }
 
-        public IQueryable<TRoleClaim> RoleClaims => null;
+        public IQueryable<TRoleClaim> RoleClaims
+        {
+            get
+            {
+                throw new NotSupportedException("Role Claims not supported");
+            }
+        }
     }
 }
 

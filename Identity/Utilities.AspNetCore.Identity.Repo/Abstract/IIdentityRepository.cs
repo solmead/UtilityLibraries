@@ -54,7 +54,7 @@ namespace Utilities.AspNetCore.Identity.Repo.Abstract
         Task DeleteUserAsync(TUser p);
 
 
-        IEnumerable<TUser> GetUsers();
+        //IEnumerable<TUser> GetUsers();
 
         Task<TUser> FindUserByIdAsync(TKey id);
         Task<TUser> FindUserByEmailAsync(string email);
@@ -62,17 +62,18 @@ namespace Utilities.AspNetCore.Identity.Repo.Abstract
 
 
         //Task SetPasswordAsync(string id, string password);
-        Task SetPasswordAsync(string name, string password);
-        Task<bool> ValidateUserLoginAsync(string username, string password);
-
-        Task<TUser> AddUserLoginAsync(TKey personId, string username, string loginProvider, string providerKey);
-        Task<IEnumerable<TUser>> GetUserLoginsAsync(TKey personId);
-        Task<TUser> GetUserLoginAsync(TKey personId, string username, string loginProvider, string providerKey);
-        Task DeleteUserLoginAsync(TKey personId, string username, string loginProvider, string providerKey);
+        Task SetPasswordAsync(TUser user, string password);
+        Task<bool> CheckPasswordAsync(TUser user, string password);
 
 
+        Task<TUser> AddUserLoginAsync(TUser user, string loginProvider, string providerKey);
+        //Task<IEnumerable<TUser>> GetUserLoginsAsync(TKey personId);
+        Task<TUser> FindUserByUserLoginAsync(string loginProvider, string providerKey);
+        Task<TUser> DeleteUserLoginAsync(TUser user, string loginProvider, string providerKey);
 
-        IEnumerable<TRole> GetRoles();
+
+
+        //IEnumerable<TRole> GetRoles();
         Task<TRole> FindRoleByIdAsync(TKey id);
         Task<TRole> FindRoleByNameAsync(string name);
 

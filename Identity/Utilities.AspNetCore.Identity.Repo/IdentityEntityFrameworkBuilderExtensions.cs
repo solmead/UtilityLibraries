@@ -15,19 +15,44 @@ namespace Utilities.AspNetCore.Identity.Repo
     /// </summary>
     public static class IdentityEntityFrameworkBuilderExtensions
     {
+
+
+        //public static void AddRepositoryStores<TUser, TRole, TKey, identityRepository>(this IServiceCollection services)
+        //    where TRole : AppRole<TKey>
+        //    where TUser : AppUser<TKey>
+        //    where TKey : IEquatable<TKey>
+        //    where identityRepository : class, IIdentityRepository<TUser, TRole, TKey>
+        //{
+
+
+
+        //    //services.AddScoped<IPasswordHasher<AppUser<string>>, PasswordHasherRepo<AppUser<string>, AppRole<string>, string>>();
+
+
+        //    services.AddScoped<IIdentityRepository<TUser, TRole, TKey>, identityRepository>();
+
+
+        //    AddStores<TUser, TRole, TKey>(services, typeof(TUser), typeof(TRole));
+        //}
+
+        //public static void AddRepositoryStores<identityRepository>(this IServiceCollection services)
+        //    where identityRepository : class, IIdentityRepository<AppUser<string>, AppRole<string>, string>
+        //{
+
+        //    AddRepositoryStores<AppUser<string>, AppRole<string>, string, identityRepository>(services);
+            
+        //}
+
         /// <summary>
         /// Adds an Entity Framework implementation of identity information stores.
         /// </summary>
         /// <typeparam name="TContext">The Entity Framework database context to use.</typeparam>
         /// <param name="builder">The <see cref="IdentityBuilder"/> instance this method extends.</param>
         /// <returns>The <see cref="IdentityBuilder"/> instance this method extends.</returns>
-        public static IdentityBuilder AddRepositoryStores(this IdentityBuilder builder)//, IIdentityRepository<AppUser<string>, AppRole<string>, string> context)
+        public static IdentityBuilder AddRepositoryStores(this IdentityBuilder builder)
         {
-            AddStores<AppUser<string>, AppRole<string>, string>(builder.Services, builder.UserType, builder.RoleType);//, context);
-            return builder;
+            return builder.AddRepositoryStores<AppUser<string>, AppRole<string>, string>();
         }
-
-
 
         /// <summary>
         /// Adds an Entity Framework implementation of identity information stores.
@@ -40,8 +65,9 @@ namespace Utilities.AspNetCore.Identity.Repo
             where TUser : AppUser<TKey>
             where TKey : IEquatable<TKey>
         {
+            
             AddStores<TUser,TRole,TKey>(builder.Services, builder.UserType, builder.RoleType);//, context);
-            return builder;
+            return builder.AddUserManager<UserManager<TUser, TRole, TKey>>(); ;
         }
 
         private static void AddStores<TUser, TRole, TKey>(IServiceCollection services, Type userType, Type roleType)//, IIdentityRepository<TUser, TRole, TKey> context)
@@ -67,57 +93,19 @@ namespace Utilities.AspNetCore.Identity.Repo
             //if (roleType != null)
             //{
             var identityRoleType = FindGenericBaseType(roleType, typeof(AppRole<>));
-                if (identityRoleType == null)
+            if (identityRoleType == null)
             {
                 roleType = typeof(TRole);
                 //throw new InvalidOperationException(Resources.NotIdentityRole);
             }
 
-                Type userStoreType = null;
-                Type roleStoreType = null;
-                //var identityContext = FindGenericBaseType(contextType, typeof(IdentityDbContext<,,,,,,,>));
-                //if (identityContext == null)
-                //{
-                    // If its a custom DbContext, we can only add the default POCOs
-                    userStoreType = typeof(UserStore<,,>).MakeGenericType(userType, roleType, keyType);
-                    roleStoreType = typeof(RoleStore<,,>).MakeGenericType(userType, roleType, keyType);
-                //}
-                //else
-                //{
-                //    userStoreType = typeof(UserStore<,,,,,,,,>).MakeGenericType(userType, roleType, contextType,
-                //        identityContext.GenericTypeArguments[2],
-                //        identityContext.GenericTypeArguments[3],
-                //        identityContext.GenericTypeArguments[4],
-                //        identityContext.GenericTypeArguments[5],
-                //        identityContext.GenericTypeArguments[7],
-                //        identityContext.GenericTypeArguments[6]);
-                //    roleStoreType = typeof(RoleStore<,,,,>).MakeGenericType(roleType, contextType,
-                //        identityContext.GenericTypeArguments[2],
-                //        identityContext.GenericTypeArguments[4],
-                //        identityContext.GenericTypeArguments[6]);
-                //}
-                services.TryAddScoped(typeof(IUserStore<>).MakeGenericType(userType), userStoreType);
-                services.TryAddScoped(typeof(IRoleStore<>).MakeGenericType(roleType), roleStoreType);
-            //}
-            //else
-            //{   // No Roles
-            //    Type userStoreType = null;
-            //    //var identityContext = FindGenericBaseType(contextType, typeof(IdentityUserContext<,,,,>));
-            //    //if (identityContext == null)
-            //    //{
-            //        // If its a custom DbContext, we can only add the default POCOs
-            //        userStoreType = typeof(UserOnlyStore<,,>).MakeGenericType(userType, roleType, keyType);
-            //    //}
-            //    //else
-            //    //{
-            //    //    userStoreType = typeof(UserOnlyStore<,,,,,>).MakeGenericType(userType, contextType,
-            //    //        identityContext.GenericTypeArguments[1],
-            //    //        identityContext.GenericTypeArguments[2],
-            //    //        identityContext.GenericTypeArguments[3],
-            //    //        identityContext.GenericTypeArguments[4]);
-            //    //}
-            //    services.TryAddScoped(typeof(IUserStore<>).MakeGenericType(userType), userStoreType);
-            //}
+            var userStoreType = typeof(UserStore<,,>).MakeGenericType(userType, roleType, keyType);
+            var roleStoreType = typeof(RoleStore<,,>).MakeGenericType(userType, roleType, keyType);
+
+            services.TryAddScoped(typeof(IUserStore<>).MakeGenericType(userType), userStoreType);
+            services.TryAddScoped(typeof(IRoleStore<>).MakeGenericType(roleType), roleStoreType);
+
+            //services.TryAddScoped(typeof(IUserManager<>).MakeGenericType(userType), userStoreType);
 
         }
 

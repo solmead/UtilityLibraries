@@ -7,7 +7,7 @@ using Utilities.Caching.CacheAreas;
 
 namespace Utilities.Caching.Core.Collections.List
 {
-    public class AsyncListOnCache<TT> : IAsyncList<TT>
+    public class AsyncListOnCache<TT> : IAsynchronousList<TT>
     {
         private readonly IDataSource _dataSource = null;
 

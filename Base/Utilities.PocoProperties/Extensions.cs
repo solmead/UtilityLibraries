@@ -360,11 +360,11 @@ namespace Utilities.Poco
             item.CopyInto(newItem);
             return newItem;
         }
-        public static void CloneFrom<TItem>(this TItem item, TItem oldItem)
+        public static void CloneFrom<TItem1, TItem2>(this TItem1 item, TItem2 oldItem)
         {
             oldItem.CopyInto(item);
         }
-        public static void CopyInto<TItem>(this TItem item, TItem newItem)
+        public static void CopyInto<TItem1, TItem2>(this TItem1 item, TItem2 newItem)
         {
             if (newItem==null)
             {

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Utilities.Caching.CacheAreas;
 using Utilities.Caching.Caches;
 using Utilities.Caching.Core;
+using Utilities.SerializeExtensions.Serializers;
 
 namespace Utilities.Caching
 {
@@ -24,6 +25,28 @@ namespace Utilities.Caching
         public bool CacheEnabled { get; set; }
 
         public static ICookieRepository CookieRepository { get; set; }
+
+
+        public static ISerializer Serializer
+        {
+            get => Cache.GetItem<ISerializer>(CacheArea.Global, "CachingSerializer", () => new BinarySerializer());
+            set => Cache.SetItem<ISerializer>(CacheArea.Global, "CachingSerializer", value);
+        }
+
+
+        public Action<string> LogErrorMessage { get; set; }
+        public Action<string> LogDebugMessage { get; set; }
+
+        public void LogDebug(string msg)
+        {
+            LogDebugMessage?.Invoke(msg);
+        }
+        public void LogError(string msg)
+        {
+            LogErrorMessage?.Invoke(msg);
+        }
+
+
 
         public void SetCookieRepository(ICookieRepository cookieRepository)
         {
@@ -143,107 +166,156 @@ namespace Utilities.Caching
 
 
 
-        private static void SetCookieValue(string name, string value)
+        //private static void SetCookieValue(string name, string value)
+        //{
+        //    Cache.SetItem<string>(CacheArea.Request, "_" + name + "Id", value);
+            
+
+        //}
+
+        private static Tuple<bool, string> IsValidCookie(string cookie)
         {
-            Cache.SetItem<string>(CacheArea.Request, "_" + name + "Id", value);
+            try
+            {
+                var baseData = cookie;
+
+                //var cdata = MachineKey.Unprotect(Convert.FromBase64String(baseData), context.Request.UserHostAddress);
+                var cdata = Convert.FromBase64String(baseData);
+                if (cdata != null)
+                {
+                    var _cookieId = Encoding.UTF8.GetString(cdata);
+                    return new Tuple<bool, string>(true, _cookieId);
+                }
+            }
+            catch
+            {
+
+            }
+            return new Tuple<bool, string>(false, null);
         }
 
         private static string GetCookieValue(string name, bool isPerminate)
         {
-            var _cookieId = Cache.GetItem<string>(CacheArea.Request, "_" + name + "Id", () => Guid.NewGuid().ToString());
-            var baseData = "";
-            string cookie = null;
-            if (CookieRepository != null)
+            return Cache.GetItem<string>(CacheArea.Request, "Cookie_" + name + "_Id", () =>
             {
-                try
+                if (CookieRepository==null)
                 {
-                    cookie = CookieRepository.getCookieValue("_" + name + "_Cache");
+                    throw new Exception("CookieRepository not initialized");
                 }
-                catch (Exception)
+                //try
+                //{
+                string cookie = CookieRepository.getCookieValue("_" + name + "_Caching");
+                if (string.IsNullOrWhiteSpace(cookie))
                 {
-
+                    cookie = Guid.NewGuid().ToString();
+                    CookieRepository.addCookie("_" + name + "_Caching", cookie, (isPerminate ? DateTime.Now.AddYears(3) : (DateTime?)null), isPerminate);
+                    
                 }
-            }
 
-            //_cookieId = MachineKey.Unprotect(Convert.FromBase64String(cookie?.Value), HttpContext.Current.Request.UserHostAddress);
-            var validCookie = false;
-            if (cookie != null)
-            {
-                try
-                {
-                    baseData = cookie;
+                //}
+                //catch (Exception)
+                //{
 
-                    //var cdata = MachineKey.Unprotect(Convert.FromBase64String(baseData), context.Request.UserHostAddress);
-                    var cdata = Convert.FromBase64String(baseData);
-                    if (cdata != null)
-                    {
-                        _cookieId = Encoding.UTF8.GetString(cdata);
-                        validCookie = true;
-                    }
-                }
-                catch
-                {
-
-                }
-            }
-            if ((cookie == null || !validCookie) && CookieRepository != null)
-            {
-                try
-                {
-                    var cdata = Encoding.UTF8.GetBytes(_cookieId);
-                    //baseData = Convert.ToBase64String(MachineKey.Protect(cdata,
-                    //        HttpContext.Current.Request.UserHostAddress));
-                    baseData = Convert.ToBase64String(cdata);
-                    CookieRepository.addCookie("_" + name + "_Cache", baseData, (isPerminate ? DateTime.Now.AddYears(3) : (DateTime?)null), true);
-
-                }
-                catch (Exception)
-                {
-
-                }
-            }
+                //}
+                return cookie;
+            });
 
 
 
-            Cache.SetItem<string>(CacheArea.Request, "_" + name + "Id", _cookieId);
-            return _cookieId;
+            //var _cookieId = Cache.GetItem<string>(CacheArea.Request, "_" + name + "Id", () => Guid.NewGuid().ToString());
+            //var baseData = "";
+            //string cookie = null;
+            //if (CookieRepository != null)
+            //{
+            //    try
+            //    {
+            //        cookie = CookieRepository.getCookieValue("_" + name + "_Cache");
+            //    }
+            //    catch (Exception)
+            //    {
+
+            //    }
+            //}
+
+            ////////_cookieId = MachineKey.Unprotect(Convert.FromBase64String(cookie?.Value), HttpContext.Current.Request.UserHostAddress);
+            //var validCookie = false;
+            //if (cookie != null)
+            //{
+            //    try
+            //    {
+            //        baseData = cookie;
+
+            //        //var cdata = MachineKey.Unprotect(Convert.FromBase64String(baseData), context.Request.UserHostAddress);
+            //        var cdata = Convert.FromBase64String(baseData);
+            //        if (cdata != null)
+            //        {
+            //            _cookieId = Encoding.UTF8.GetString(cdata);
+            //            validCookie = true;
+            //        }
+            //    }
+            //    catch
+            //    {
+
+            //    }
+            //}
+            //if ((cookie == null || !validCookie) && CookieRepository != null)
+            //{
+            //    try
+            //    {
+            //        var cdata = Encoding.UTF8.GetBytes(_cookieId);
+            //        //baseData = Convert.ToBase64String(MachineKey.Protect(cdata,
+            //        //        HttpContext.Current.Request.UserHostAddress));
+            //        baseData = Convert.ToBase64String(cdata);
+            //        CookieRepository.addCookie("_" + name + "_Cache", baseData, (isPerminate ? DateTime.Now.AddYears(3) : (DateTime?)null), true);
+
+            //    }
+            //    catch (Exception)
+            //    {
+
+            //    }
+            //}
+
+
+
+            //Cache.SetItem<string>(CacheArea.Request, "_" + name + "Id", _cookieId);
+            //return _cookieId;
         }
 
 
         public static async Task<string> CookieIdAsync()
         {
-            return GetCookieValue("my_cook", false);
+            return GetCookieValue("my_cook", true);
         }
-        public static async Task CookieIdSetAsync(string value)
-        {
-            SetCookieValue("my_cook", value);
-        }
+        //public static async Task CookieIdSetAsync(string value)
+        //{
+        //    SetCookieValue("my_cook", value);
+        //}
         public static string CookieId()
         {
             return GetCookieValue("my_cook", true);
         }
-        public static void CookieIdSet(string value)
-        {
-            SetCookieValue("my_cook", value);
-        }
+        //public static void CookieIdSet(string value)
+        //{
+        //    SetCookieValue("my_cook", value);
+        //}
         public static async Task<string> SessionIdAsync()
         {
             return GetCookieValue("my_sess", false);
         }
 
-        public static async Task SessionIdSetAsync(string value)
-        {
-            SetCookieValue("my_sess", value);
-        }
+        //public static async Task SessionIdSetAsync(string value)
+        //{
+        //    SetCookieValue("my_sess", value);
+        //}
         public static string SessionId()
         {
             return GetCookieValue("my_sess", false);
         }
 
-        public static void SessionIdSet(string value)
-        {
-            SetCookieValue("my_sess", value);
-        }
+        //public static void SessionIdSet(string value)
+        //{
+        //    SetCookieValue("my_sess", value);
+        //}
 
         public async Task ClearAllCacheAreasAsync()
         {

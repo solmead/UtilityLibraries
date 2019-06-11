@@ -25,7 +25,8 @@ namespace Utilities.Sql
         private static DbParameter CreateParamFrom(this DbCommand cmd, DbParameter param)
         {
             var p = cmd.CreateParameter();
-            p.CloneFrom(param);
+            param.CopyInto(p);
+            //p.CloneFrom(param);
 
             return p;
         }
@@ -513,7 +514,12 @@ namespace Utilities.Sql
             {
                 var ds = new DataSet();
                 var conn = db;
-                await conn.OpenAsync();
+                var closed = (conn.State == ConnectionState.Closed || conn.State == ConnectionState.Broken);
+                if (closed)
+                {
+                    Log("Opening Connection");
+                    await conn.OpenAsync();
+                }
                 {
                     var cmd = conn.CreateCommand();
                     cmd.CommandText = sql;
@@ -535,7 +541,10 @@ namespace Utilities.Sql
                     }
                     reader.Close();
                 }
-                conn.Close();
+                if (closed)
+                {
+                    conn.Close();
+                }
                 Log("-- Loaded in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
                 return ds;
             }
@@ -562,7 +571,12 @@ namespace Utilities.Sql
             {
                 var ds = new DataSet();
                 var conn = db;
-                conn.Open();
+                var closed = (conn.State == ConnectionState.Closed || conn.State == ConnectionState.Broken);
+                if (closed)
+                {
+                    Log("Opening Connection");
+                    conn.Open();
+                }
                 {
                     var cmd = conn.CreateCommand();
                     cmd.CommandText = sql;
@@ -584,7 +598,10 @@ namespace Utilities.Sql
                     }
                     reader.Close();
                 }
-                conn.Close();
+                if (closed)
+                {
+                    conn.Close();
+                }
                 Log("-- Loaded in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
                 return ds;
             }

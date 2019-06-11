@@ -69,22 +69,34 @@ namespace Utilities.ExcelLibrary
             {
                 m_Columns = Cols;
             }
-            public string GetCSVLine(string Delimiter)
+            public string GetCSVLine(string Delimiter = ",")
             {
-                var dbq = "\"";
-                System.Text.StringBuilder sb = new System.Text.StringBuilder();
-                //string s;
-                bool First = true;
-                foreach (var s in Columns)
-                {
-                    if (!First)
-                        sb.Append(Delimiter);
-                    else
-                        First = false;
-                    sb.Append(dbq + s.Replace(dbq, dbq + dbq) + dbq);
-                }
+                var m = new StringWriter();
+                TextWriter tw = m;// new StreamWriter(m);
 
-                return sb.ToString();
+                var p = new CsvHelper.CsvSerializer(tw, new Configuration() { Delimiter = Delimiter });
+                p.Write(Columns.ToArray());
+                
+                return m.ToString();
+
+                //var dbq = "\"";
+                //System.Text.StringBuilder sb = new System.Text.StringBuilder();
+                ////string s;
+                //bool First = true;
+                //if (m_Columns == null)
+                //{
+                //    m_Columns = new List<string>();
+                //}
+                //foreach (var s in Columns)
+                //{
+                //    if (!First)
+                //        sb.Append(Delimiter);
+                //    else
+                //        First = false;
+                //    sb.Append(dbq + s.Replace(dbq, dbq + dbq) + dbq);
+                //}
+
+                //return sb.ToString();
             }
         }
         public List<CSVLine> Lines = new List<CSVLine>();
@@ -103,6 +115,7 @@ namespace Utilities.ExcelLibrary
         public string GetAsCSV()
         {
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
+
             //CSVLine Line;
             foreach (var Line in Lines)
                 sb.AppendLine(Line.GetCSVLine(ColumnDelimiter));
@@ -146,64 +159,64 @@ namespace Utilities.ExcelLibrary
             return CSVF;
         }
 
-        public static CSVFile LoadFromFileDataOld(StreamReader ReadFile, string ColDelimiter = ",")
-        {
-            // Dim FileHolder As FileInfo = New FileInfo(strPath)
-            // Dim ReadFile As StreamReader = FileHolder.OpenText()
-            string strLine = "start";
-            string strLineNext = "next";
-            CSVFile CSVF = new CSVFile();
-            CSVF.ColumnDelimiter = ColDelimiter;
-            bool First = true;
-            bool HasQuote = false;
-            strLine = ReadFile.ReadLine();
-            if (strLine.Substring(0, 1) == "\"")
-            HasQuote = true;
-            while (!ReadFile.EndOfStream)
-            {
-                strLineNext = ReadFile.ReadLine();
-                if (strLineNext == "")
-                    strLineNext = " ";
-                if (HasQuote)
-                {
-                    while (!ReadFile.EndOfStream && (strLineNext.Substring(0, 1) != "\"" || strLineNext.Substring(0, 3) == "\",\""))
-                {
-                        strLine = strLine + strLineNext;
-                        strLineNext = ReadFile.ReadLine();
-                        if (strLineNext == "")
-                            strLineNext = " ";
-                    }
-                    if (strLineNext.Substring(0, 1) != "\"")
-                {
-                        strLine = strLine + strLineNext;
-                        strLineNext = "";
-                    }
-                else if (strLineNext.Substring(0, 3) == "\",\"")
-                {
-                        strLine = strLine + strLineNext;
-                        strLineNext = "";
-                    }
-                }
-                if (strLine != "")
-                {
-                    Debug.WriteLine(strLine);
-                    strLine = strLine.Replace("\r\n", "<BR/>");
-                    strLine = strLine.Replace("\r", "<BR/>");
-                    strLine = strLine.Replace("\n", "<BR/>");
-                    CSVF.Lines.Add(new CSVLine(ParseCSVLine(strLine + CSVF.ColumnDelimiter, CSVF.ColumnDelimiter)));
-                }
-                strLine = strLineNext;
-            }
-            if ((!string.IsNullOrEmpty(strLine) && strLine.Trim() != ""))
-            {
-                Debug.WriteLine(strLine);
-                strLine = strLine.Replace("\r\n", "<BR/>");
-                strLine = strLine.Replace("\r", "<BR/>");
-                strLine = strLine.Replace("\n", "<BR/>");
-                CSVF.Lines.Add(new CSVLine(ParseCSVLine(strLine + CSVF.ColumnDelimiter, CSVF.ColumnDelimiter)));
-            }
-            return CSVF;
-        }
+        //public static CSVFile LoadFromFileDataOld(StreamReader ReadFile, string ColDelimiter = ",")
+        //{
+        //    // Dim FileHolder As FileInfo = New FileInfo(strPath)
+        //    // Dim ReadFile As StreamReader = FileHolder.OpenText()
+        //    string strLine = "start";
+        //    string strLineNext = "next";
+        //    CSVFile CSVF = new CSVFile();
+        //    CSVF.ColumnDelimiter = ColDelimiter;
+        //    bool First = true;
+        //    bool HasQuote = false;
+        //    strLine = ReadFile.ReadLine();
+        //    if (strLine.Substring(0, 1) == "\"")
+        //    HasQuote = true;
+        //    while (!ReadFile.EndOfStream)
+        //    {
+        //        strLineNext = ReadFile.ReadLine();
+        //        if (strLineNext == "")
+        //            strLineNext = " ";
+        //        if (HasQuote)
+        //        {
+        //            while (!ReadFile.EndOfStream && (strLineNext.Substring(0, 1) != "\"" || strLineNext.Substring(0, 3) == "\",\""))
+        //        {
+        //                strLine = strLine + strLineNext;
+        //                strLineNext = ReadFile.ReadLine();
+        //                if (strLineNext == "")
+        //                    strLineNext = " ";
+        //            }
+        //            if (strLineNext.Substring(0, 1) != "\"")
+        //        {
+        //                strLine = strLine + strLineNext;
+        //                strLineNext = "";
+        //            }
+        //        else if (strLineNext.Substring(0, 3) == "\",\"")
+        //        {
+        //                strLine = strLine + strLineNext;
+        //                strLineNext = "";
+        //            }
+        //        }
+        //        if (strLine != "")
+        //        {
+        //            Debug.WriteLine(strLine);
+        //            strLine = strLine.Replace("\r\n", "<BR/>");
+        //            strLine = strLine.Replace("\r", "<BR/>");
+        //            strLine = strLine.Replace("\n", "<BR/>");
+        //            CSVF.Lines.Add(new CSVLine(ParseCSVLine(strLine + CSVF.ColumnDelimiter, CSVF.ColumnDelimiter)));
+        //        }
+        //        strLine = strLineNext;
+        //    }
+        //    if ((!string.IsNullOrEmpty(strLine) && strLine.Trim() != ""))
+        //    {
+        //        Debug.WriteLine(strLine);
+        //        strLine = strLine.Replace("\r\n", "<BR/>");
+        //        strLine = strLine.Replace("\r", "<BR/>");
+        //        strLine = strLine.Replace("\n", "<BR/>");
+        //        CSVF.Lines.Add(new CSVLine(ParseCSVLine(strLine + CSVF.ColumnDelimiter, CSVF.ColumnDelimiter)));
+        //    }
+        //    return CSVF;
+        //}
         public static CSVFile LoadFromFile(string strPath, string ColDelimiter = ",")
         {
             FileInfo FileHolder = new FileInfo(strPath);

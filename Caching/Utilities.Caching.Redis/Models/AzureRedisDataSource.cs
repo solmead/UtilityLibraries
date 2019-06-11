@@ -17,7 +17,7 @@ namespace AzureRedisCaching.Models
     public class AzureRedisDataSource : IDataSource
     {
 
-        private static ISerializer Serializer => Utilities.Caching.StartUp.Serializer;
+        private static ISerializer Serializer => CacheSystem.Serializer;
 
 
 

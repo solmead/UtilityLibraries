@@ -101,7 +101,6 @@ namespace Utilities.AspNetCore.Identity.Repo
         IUserEmailStore<TUser>,
         IUserLockoutStore<TUser>,
         IUserPhoneNumberStore<TUser>,
-        IQueryableUserStore<TUser>,
         IUserTwoFactorStore<TUser>,
         IUserAuthenticationTokenStore<TUser>,
         IUserAuthenticatorKeyStore<TUser>,
@@ -122,6 +121,8 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <param name="describer">The <see cref="IdentityErrorDescriber"/> used to describe store errors.</param>
         public UserStore(IIdentityRepository<TUser, TRole, TKey> context, IdentityErrorDescriber describer = null) : base(describer ?? new IdentityErrorDescriber())
         {
+            //IUserPasswordStore s;
+            
             if (context == null)
             {
                 throw new ArgumentNullException(nameof(context));
@@ -342,7 +343,8 @@ namespace Utilities.AspNetCore.Identity.Repo
         {
 
             var L = await Context.FindUserByIdAsync(userId);
-            var L2 = await Context.GetUserLoginAsync(L.Id, L.UserName, loginProvider, providerKey);
+            var L2 = L.SocialLogins.FirstOrDefault((sl) => sl.LoginProvider == loginProvider && sl.ProviderKey == providerKey);
+            //var L2 = await Context.GetUserLoginAsync(L.Id, L.UserName, loginProvider, providerKey);
 
             if (L == null || L2 == null)
             {
@@ -350,10 +352,10 @@ namespace Utilities.AspNetCore.Identity.Repo
             }
 
             var UL = Poco.Extensions.Create<TUserLogin>();
-            UL.UserId = L2.Id;
+            UL.UserId = L.Id;
             UL.LoginProvider = loginProvider;
             UL.ProviderKey = providerKey;
-            UL.ProviderDisplayName = L2.UserName;
+            UL.ProviderDisplayName = L.UserName;
             return UL;
             //return UserLogins.SingleOrDefaultAsync(userLogin => userLogin.UserId.Equals(userId) && userLogin.LoginProvider == loginProvider && userLogin.ProviderKey == providerKey, cancellationToken);
         }
@@ -367,10 +369,7 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <returns>The user login if it exists.</returns>
         protected override async Task<TUserLogin> FindUserLoginAsync(string loginProvider, string providerKey, CancellationToken cancellationToken)
         {
-            //var L = await Context.FindUserByIdAsync(userId);
-            TKey id = ConvertIdFromString("");
-
-            var L2 = await Context.GetUserLoginAsync(id, null, loginProvider, providerKey );
+            var L2 = await Context.FindUserByUserLoginAsync(loginProvider, providerKey);
 
             if (L2 == null)
             {
@@ -398,6 +397,8 @@ namespace Utilities.AspNetCore.Identity.Repo
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
+
+            throw new NotImplementedException();
             //if (user == null)
             //{
             //    throw new ArgumentNullException(nameof(user));
@@ -428,6 +429,7 @@ namespace Utilities.AspNetCore.Identity.Repo
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
+            throw new NotImplementedException();
             //if (user == null)
             //{
             //    throw new ArgumentNullException(nameof(user));
@@ -679,9 +681,9 @@ namespace Utilities.AspNetCore.Identity.Repo
             {
                 throw new ArgumentNullException(nameof(login));
             }
-
-            var UL = CreateUserLogin(user, login);
-            await Context.AddUserLoginAsync(UL.UserId, user.UserName, UL.LoginProvider, UL.ProviderKey);
+            
+            //var UL = CreateUserLogin(user, login);
+            await Context.AddUserLoginAsync(user, login.LoginProvider, login.ProviderKey);
 
 
             //UserLogins.Add(CreateUserLogin(user, login));
@@ -708,11 +710,7 @@ namespace Utilities.AspNetCore.Identity.Repo
             {
                 throw new ArgumentNullException(nameof(user));
             }
-            var entry = await FindUserLoginAsync(user.Id, loginProvider, providerKey, cancellationToken);
-            if (entry != null)
-            {
-                await Context.DeleteUserLoginAsync(user.Id, user.UserName, loginProvider, providerKey);
-            }
+            await Context.DeleteUserLoginAsync(user, loginProvider, providerKey);
         }
 
         /// <summary>
@@ -731,10 +729,8 @@ namespace Utilities.AspNetCore.Identity.Repo
             {
                 throw new ArgumentNullException(nameof(user));
             }
-            var userId = user.Id;
-
-            var list = (await Context.GetUserLoginsAsync(user.Id)).Select((u) =>
-                new UserLoginInfo(u.LoginProvider, u.ProviderKey, u.UserName)).ToList();
+            //var userId = user.Id;
+            var list = user.SocialLogins.Select((u) => new UserLoginInfo(u.LoginProvider, u.ProviderKey, user.UserName)).ToList();
 
             return list;
 
@@ -923,7 +919,11 @@ namespace Utilities.AspNetCore.Identity.Repo
             //return Task.CompletedTask;
         }
 
-        public override IQueryable<TUser> Users => Context.GetUsers().AsQueryable();
+        public override IQueryable<TUser> Users {
+            get {
+                throw new NotSupportedException("Users list not supported");
+            }
+        }
     }
 }
 

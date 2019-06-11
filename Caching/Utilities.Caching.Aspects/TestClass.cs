@@ -42,9 +42,9 @@ namespace Utilities.Caching.Aspects
 
 
         [CacheFunction(CacheArea = CacheArea.Global)]
-        public static async Task<List<int>> DoSomething(int a = 0, string b = "test")
+        public static Task<List<int>> DoSomething(int a = 0, string b = "test")
         {
-            return new List<int>() {5,4,3,2,1};
+            return Task.FromResult(new List<int>() {5,4,3,2,1});
         }
 
 
