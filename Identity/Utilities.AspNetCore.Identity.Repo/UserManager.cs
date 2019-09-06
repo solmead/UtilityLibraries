@@ -43,7 +43,7 @@ namespace Utilities.AspNetCore.Identity.Repo
                 success = await _identityRepository.CheckPasswordAsync(user, password);
             }
 
-
+            user.SecurityStamp = user.UserName;
             return success;
         }
 

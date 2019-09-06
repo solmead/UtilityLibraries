@@ -23,7 +23,7 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// </summary>
         /// <param name="context">The <see cref="DbContext"/>.</param>
         /// <param name="describer">The <see cref="IdentityErrorDescriber"/>.</param>
-        public UserStore(IIdentityRepository<AppUser<string>, AppRole<string>, string> context, IdentityErrorDescriber describer = null) : base(context, describer) { }
+        public UserStore(IIdentityRepository<AppUser<string>, AppRole<string>, string> identityRepository, IdentityErrorDescriber describer = null) : base(identityRepository, describer) { }
     }
 
     /// <summary>
@@ -38,7 +38,7 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// </summary>
         /// <param name="context">The <see cref="DbContext"/>.</param>
         /// <param name="describer">The <see cref="IdentityErrorDescriber"/>.</param>
-        public UserStore(IIdentityRepository<TUser, AppRole<string>, string> context, IdentityErrorDescriber describer = null) : base(context, describer) { }
+        public UserStore(IIdentityRepository<TUser, AppRole<string>, string> identityRepository, IdentityErrorDescriber describer = null) : base(identityRepository, describer) { }
     }
 
     /// <summary>
@@ -56,7 +56,7 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// </summary>
         /// <param name="context">The <see cref="DbContext"/>.</param>
         /// <param name="describer">The <see cref="IdentityErrorDescriber"/>.</param>
-        public UserStore(IIdentityRepository<TUser, TRole, string> context, IdentityErrorDescriber describer = null) : base(context, describer) { }
+        public UserStore(IIdentityRepository<TUser, TRole, string> identityRepository, IdentityErrorDescriber describer = null) : base(identityRepository, describer) { }
     }
 
     /// <summary>
@@ -76,7 +76,7 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// </summary>
         /// <param name="context">The <see cref="DbContext"/>.</param>
         /// <param name="describer">The <see cref="IdentityErrorDescriber"/>.</param>
-        public UserStore(IIdentityRepository<TUser, TRole, TKey> context, IdentityErrorDescriber describer = null) : base(context, describer) { }
+        public UserStore(IIdentityRepository<TUser, TRole, TKey> identityRepository, IdentityErrorDescriber describer = null) : base(identityRepository, describer) { }
     }
 
     /// <summary>
@@ -119,21 +119,21 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// </summary>
         /// <param name="context">The context used to access the store.</param>
         /// <param name="describer">The <see cref="IdentityErrorDescriber"/> used to describe store errors.</param>
-        public UserStore(IIdentityRepository<TUser, TRole, TKey> context, IdentityErrorDescriber describer = null) : base(describer ?? new IdentityErrorDescriber())
+        public UserStore(IIdentityRepository<TUser, TRole, TKey> identityRepository, IdentityErrorDescriber describer = null) : base(describer ?? new IdentityErrorDescriber())
         {
             //IUserPasswordStore s;
             
-            if (context == null)
+            if (identityRepository == null)
             {
-                throw new ArgumentNullException(nameof(context));
+                throw new ArgumentNullException(nameof(identityRepository));
             }
-            Context = context;
+            _identityRepository = identityRepository;
         }
 
         /// <summary>
         /// Gets the database context for this store.
         /// </summary>
-        public IIdentityRepository<TUser, TRole, TKey> Context { get; private set; }
+        public IIdentityRepository<TUser, TRole, TKey> _identityRepository { get; private set; }
 
         //private DbSet<TUser> UsersSet { get { return Context.Set<TUser>(); } }
         //private DbSet<TRole> Roles { get { return Context.Set<TRole>(); } }
@@ -173,7 +173,7 @@ namespace Utilities.AspNetCore.Identity.Repo
                 throw new ArgumentNullException(nameof(user));
             }
 
-            await Context.CreateUserAsync(user);
+            await _identityRepository.CreateUserAsync(user);
 
             //Context.Add(user);
             //await SaveChanges(cancellationToken);
@@ -195,7 +195,7 @@ namespace Utilities.AspNetCore.Identity.Repo
                 throw new ArgumentNullException(nameof(user));
             }
 
-            await Context.UpdateUserAsync(user);
+            await _identityRepository.UpdateUserAsync(user);
             //Context.Attach(user);
             //user.ConcurrencyStamp = Guid.NewGuid().ToString();
             //Context.Update(user);
@@ -224,7 +224,7 @@ namespace Utilities.AspNetCore.Identity.Repo
             {
                 throw new ArgumentNullException(nameof(user));
             }
-            await Context.DeleteUserAsync(user);
+            await _identityRepository.DeleteUserAsync(user);
 
             //Context.Remove(user);
             //try
@@ -238,6 +238,32 @@ namespace Utilities.AspNetCore.Identity.Repo
             return IdentityResult.Success;
         }
 
+
+        private void UpdateRolesInClaims(TUser user)
+        {
+            var cList = (from c in user.Claims
+                         where c.ClaimType == ClaimTypes.Role
+                         select c).ToList();
+            foreach(var cm in cList)
+            {
+                user.Claims.Remove(cm);
+            }
+
+
+            var cnt = 0;
+            foreach (var r in user.Roles)
+            {
+                user.Claims.Add(new IdentityUserClaim<TKey>()
+                {
+                    UserId = user.Id,
+                    ClaimType = ClaimTypes.Role,
+                    ClaimValue = r,
+                    Id = user.Claims.Count + cnt * 100
+                });
+                cnt++;
+            }
+        }
+
         /// <summary>
         /// Finds and returns a user, if any, who has the specified <paramref name="userId"/>.
         /// </summary>
@@ -246,14 +272,16 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <returns>
         /// The <see cref="Task"/> that represents the asynchronous operation, containing the user matching the specified <paramref name="userId"/> if it exists.
         /// </returns>
-        public override Task<TUser> FindByIdAsync(string userId, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<TUser> FindByIdAsync(string userId, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
             var id = ConvertIdFromString(userId);
             
 
-            return Context.FindUserByIdAsync(id);
+            var u = await _identityRepository.FindUserByIdAsync(id);
+            UpdateRolesInClaims(u);
+            return u;
             //var id = ConvertIdFromString(userId);
             //return UsersSet.FindUserByIdAsync(new object[] { id }, cancellationToken);
         }
@@ -266,12 +294,13 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <returns>
         /// The <see cref="Task"/> that represents the asynchronous operation, containing the user matching the specified <paramref name="normalizedUserName"/> if it exists.
         /// </returns>
-        public override Task<TUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<TUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
-            return Context.FindUserByUsernameAsync(normalizedUserName);
-            //return Users.FirstOrDefaultAsync(u => u.NormalizedUserName == normalizedUserName, cancellationToken);
+            var u = await _identityRepository.FindUserByUsernameAsync(normalizedUserName);
+            UpdateRolesInClaims(u);
+            return u;
         }
 
         ///// <summary>
@@ -290,7 +319,7 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <returns>The role if it exists.</returns>
         protected override Task<TRole> FindRoleAsync(string normalizedRoleName, CancellationToken cancellationToken)
         {
-            return Context.FindRoleByNameAsync(normalizedRoleName);
+            return _identityRepository.FindRoleByNameAsync(normalizedRoleName);
             //return Roles.SingleOrDefaultAsync(r => r.NormalizedName == normalizedRoleName, cancellationToken);
         }
 
@@ -303,7 +332,7 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <returns>The user role if it exists.</returns>
         protected override async Task<TUserRole> FindUserRoleAsync(TKey userId, TKey roleId, CancellationToken cancellationToken)
         {
-            var user = await Context.FindUserByIdAsync(userId);
+            var user = await _identityRepository.FindUserByIdAsync(userId);
             var roles = await GetRoleListAsync(user, cancellationToken);
             var role = (from r in roles where r.Id.Equals(roleId) select r).FirstOrDefault();
 
@@ -325,10 +354,11 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <param name="userId">The user's id.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The user if it exists.</returns>
-        protected override Task<TUser> FindUserAsync(TKey userId, CancellationToken cancellationToken)
+        protected override async Task<TUser> FindUserAsync(TKey userId, CancellationToken cancellationToken)
         {
-            return Context.FindUserByIdAsync(userId);
-            //return Users.SingleOrDefaultAsync(u => u.Id.Equals(userId), cancellationToken);
+            var u = await _identityRepository.FindUserByIdAsync(userId);
+            UpdateRolesInClaims(u);
+            return u;
         }
 
         /// <summary>
@@ -342,7 +372,7 @@ namespace Utilities.AspNetCore.Identity.Repo
         protected override async Task<TUserLogin> FindUserLoginAsync(TKey userId, string loginProvider, string providerKey, CancellationToken cancellationToken)
         {
 
-            var L = await Context.FindUserByIdAsync(userId);
+            var L = await _identityRepository.FindUserByIdAsync(userId);
             var L2 = L.SocialLogins.FirstOrDefault((sl) => sl.LoginProvider == loginProvider && sl.ProviderKey == providerKey);
             //var L2 = await Context.GetUserLoginAsync(L.Id, L.UserName, loginProvider, providerKey);
 
@@ -356,6 +386,7 @@ namespace Utilities.AspNetCore.Identity.Repo
             UL.LoginProvider = loginProvider;
             UL.ProviderKey = providerKey;
             UL.ProviderDisplayName = L.UserName;
+
             return UL;
             //return UserLogins.SingleOrDefaultAsync(userLogin => userLogin.UserId.Equals(userId) && userLogin.LoginProvider == loginProvider && userLogin.ProviderKey == providerKey, cancellationToken);
         }
@@ -369,7 +400,7 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <returns>The user login if it exists.</returns>
         protected override async Task<TUserLogin> FindUserLoginAsync(string loginProvider, string providerKey, CancellationToken cancellationToken)
         {
-            var L2 = await Context.FindUserByUserLoginAsync(loginProvider, providerKey);
+            var L2 = await _identityRepository.FindUserByUserLoginAsync(loginProvider, providerKey);
 
             if (L2 == null)
             {
@@ -462,7 +493,7 @@ namespace Utilities.AspNetCore.Identity.Repo
             var list = new List<TRole>();// =(from r in user.Roles select Context.FindRoleByNameAsync(r))
             foreach (var r in user.Roles)
             {
-                var role = await Context.FindRoleByNameAsync(r);
+                var role = await _identityRepository.FindRoleByNameAsync(r);
                 list.Add(role);
             }
             
@@ -534,22 +565,7 @@ namespace Utilities.AspNetCore.Identity.Repo
                 throw new ArgumentNullException(nameof(user));
             }
 
-            var UserClaims = new List<TUserClaim>();
-            var cnt = 1;
-            foreach (var k in user.Claims.Keys)
-            {
-                var UC = Poco.Extensions.Create<TUserClaim>();
-                UC.UserId = user.Id;
-                UC.ClaimType = k;
-                UC.ClaimValue = user.Claims[k];
-                UC.Id = cnt;
-                UserClaims.Add(UC);
-                cnt++;
-            }
-
-
-
-            return UserClaims.Select(c => c.ToClaim()).ToList();
+            return user.Claims.Select(c => c.ToClaim()).ToList();
         }
 
         /// <summary>
@@ -573,18 +589,18 @@ namespace Utilities.AspNetCore.Identity.Repo
             foreach (var claim in claims)
             {
                 var UC = CreateUserClaim(user, claim);
-                if (user.Claims.ContainsKey(UC.ClaimType))
-                {
-                    user.Claims[UC.ClaimType] = UC.ClaimValue;
-                }
-                else
-                {
-                    user.Claims.Add(UC.ClaimType, UC.ClaimValue);
-                }
-
+                //if (user.Claims.ContainsKey(UC.ClaimType))
+                //{
+                //    user.Claims[UC.ClaimType] = UC.ClaimValue;
+                //}
+                //else
+                //{
+                //    user.Claims.Add(UC.ClaimType, UC.ClaimValue);
+                //}
+                user.Claims.Add(UC);
                 //UserClaims.Add(CreateUserClaim(user, claim));
             }
-            await Context.UpdateUserAsync(user);
+            await _identityRepository.UpdateUserAsync(user);
             //return Task.FromResult(false);
         }
 
@@ -612,16 +628,15 @@ namespace Utilities.AspNetCore.Identity.Repo
                 throw new ArgumentNullException(nameof(newClaim));
             }
             var UC = CreateUserClaim(user, newClaim);
-            if (user.Claims.ContainsKey(UC.ClaimType))
-            {
-                user.Claims[UC.ClaimType] = UC.ClaimValue;
-            }
-            else
-            {
-                user.Claims.Add(UC.ClaimType, UC.ClaimValue);
-            }
 
-            await Context.UpdateUserAsync(user);
+            var tUC = (from cr in user.Claims where cr.Id == UC.Id select cr).FirstOrDefault();
+            if (tUC != null)
+            {
+                user.Claims.Remove(tUC);
+            }
+            user.Claims.Add(UC);
+
+            await _identityRepository.UpdateUserAsync(user);
             //var matchedClaims = await UserClaims.Where(uc => uc.UserId.Equals(user.Id) && uc.ClaimValue == claim.Value && uc.ClaimType == claim.Type).ToListAsync(cancellationToken);
             //foreach (var matchedClaim in matchedClaims)
             //{
@@ -648,17 +663,21 @@ namespace Utilities.AspNetCore.Identity.Repo
             {
                 throw new ArgumentNullException(nameof(claims));
             }
+
+
             foreach (var claim in claims)
             {
-
                 var UC = CreateUserClaim(user, claim);
-                if (user.Claims.ContainsKey(UC.ClaimType))
+
+
+                var tUC = (from cr in user.Claims where cr.Id == UC.Id select cr).FirstOrDefault();
+                if (tUC != null)
                 {
-                    user.Claims.Remove(UC.ClaimType);
+                    user.Claims.Remove(tUC);
                 }
             }
 
-            await Context.UpdateUserAsync(user);
+            await _identityRepository.UpdateUserAsync(user);
         }
 
         /// <summary>
@@ -683,7 +702,7 @@ namespace Utilities.AspNetCore.Identity.Repo
             }
             
             //var UL = CreateUserLogin(user, login);
-            await Context.AddUserLoginAsync(user, login.LoginProvider, login.ProviderKey);
+            await _identityRepository.AddUserLoginAsync(user, login.LoginProvider, login.ProviderKey);
 
 
             //UserLogins.Add(CreateUserLogin(user, login));
@@ -710,7 +729,7 @@ namespace Utilities.AspNetCore.Identity.Repo
             {
                 throw new ArgumentNullException(nameof(user));
             }
-            await Context.DeleteUserLoginAsync(user, loginProvider, providerKey);
+            await _identityRepository.DeleteUserLoginAsync(user, loginProvider, providerKey);
         }
 
         /// <summary>
@@ -770,11 +789,15 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <returns>
         /// The task object containing the results of the asynchronous lookup operation, the user if any associated with the specified normalized email address.
         /// </returns>
-        public override Task<TUser> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<TUser> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
-            return Context.FindUserByEmailAsync(normalizedEmail);
+            var u = await _identityRepository.FindUserByEmailAsync(normalizedEmail);
+            UpdateRolesInClaims(u);
+            return u;
+
+
             //return Users.FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail, cancellationToken);
         }
 
@@ -798,8 +821,8 @@ namespace Utilities.AspNetCore.Identity.Repo
             //var UC = CreateUserClaim(user, claim);
 
             var list = (from u in Users
-                from k in u.Claims.Keys
-                where k == claim.Type && u.Claims[k] == claim.Value
+                from k in u.Claims
+                where k.ClaimType == claim.Type && k.ClaimValue == claim.Value
                 select u).ToList();
 
 
@@ -885,10 +908,10 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <returns></returns>
         protected override async Task AddUserTokenAsync(TUserToken token)
         {
-            var user = await Context.FindUserByIdAsync(token.UserId);
+            var user = await _identityRepository.FindUserByIdAsync(token.UserId);
             user.TwoFactorTokens.Add(token);
 
-            await Context.UpdateUserAsync(user);
+            await _identityRepository.UpdateUserAsync(user);
 
 
 
@@ -905,14 +928,14 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <returns></returns>
         protected override async Task RemoveUserTokenAsync(TUserToken token)
         {
-            var user = await Context.FindUserByIdAsync(token.UserId);
+            var user = await _identityRepository.FindUserByIdAsync(token.UserId);
 
             var ut = (from tfa in user.TwoFactorTokens
                 where tfa.LoginProvider == token.LoginProvider && tfa.Name == token.Name
                 select tfa).FirstOrDefault();
 
             user.TwoFactorTokens.Remove(ut);
-            await Context.UpdateUserAsync(user);
+            await _identityRepository.UpdateUserAsync(user);
 
 
             //UserTokens.Remove(token);

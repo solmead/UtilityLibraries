@@ -11,9 +11,8 @@ namespace Utilities.AspNetCore.Identity.Repo.Models
         public AppUser()
         {
             Roles = new List<string>();
-            Claims = new Dictionary<string, string>();
+            Claims = new List<IdentityUserClaim<TKey>>();
             TwoFactorTokens = new List<TwoFactorToken<TKey>>();
-
             SocialLogins = new List<IdentityUserLogin<TKey>>();
         }
 
@@ -31,7 +30,7 @@ namespace Utilities.AspNetCore.Identity.Repo.Models
 
         public IList<string> Roles { get; set; }
 
-        public IDictionary<string, string> Claims { get; set; }
+        public IList<IdentityUserClaim<TKey>> Claims { get; set; }
 
         public IList<TwoFactorToken<TKey>> TwoFactorTokens { get; set; }
 

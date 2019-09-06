@@ -12,6 +12,28 @@ namespace Utilities.Caching.Web
     public class CookieRepository : ICookieRepository
     { 
         
+        private  static string _cookiePath = null;
+
+        public static string  CookiePath
+        {
+            get
+            {
+                //FormsAuthentication.FormsCookiePath;
+                if (string.IsNullOrWhiteSpace(_cookiePath))
+                {
+                    _cookiePath = System.Web.VirtualPathUtility.ToAbsolute("~/");
+                }
+
+
+                return _cookiePath;
+            }
+            set
+            {
+                _cookiePath = value;
+            }
+        }
+
+
         public CookieRepository()
         {
 
@@ -39,7 +61,7 @@ namespace Utilities.Caching.Web
                 }
                 cookie.Value = value;
                 //cookie.HttpOnly = true;
-                cookie.Path = FormsAuthentication.FormsCookiePath;
+                cookie.Path = CookiePath; 
                 cookie.Secure = string.Equals("https", HttpContext.Current.Request.Url.Scheme, StringComparison.OrdinalIgnoreCase);
                 if (expires.HasValue)
                 {

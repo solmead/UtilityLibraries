@@ -48,6 +48,14 @@ namespace Utilities.Caching
         {
             LogErrorMessage?.Invoke(msg);
         }
+        public static void SetLogDebugFunction(Action<string> logCall)
+        {
+            CacheSystem.Instance.LogDebugMessage = logCall;
+        }
+        public static void SetLogErrorFunction(Action<string> logCall)
+        {
+            CacheSystem.Instance.LogErrorMessage = logCall;
+        }
 
 
 

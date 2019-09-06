@@ -4,5 +4,7 @@
     {
         string CurrentUserName();
         string UserHostAddress();
+
+        string MapPath(string path);
     }
 }

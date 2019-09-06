@@ -13,12 +13,17 @@ namespace Utilities.Logging
         public static ILogUserRepository userRepo { get; set; }
 
 
+        public static Logger Logger { get; set; }
 
-
-        private static Logger logger
+        private static Logger _logger
         {
             get
             {
+                if (Logger == null)
+                {
+                    Logger = LogManager.GetCurrentClassLogger();
+                }
+
 
                 if (!isLoaded)
                 {
@@ -29,10 +34,17 @@ namespace Utilities.Logging
                     //var logFac = logger.Factory.LoadConfiguration("Content/NLog.config");
                 }
 
-                return LogManager.GetCurrentClassLogger();
+                return Logger;
             }
         }
         private static bool isLoaded = false;
+
+        public static void AddProperty(string name, string value)
+        {
+            Logger = _logger.WithProperty(name, value);
+        }
+
+
 
         //private static readonly ILog logger = LogProvider.For();
 
@@ -61,31 +73,31 @@ namespace Utilities.Logging
 
         public static void Trace(string msg)
         {
-            logger.Trace(getMessage(msg));
+            _logger.Trace(getMessage(msg));
         }
         public static void Debug(string msg)
         {
-            logger.Debug(getMessage(msg));
+            _logger.Debug(getMessage(msg));
         }
         public static void Info(string msg)
         {
-            logger.Info(getMessage(msg));
+            _logger.Info(getMessage(msg));
         }
         public static void Warn(string msg)
         {
-            logger.Warn(getMessage(msg));
+            _logger.Warn(getMessage(msg));
         }
         public static void Error(Exception ex)
         {
-            logger.Error(getMessage(ex.ToString()));
+            _logger.Error(getMessage(ex.ToString()));
         }
         public static void Error(string msg)
         {
-            logger.Error(getMessage(msg));
+            _logger.Error(getMessage(msg));
         }
         public static void Fatal(string msg)
         {
-            logger.Fatal(getMessage(msg));
+            _logger.Fatal(getMessage(msg));
         }
         private static string GetLogFileName(string targetName)
         {

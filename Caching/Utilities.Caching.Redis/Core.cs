@@ -28,7 +28,7 @@ namespace Utilities.Caching.Redis
         }
         public static int DefaultTimeoutMinutes
         {
-            get => Cache.GetItem<int?>(CacheArea.Global, "CachingRedisDefaultTimeoutMinutes", () => 0) ?? 0;
+            get => Cache.GetItem<int?>(CacheArea.Global, "CachingRedisDefaultTimeoutMinutes", () => 5) ?? 5;
             set => Cache.SetItem<int?>(CacheArea.Global, "CachingRedisDefaultTimeoutMinutes", value);
         }
 
@@ -68,7 +68,7 @@ namespace Utilities.Caching.Redis
             HostName = hostName;
             AllowNonSSL = allowNonSSL;
             CacheKey = cacheKey;
-            DefaultTimeoutMinutes = defaultTimeoutMinutes;
+            DefaultTimeoutMinutes = Math.Max(defaultTimeoutMinutes, 1);
 
             var system = CacheSystem.Instance;
             system.CacheAreas[CacheArea.Distributed] = new AzureRedisCache();
