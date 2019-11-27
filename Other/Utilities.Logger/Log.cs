@@ -99,9 +99,9 @@ namespace Utilities.Logging
         {
             _logger.Fatal(getMessage(msg));
         }
-        private static string GetLogFileName(string targetName)
+        private static FileInfo GetMainLogFile(string targetName = "asyncFile")
         {
-            string fileName = null;
+            FileInfo file = null;
 
             if (LogManager.Configuration != null && LogManager.Configuration.ConfiguredNamedTargets.Count != 0)
             {
@@ -130,19 +130,24 @@ namespace Utilities.Logging
                 }
 
                 var logEventInfo = new LogEventInfo { TimeStamp = DateTime.Now };
-                fileName = fileTarget.FileName.Render(logEventInfo);
+                var fileName = fileTarget.FileName.Render(logEventInfo);
+
+                file = new FileInfo(userRepo?.MapPath(fileName));
+
             }
             else
             {
                 throw new Exception("LogManager contains no Configuration or there are no named targets");
             }
 
-            if (!File.Exists(fileName))
-            {
-                throw new Exception("File " + fileName + " does not exist");
-            }
 
-            return fileName;
+
+            //if (file == null)
+            //{
+            //    throw new Exception("File " + fileName + " does not exist");
+            //}
+
+            return file;
         }
 
 
@@ -153,7 +158,8 @@ namespace Utilities.Logging
             try
             {
                 Log.Info("CleanLogs - Started");
-                var file = new FileInfo(GetLogFileName("asyncFile"));
+                var file = GetMainLogFile();
+                //var file = new FileInfo(GetLogFileName("asyncFile"));
                 var dir = file.Directory;
                 if (!dir.Exists)
                 {

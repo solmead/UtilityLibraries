@@ -16,6 +16,8 @@ namespace Utilities.PdfHandling
             Landscape
         }
 
+        public static string HiQPDFSerial { get; set; } = "DUVkXF1p-a0Fkb39s-f3Q8PSM9-LTwtPy01-PDUtPjwj-PD8jNDQ0-NA==";
+
 
         public static void SavePdfFromHtml(string html, string baseUrl, FileInfo file, PageOrientation orientation = PageOrientation.Portrait)
         {
@@ -71,7 +73,7 @@ namespace Utilities.PdfHandling
 
             var htmlToPdfConverter = new HtmlToPdf()
             {
-                SerialNumber = "DUVkXF1p-a0Fkb39s-f3Q8PSM9-LTwtPy01-PDUtPjwj-PD8jNDQ0-NA==",
+                SerialNumber = HiQPDFSerial,
                 BrowserWidth = 1300,
                 //LayoutWithHinting = true,
                 TriggerMode = ConversionTriggerMode.WaitTime,
@@ -85,9 +87,9 @@ namespace Utilities.PdfHandling
             {
                 htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Landscape;
             }
-            
+
             Byte[] pdfBuffer;
-            
+
             pdfBuffer = htmlToPdfConverter.ConvertHtmlToMemory(html, baseUrl);
 
             return pdfBuffer;
@@ -107,11 +109,11 @@ namespace Utilities.PdfHandling
             {
                 url = url + "?DisplayPdfOn=true";
             }
-            
+
 
             var htmlToPdfConverter = new HtmlToPdf()
             {
-                SerialNumber = "MnpbY2JW-VH5bUEBT-QEsEHAIS-AxIAEgoH-BRIBAxwD-ABwLCwsL",
+                SerialNumber = HiQPDFSerial,
                 BrowserWidth = 1300,
                 //LayoutWithHinting = true,
                 TriggerMode = ConversionTriggerMode.WaitTime,

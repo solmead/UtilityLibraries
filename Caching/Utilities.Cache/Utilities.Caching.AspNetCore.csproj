@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>6.3.4</Version>
+    <Version>6.3.5</Version>
     <PackageId>Utilities.Caching.AspNetCore</PackageId>
     <Authors>Solmead Productions</Authors>
     <Company>Solmead Productions</Company>
@@ -20,8 +20,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.2.0" />
-    <PackageReference Include="Utilities.Caching" Version="6.7.4" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="3.0.1" />
+    <PackageReference Include="Utilities.Caching" Version="6.7.6" />
   </ItemGroup>
 
 </Project>

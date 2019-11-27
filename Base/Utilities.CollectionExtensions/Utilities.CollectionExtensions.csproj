@@ -17,8 +17,8 @@
     <None Remove="PackNuget.bat" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Utilities.LinqDynamic" Version="2.2.0" />
-    <PackageReference Include="Utilities.Poco" Version="2.3.4" />
+    <PackageReference Include="Utilities.LinqDynamic" Version="2.2.1" />
+    <PackageReference Include="Utilities.Poco" Version="2.3.5" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
     <DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
