@@ -135,6 +135,7 @@ namespace Utilities.PdfHandling
             catch (Exception e)
             {
                 //e.LogToElmah();
+                throw e;
             }
             //Log("htmlToPdfConverter.ConvertUrlToMemory After");
 

@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Dynamic;
 using System.Text;
+using CsvHelper;
 using CsvHelper.Configuration;
 using DocumentFormat.OpenXml.Vml;
 
@@ -71,13 +72,18 @@ namespace Utilities.ExcelLibrary
             }
             public string GetCSVLine(string Delimiter = ",")
             {
-                var m = new StringWriter();
+                var sb = new StringBuilder();
+                var m = new StringWriter(sb);
                 TextWriter tw = m;// new StreamWriter(m);
 
-                var p = new CsvHelper.CsvSerializer(tw, new Configuration() { Delimiter = Delimiter });
-                p.Write(Columns.ToArray());
-                
-                return m.ToString();
+                var config = new CsvHelper.Configuration.Configuration();
+                config.Delimiter = Delimiter;
+
+                var p = new CsvHelper.CsvSerializer(tw, config);
+                var cols = (from c in Columns select "\"" + c.Replace("\"", "\"\"") + "\"").ToList();
+                p.Write(cols.ToArray());
+
+                return sb.ToString();
 
                 //var dbq = "\"";
                 //System.Text.StringBuilder sb = new System.Text.StringBuilder();
@@ -120,6 +126,20 @@ namespace Utilities.ExcelLibrary
             foreach (var Line in Lines)
                 sb.AppendLine(Line.GetCSVLine(ColumnDelimiter));
             return sb.ToString();
+        }
+
+        public void SaveCsv(Stream stream)
+        {
+            var s = new BinaryWriter(stream);
+            s.Write(GetAsCSV());
+        }
+        public void SaveCsv(FileInfo file)
+        {
+            var ms = new MemoryStream();
+            SaveCsv(ms);
+            var s = file.OpenWrite();
+            s.Write(ms.ToArray(), 0, (int)ms.Length);
+            s.Close();
         }
 
 
@@ -343,7 +363,7 @@ namespace Utilities.ExcelLibrary
                 {
                     endPos = commaPos;
                     charLen = endPos - currPos;
-                    tempstr = CSVstr.Substring(currPos, charLen); 
+                    tempstr = CSVstr.Substring(currPos, charLen);
                     // If Not tempstr = "" Then
                     a.Add(ReadChars(tempstr, 1, charLen, charLen).ToString().Replace("&quot;", "\""));
                 }
@@ -361,7 +381,7 @@ namespace Utilities.ExcelLibrary
                     else
                     {
                         currPos = quotePos;
-                        endPos = CSVstr.IndexOf("\"", currPos + 1); 
+                        endPos = CSVstr.IndexOf("\"", currPos + 1);
                         if (endPos <= 0)
                             endPos = CSVstr.Length;
                         charLen = endPos - currPos;
