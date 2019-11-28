@@ -34,6 +34,27 @@ namespace Utilities.Caching
     public static class Cache
     {
 
+
+        public static void LogDebug(string msg)
+        {
+            CacheSystem.Instance.LogDebugMessage?.Invoke(msg);
+        }
+        public static void LogError(string msg)
+        {
+            CacheSystem.Instance.LogErrorMessage?.Invoke(msg);
+        }
+
+
+        public static void SetLogDebugFunction(Action<string> logCall)
+        {
+            CacheSystem.Instance.LogDebugMessage = logCall;
+        }
+        public static void SetLogErrorFunction(Action<string> logCall)
+        {
+            CacheSystem.Instance.LogErrorMessage = logCall;
+        }
+
+
         /// <summary>
         /// Pull an item from the cache
         /// </summary>

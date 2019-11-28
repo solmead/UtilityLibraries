@@ -1,21 +1,22 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace System.Collections.Extensions
 {
     public static class Extensions
     {
-        public static IAsyncList<Tt> AsAsyncList<Tt>(this List<Tt> baselst)
+        public static IAsynchronousList<Tt> AsAsynchronousList<Tt>(this List<Tt> baselst)
         {
-            return new AsyncList<Tt>(baselst);
+            return new AsynchronousList<Tt>(baselst);
         }
-        public static IAsyncList<Tt> AsAsyncList<Tt>(this IEnumerable<Tt> baselst)
+        public static IAsynchronousList<Tt> AsAsynchronousList<Tt>(this IEnumerable<Tt> baselst)
         {
-            return new AsyncList<Tt>(baselst.ToList());
+            return new AsynchronousList<Tt>(baselst.ToList());
         }
-        public static IAsyncList<Tt> AsAsyncList<Tt>(this IQueryable<Tt> baselst)
+        public static IAsynchronousList<Tt> AsAsynchronousList<Tt>(this IQueryable<Tt> baselst)
         {
-            return new AsyncList<Tt>(baselst.ToList());
+            return new AsynchronousList<Tt>(baselst.ToList());
         }
 
         public static IEnumerable<T> Randomize<T>(this IEnumerable<T> source)
@@ -27,6 +28,59 @@ namespace System.Collections.Extensions
                     select i.prod);
 
             return values.ToList();
+        }
+        
+
+
+
+        public static async Task<IEnumerable<T>> WhereAsync<T>(this IEnumerable<T> target, Func<T, Task<bool>> predicateAsync)
+        {
+            var tasks = target.Select(async x => new { Predicate = await predicateAsync(x), Value = x }).ToArray();
+            var results = await Task.WhenAll(tasks);
+
+            return results.Where(x => x.Predicate).Select(x => x.Value);
+        }
+        public static async Task<List<T>> WhereAsync<T>(this List<T> target, Func<T, Task<bool>> predicateAsync)
+        {
+            var tasks = target.Select(async x => new { Predicate = await predicateAsync(x), Value = x }).ToArray();
+            var results = await Task.WhenAll(tasks);
+
+            return results.Where(x => x.Predicate).Select(x => x.Value).ToList();
+        }
+
+
+        public static async Task<IEnumerable<TResult>> SelectAsync<TSource, TResult>(this IEnumerable<TSource> values, Func<TSource, Task<TResult>> asyncSelector)
+        {
+            return await Task.WhenAll(values.Select(asyncSelector).ToList());
+        }
+        public static async Task<List<TResult>> SelectAsync<TSource, TResult>(this List<TSource> values, Func<TSource, Task<TResult>> asyncSelector)
+        {
+            return (await Task.WhenAll(values.Select(asyncSelector).ToList())).ToList();
+        }
+
+
+        public static async Task ForEachAsync<T>(this IEnumerable<T> values, Func<T, Task> asyncAction)
+        {
+            foreach (var i in values)
+            {
+                await asyncAction(i);
+            }
+        }
+        public static async Task ForEachAsync<T>(this List<T> values, Func<T, Task> asyncAction)
+        {
+            foreach (var i in values)
+            {
+                await asyncAction(i);
+            }
+        }
+
+        public static Task WhenAllAsync<T>(this IEnumerable<T> values, Func<T, Task> asyncAction)
+        {
+            return Task.WhenAll(values.Select(asyncAction).ToList());
+        }
+        public static Task WhenAllAsync<T>(this List<T> values, Func<T, Task> asyncAction)
+        {
+            return WhenAllAsync((IEnumerable<T>)values, asyncAction);
         }
     }
 }

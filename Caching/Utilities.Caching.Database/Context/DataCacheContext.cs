@@ -15,45 +15,16 @@ namespace Utilities.Caching.Database.Context
             : base(options)
         { }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.HasDefaultSchema("dbo");
+        }
 
         public void UpgradeDB()
         {
             Database.Migrate();
-            //Database.SetInitializer<DataContext>(null);
-            //try
-            //{
-            //    var configuration = new Configuration();
-            //    configuration.TargetDatabase = new DbConnectionInfo(Settings.Default.ConnectionName);
-            //    var dbMigrator = new DbMigrator(configuration);
-
-            //    if (dbMigrator.GetPendingMigrations().Count() > 0)
-            //    {
-            //        dbMigrator.Update();
-            //        dbMigrator.Update();
-            //    }
-
-            //}
-            //catch (Exception ex)
-            //{
-            //    Debug.WriteLine(ex.ToString());
-            //    throw ex;
-            //}
         }
 
-        
-        //public static void ClearContext()
-        //{
-        //    DataContext context = null;
-        //    Cache.SetItem(CacheArea.Request, "DbCachingDataContext", context);
-        //}
-        //public static DataContext Current
-        //{
-        //    get
-        //    {
-
-        //        return Cache.GetItem<DataContext>(CacheArea.Request, "DbCachingDataContext", () => new DataContext());
-        //    }
-        //}
 
         public DbSet<CachedEntry> CachedEntries { get; set; }
     }

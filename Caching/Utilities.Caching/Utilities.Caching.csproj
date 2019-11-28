@@ -1,15 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <!--<TargetFramework>netstandard2.0</TargetFramework>-->
+    <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>6.7.6</Version>
     <Description>Caching System</Description>
     <Company>Solmead Productions</Company>
     <Authors>Solmead Productions</Authors>
-    <Version>6.5.0</Version>
-    <Copyright>Copyright ©  2018</Copyright>
-    <PackageProjectUrl>https://github.com/solmead/HttpObjectCaching</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/solmead/HttpObjectCaching</RepositoryUrl>
+    <Copyright>Copyright ©2018</Copyright>
+    <RepositoryUrl>https://github.com/solmead/UtilityLibraries</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/solmead/UtilityLibraries</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/solmead/UtilityLibraries</PackageLicenseUrl>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,9 +19,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.2.0" />
-    <PackageReference Include="Utilities.CollectionExtensions" Version="2.0.5" />
-    <PackageReference Include="Utilities.SerializeExtensions" Version="6.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="3.0.1" />
+    <PackageReference Include="Utilities.CollectionExtensions" Version="2.4.0" />
+    <PackageReference Include="Utilities.SerializeExtensions" Version="6.3.10" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,5 +29,27 @@
       <HintPath>C:\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.extensions.caching.memory\2.0.0\lib\netstandard2.0\Microsoft.Extensions.Caching.Memory.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
+    <DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
+  </PropertyGroup>
+
+
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net462' ">
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Configuration" />
+  </ItemGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net462'">
+    <DefineConstants>NET45;NETFULL</DefineConstants>
+  </PropertyGroup>
 
 </Project>

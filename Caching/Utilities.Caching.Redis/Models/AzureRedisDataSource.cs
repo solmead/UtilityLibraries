@@ -17,7 +17,7 @@ namespace AzureRedisCaching.Models
     public class AzureRedisDataSource : IDataSource
     {
 
-        private static ISerializer Serializer => Utilities.Caching.StartUp.Serializer;
+        private static ISerializer Serializer => CacheSystem.Serializer;
 
 
 
@@ -288,7 +288,7 @@ namespace AzureRedisCaching.Models
 
         private void WriteLine(string msg)
         {
-            Debug.WriteLine(DateTime.Now.ToLongTimeString() + " : " + DateTime.Now.Millisecond + " - " + msg);
+            Cache.LogDebug(msg);
         }
         public List<tt> GetList<tt>(string name)
         {

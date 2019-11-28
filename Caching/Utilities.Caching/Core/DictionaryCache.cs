@@ -90,7 +90,9 @@ namespace Utilities.Caching.Core
         private ConcurrentDictionary<string, CachedEntryBase> BaseDictionaryGet()
         {
             var curname = Name + "_DataDictionary_Base_" + GetInstanceId();
-            return CacheTo.GetItem(curname, () => new ConcurrentDictionary<string, CachedEntryBase>(), LifeSpanInSeconds);
+            return CacheTo.GetItem(curname, () => {
+                return new ConcurrentDictionary<string, CachedEntryBase>();
+                }, LifeSpanInSeconds);
         }
         private async Task<ConcurrentDictionary<string, CachedEntryBase>> BaseDictionaryGetAsync()
         {

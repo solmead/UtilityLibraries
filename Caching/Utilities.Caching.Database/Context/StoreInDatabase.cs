@@ -79,12 +79,12 @@ namespace Utilities.Caching.Database.Context
                 }
         }
 
-        private async Task<CachedEntry> GetItemAsync(string name)
+        private async Task<CachedEntry> GetItemAsync(string name, bool useDic = true)
         {
             CachedEntry itm = null;
 
 
-            if (ValuesDictionary.ContainsKey(name.ToUpper()))
+            if (useDic &&  ValuesDictionary.ContainsKey(name.ToUpper()))
             {
                 itm = ValuesDictionary[name.ToUpper()];
             }
@@ -94,16 +94,26 @@ namespace Utilities.Caching.Database.Context
             {
                 using (var database = new DataCacheContext(ContextOptions))
                 {
-                    itm = await (from ce in database.CachedEntries.AsNoTracking() where ce.Name == name select ce).FirstOrDefaultAsync();
+                    itm = await (from ce in database.CachedEntries
+                                 where ce.Name == name.ToUpper()
+                                 select new CachedEntry()
+                                 {
+                                     Id = ce.Id,
+                                     Changed = ce.Changed,
+                                     Created = ce.Created,
+                                     Name = ce.Name,
+                                     Object = ce.Object,
+                                     TimeOut = ce.TimeOut
+                                 }).FirstOrDefaultAsync();
                 }
             }
 
-            itm = itm ?? new CachedEntry()
-            {
-                Created = DateTime.Now,
-                Name = name,
-                Object = ""
-            };
+            //itm = itm ?? new CachedEntry()
+            //{
+            //    Created = DateTime.Now,
+            //    Name = name,
+            //    Object = ""
+            //};
 
             if (ValuesDictionary.ContainsKey(name.ToUpper()))
             {
@@ -117,12 +127,12 @@ namespace Utilities.Caching.Database.Context
             return itm;
         }
 
-        private  CachedEntry GetItem(string name)
+        private  CachedEntry GetItem(string name, bool useDic = true)
         {
             CachedEntry itm = null;
 
 
-            if (ValuesDictionary.ContainsKey(name.ToUpper()))
+            if (useDic && ValuesDictionary.ContainsKey(name.ToUpper()))
             {
                 itm = ValuesDictionary[name.ToUpper()];
             }
@@ -132,16 +142,26 @@ namespace Utilities.Caching.Database.Context
             {
                 using (var database = new DataCacheContext(ContextOptions))
                 {
-                    itm =  (from ce in database.CachedEntries.AsNoTracking() where ce.Name == name select ce).FirstOrDefault();
+                    itm =  (from ce in database.CachedEntries
+                            where ce.Name == name.ToUpper()
+                            select new CachedEntry()
+                            {
+                                Id = ce.Id,
+                                Changed = ce.Changed,
+                                Created = ce.Created,
+                                Name = ce.Name,
+                                Object = ce.Object,
+                                TimeOut = ce.TimeOut
+                            }).FirstOrDefault();
                 }
             }
 
-            itm = itm ?? new CachedEntry()
-            {
-                Created = DateTime.Now,
-                Name = name,
-                Object = ""
-            };
+            //itm = itm ?? new CachedEntry()
+            //{
+            //    Created = DateTime.Now,
+            //    Name = name,
+            //    Object = ""
+            //};
 
             if (ValuesDictionary.ContainsKey(name.ToUpper()))
             {
@@ -173,7 +193,7 @@ namespace Utilities.Caching.Database.Context
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine(ex.ToString());
+                    Cache.LogError(ex.ToString());
                 }
             }
             
@@ -185,18 +205,31 @@ namespace Utilities.Caching.Database.Context
 
             var xml = Convert.ToBase64String(value);
 
-            var itm = await GetItemAsync(name);
+            //var itm = await GetItemAsync(name);
+            //itm = itm ?? new CachedEntry()
+            //{
+            //    Created = DateTime.Now,
+            //    Name = name,
+            //    Object = ""
+            //};
 
             using (var database = new DataCacheContext(ContextOptions))
             {
-                if (itm.Id > 0)
+
+                var itm = await (from ce in database.CachedEntries
+                           where ce.Name == name.ToUpper()
+                                 select ce).FirstOrDefaultAsync();
+                if (itm == null)
                 {
-                    database.CachedEntries.Attach(itm);
-                }
-                else
-                {
+                    itm = new CachedEntry()
+                    {
+                        Created = DateTime.Now,
+                        Name = name.ToUpper(),
+                        Object = ""
+                    };
                     database.CachedEntries.Add(itm);
                 }
+
 
                 if (value.Length == 0)
                 {
@@ -221,8 +254,10 @@ namespace Utilities.Caching.Database.Context
 
 
                 await database.SaveChangesAsync();
-                database.Entry(itm).State = EntityState.Detached;
+                //database.Entry(itm).State = EntityState.Detached;
                 //await CleanOutTimeOutValuesAsync(database);
+
+                itm = await GetItemAsync(name, false);
             }
 
         }
@@ -231,7 +266,7 @@ namespace Utilities.Caching.Database.Context
         {
             using (var database = new DataCacheContext(ContextOptions))
             {
-                var lst = await(from ce in database.CachedEntries where ce.Name == name select ce).ToListAsync();
+                var lst = await(from ce in database.CachedEntries where ce.Name == name.ToUpper() select ce).ToListAsync();
                 if (lst.Count > 0)
                 {
                     database.CachedEntries.RemoveRange(lst);
@@ -253,6 +288,7 @@ namespace Utilities.Caching.Database.Context
             if (itm != null && itm.TimeOut.HasValue && itm.TimeOut.Value >= DateTime.Now)
             {
                 var xml = itm.Object;
+                Cache.LogDebug("Data from DB:" + xml);
                 try
                 {
                     if (!string.IsNullOrWhiteSpace(xml))
@@ -263,7 +299,7 @@ namespace Utilities.Caching.Database.Context
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine(ex.ToString());
+                    Cache.LogError(ex.ToString());
                 }
             }
 
@@ -273,19 +309,41 @@ namespace Utilities.Caching.Database.Context
         public void Set(string name, byte[] value, TimeSpan? timeout)
         {
             var xml = Convert.ToBase64String(value);
+            Cache.LogDebug("Data to DB:" + xml);
+            //var itm =  GetItem(name);
 
-            var itm =  GetItem(name);
+            //itm = itm ?? new CachedEntry()
+            //{
+            //    Created = DateTime.Now,
+            //    Name = name,
+            //    Object = ""
+            //};
 
             using (var database = new DataCacheContext(ContextOptions))
             {
+
+                var itm = (from ce in database.CachedEntries
+                                where ce.Name == name.ToUpper()
+                           select ce).FirstOrDefault();
+                if (itm == null)
+                {
+                    itm = new CachedEntry()
+                    {
+                        Created = DateTime.Now,
+                        Name = name.ToUpper(),
+                        Object = ""
+                    };
+                    database.CachedEntries.Add(itm);
+                }
+
+
                 if (value.Length == 0)
                 {
-                    ValuesDictionary[name.ToUpper()] = null;
                     if (itm.Id != 0)
                     {
                         database.CachedEntries.Remove(itm);
-                        database.SaveChanges();
                     }
+                    ValuesDictionary[name.ToUpper()] = null;
                 }
                 else if (value.Length>0)
                 {
@@ -298,19 +356,11 @@ namespace Utilities.Caching.Database.Context
                     itm.Changed = DateTime.Now;
                     itm.Object = xml;
 
-                    if (itm.Id > 0)
-                    {
-                        database.CachedEntries.Attach(itm);
-                    }
-                    else
-                    {
-                        database.CachedEntries.Add(itm);
-                    }
-                    database.SaveChanges();
-                    database.Entry(itm).State = EntityState.Detached;
                 }
+                database.SaveChanges();
 
-
+                itm = GetItem(name, false);
+                itm = itm;
 
                 //await CleanOutTimeOutValuesAsync(database);
             }
@@ -321,7 +371,7 @@ namespace Utilities.Caching.Database.Context
         {
             using (var database = new DataCacheContext(ContextOptions))
             {
-                var lst = (from ce in database.CachedEntries where ce.Name == name select ce).ToList();
+                var lst = (from ce in database.CachedEntries where ce.Name == name.ToUpper() select ce).ToList();
                 if (lst.Count > 0)
                 {
                     database.CachedEntries.RemoveRange(lst);

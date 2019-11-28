@@ -10,11 +10,11 @@ namespace Utilities.Caching.Database
     public static class Core
     {
 
-
+        public static string ConnString { get; set; }
 
         public static void Setup(string connectionString)
         {
-
+            ConnString = connectionString;
             var system = CacheSystem.Instance;
             system.CacheAreas[CacheArea.Permanent] = new DatabaseCache(connectionString);
         }

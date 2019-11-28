@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using Utilities.SerializeExtensions.Serializers;
 
 namespace Utilities.SerializeExtensions
@@ -6,6 +7,16 @@ namespace Utilities.SerializeExtensions
     public class Serializer : ISerializer
     {
         private readonly ISerializer serializer;
+
+        public Action<string> LogMessage {
+            get => serializer.LogMessage;
+            set => serializer.LogMessage = value;
+        }
+        public Encoding BaseEncoding
+        {
+            get => serializer.BaseEncoding;
+            set => serializer.BaseEncoding = value;
+        }
 
         public Serializer(ISerializer baseSerializer)
         {
