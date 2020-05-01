@@ -273,11 +273,13 @@ namespace AzureRedisCaching.Models
 
         private string GetStringOfItem<tt>(tt item)
         {
-            return Serializer.Serialize(item);
+            Type t = typeof(tt);
+            return Serializer.Serialize(item, t);
         }
         private tt GetItemOfString<tt>(string val)
         {
-            return Serializer.Deserialize<tt>(val);
+            Type t = typeof(tt);
+            return (tt)Serializer.Deserialize(val, t);
         }
 
         //private bool IsInList<tt>(tt item)

@@ -15,13 +15,13 @@ namespace Utilities.SerializeExtensions.Serializers
         {
             LogMessage?.Invoke(msg);
         }
-        public Encoding BaseEncoding { get; set; } = Encoding.UTF7;
+        public Encoding BaseEncoding { get; set; } = Encoding.Unicode; //Encoding.UTF7;
 
-        public T Deserialize<T>(string data)
+        public T Deserialize<T>(string data) where T : class
         {
             return (T) Deserialize(data, typeof(T));
         }
-        public T Deserialize<T>(byte[] data)
+        public T Deserialize<T>(byte[] data) where T : class
         {
             return (T)Deserialize(data, typeof(T));
         }
@@ -41,41 +41,41 @@ namespace Utilities.SerializeExtensions.Serializers
             var s = encoding.GetBytes(data);
             obj = Deserialize(s, type);
 
-            //if (obj == null)
-            //{
-            //    encoding = Encoding.Unicode;
-            //    Log("Deserialize - Encoding:" + encoding.EncodingName);
-            //    s = encoding.GetBytes(data);
-            //    obj = Deserialize(s, type);
-            //}
-            //if (obj == null)
-            //{
-            //    Log("Deserialize - Encoding:" + encoding.EncodingName);
-            //    encoding = Encoding.UTF32;
-            //    s = encoding.GetBytes(data);
-            //    obj = Deserialize(s, type);
-            //}
-            //if (obj == null)
-            //{
-            //    Log("Deserialize - Encoding:" + encoding.EncodingName);
-            //    encoding = Encoding.ASCII;
-            //    s = encoding.GetBytes(data);
-            //    obj = Deserialize(s, type);
-            //}
-            //if (obj == null)
-            //{
-            //    Log("Deserialize - Encoding:" + encoding.EncodingName);
-            //    encoding = Encoding.UTF8;
-            //    s = encoding.GetBytes(data);
-            //    obj = Deserialize(s, type);
-            //}
-            //if (obj == null)
-            //{
-            //    Log("Deserialize - Encoding:" + encoding.EncodingName);
-            //    encoding = Encoding.UTF7;
-            //    s = encoding.GetBytes(data);
-            //    obj = Deserialize(s, type);
-            //}
+            if (obj == null)
+            {
+                encoding = Encoding.Unicode;
+                Log("Deserialize - Encoding:" + encoding.EncodingName);
+                s = encoding.GetBytes(data);
+                obj = Deserialize(s, type);
+            }
+            if (obj == null)
+            {
+                Log("Deserialize - Encoding:" + encoding.EncodingName);
+                encoding = Encoding.UTF32;
+                s = encoding.GetBytes(data);
+                obj = Deserialize(s, type);
+            }
+            if (obj == null)
+            {
+                Log("Deserialize - Encoding:" + encoding.EncodingName);
+                encoding = Encoding.ASCII;
+                s = encoding.GetBytes(data);
+                obj = Deserialize(s, type);
+            }
+            if (obj == null)
+            {
+                Log("Deserialize - Encoding:" + encoding.EncodingName);
+                encoding = Encoding.UTF8;
+                s = encoding.GetBytes(data);
+                obj = Deserialize(s, type);
+            }
+            if (obj == null)
+            {
+                Log("Deserialize - Encoding:" + encoding.EncodingName);
+                encoding = Encoding.UTF7;
+                s = encoding.GetBytes(data);
+                obj = Deserialize(s, type);
+            }
 
 
             return obj;
@@ -109,7 +109,7 @@ namespace Utilities.SerializeExtensions.Serializers
 
 
 
-        public string Serialize<T>(T item)
+        public string Serialize<T>(T item) where T : class
         {
             return Serialize(item, typeof(T));
         }
@@ -119,7 +119,7 @@ namespace Utilities.SerializeExtensions.Serializers
             return BaseEncoding.GetString(SerializeToArray(item, type));
         }
 
-        public byte[] SerializeToArray<T>(T item)
+        public byte[] SerializeToArray<T>(T item) where T : class
         {
             return SerializeToArray(item, typeof(T));
         }

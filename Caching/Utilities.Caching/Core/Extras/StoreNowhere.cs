@@ -48,5 +48,39 @@ namespace Utilities.Caching.Core.Extras
         {
             return new List<string>();
         }
+
+        public Task<byte[]> GetBytesAsync(string name)
+        {
+            return Task.FromResult((byte[])null);
+        }
+
+        public Task<string> GetStringAsync(string name)
+        {
+            return Task.FromResult((string)null);
+        }
+
+        public Task SetAsync(string name, string value, TimeSpan? timeout)
+        {
+            return Task.CompletedTask;
+        }
+
+        public byte[] GetBytes(string name)
+        {
+            return null;
+
+
+        }
+
+        public string GetString(string name)
+        {
+            return null;
+
+
+        }
+
+        public void Set(string name, string value, TimeSpan? timeout)
+        {
+            
+        }
     }
 }

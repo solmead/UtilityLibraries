@@ -40,13 +40,12 @@ namespace Utilities.AspNetCore.Identity.Repo
         //{
 
         //    AddRepositoryStores<AppUser<string>, AppRole<string>, string, identityRepository>(services);
-            
+
         //}
 
         /// <summary>
-        /// Adds an Entity Framework implementation of identity information stores.
+        /// Adds an Repository based implementation of identity information stores.
         /// </summary>
-        /// <typeparam name="TContext">The Entity Framework database context to use.</typeparam>
         /// <param name="builder">The <see cref="IdentityBuilder"/> instance this method extends.</param>
         /// <returns>The <see cref="IdentityBuilder"/> instance this method extends.</returns>
         public static IdentityBuilder AddRepositoryStores(this IdentityBuilder builder)
@@ -65,7 +64,7 @@ namespace Utilities.AspNetCore.Identity.Repo
             where TUser : AppUser<TKey>
             where TKey : IEquatable<TKey>
         {
-            
+
             AddStores<TUser,TRole,TKey>(builder.Services, builder.UserType, builder.RoleType);//, context);
             return builder.AddUserManager<UserManager<TUser, TRole, TKey>>(); ;
         }

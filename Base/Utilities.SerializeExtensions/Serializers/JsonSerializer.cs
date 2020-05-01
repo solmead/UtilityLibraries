@@ -17,11 +17,11 @@ namespace Utilities.SerializeExtensions.Serializers
 
         public Encoding BaseEncoding { get; set; } = Encoding.Unicode;
 
-        public T Deserialize<T>(string data)
+        public T Deserialize<T>(string data) where T : class
         {
             return (T)Deserialize(data, typeof(T));
         }
-        public T Deserialize<T>(byte[] data)
+        public T Deserialize<T>(byte[] data) where T : class
         {
             return (T)Deserialize(data, typeof(T));
         }
@@ -57,7 +57,7 @@ namespace Utilities.SerializeExtensions.Serializers
 
 
 
-        public string Serialize<T>(T item)
+        public string Serialize<T>(T item) where T : class
         {
             return Serialize(item, typeof(T));
         }
@@ -67,7 +67,7 @@ namespace Utilities.SerializeExtensions.Serializers
             return JsonConvert.SerializeObject(item);
         }
 
-        public byte[] SerializeToArray<T>(T item)
+        public byte[] SerializeToArray<T>(T item) where T : class
         {
             return SerializeToArray(item, typeof(T));
         }

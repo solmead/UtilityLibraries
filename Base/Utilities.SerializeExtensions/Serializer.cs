@@ -18,32 +18,112 @@ namespace Utilities.SerializeExtensions
             set => serializer.BaseEncoding = value;
         }
 
+        public Serializer()
+        {
+            serializer = new JsonSerializer();
+        }
         public Serializer(ISerializer baseSerializer)
         {
             serializer = baseSerializer;
         }
 
-        public T Deserialize<T>(string data)
+        public T Deserialize<T>(string data) where T : class
         {
-            return serializer.Deserialize<T>(data);
+            var it = serializer.Deserialize<T>(data);
+
+            if (it == null)
+            {
+                ISerializer ser = new JsonSerializer();
+                it = ser.Deserialize<T>(data);
+            }
+            if (it == null)
+            {
+                ISerializer ser = new XmlSerializer();
+                it = ser.Deserialize<T>(data);
+            }
+            if (it == null)
+            {
+                ISerializer ser = new BinarySerializer();
+                it = ser.Deserialize<T>(data);
+            }
+
+
+            return it;
         }
 
         public object Deserialize(string data, Type type)
         {
-            return serializer.Deserialize(data, type);
+            var it = serializer.Deserialize(data, type);
+
+            if (it == null)
+            {
+                ISerializer ser = new JsonSerializer();
+                it = ser.Deserialize(data, type);
+            }
+            if (it == null)
+            {
+                ISerializer ser = new XmlSerializer();
+                it = ser.Deserialize(data, type);
+            }
+            if (it == null)
+            {
+                ISerializer ser = new BinarySerializer();
+                it = ser.Deserialize(data, type);
+            }
+
+
+            return it;
         }
 
-        public T Deserialize<T>(byte[] data)
+        public T Deserialize<T>(byte[] data) where T : class
         {
-            return serializer.Deserialize<T>(data);
+            var it =  serializer.Deserialize<T>(data);
+
+            if (it == null)
+            {
+                ISerializer ser = new JsonSerializer();
+                it = ser.Deserialize<T>(data);
+            }
+            if (it == null)
+            {
+                ISerializer ser = new XmlSerializer();
+                it = ser.Deserialize<T>(data);
+            }
+            if (it == null)
+            {
+                ISerializer ser = new BinarySerializer();
+                it = ser.Deserialize<T>(data);
+            }
+
+
+            return it;
         }
 
         public object Deserialize(byte[] data, Type type)
         {
-            return serializer.Deserialize(data, type);
+            var it =  serializer.Deserialize(data, type);
+
+            if (it == null)
+            {
+                ISerializer ser = new JsonSerializer();
+                it = ser.Deserialize(data, type);
+            }
+            if (it == null)
+            {
+                ISerializer ser = new XmlSerializer();
+                it = ser.Deserialize(data, type);
+            }
+            if (it == null)
+            {
+                ISerializer ser = new BinarySerializer();
+                it = ser.Deserialize(data, type);
+            }
+
+
+            return it;
         }
 
-        public string Serialize<T>(T item)
+        public string Serialize<T>(T item) where T : class
         {
             return serializer.Serialize(item);
         }
@@ -53,7 +133,7 @@ namespace Utilities.SerializeExtensions
             return serializer.Serialize(item, type);
         }
 
-        public byte[] SerializeToArray<T>(T item)
+        public byte[] SerializeToArray<T>(T item) where T : class
         {
             return serializer.SerializeToArray(item);
         }

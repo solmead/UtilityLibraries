@@ -175,9 +175,19 @@ namespace Utilities.Caching.Database.Context
             return itm;
         }
 
+        public async Task<string> GetStringAsync(string name)
+        {
+            var itm = await GetItemAsync(name);
+            if (itm != null && itm.TimeOut.HasValue && itm.TimeOut.Value >= DateTime.Now)
+            {
+                var xml = itm.Object;
+                return xml;
+            }
 
+            return null;
+        }
 
-        public async Task<byte[]> GetAsync(string name)
+        public async Task<byte[]> GetBytesAsync(string name)
         {
             var itm = await GetItemAsync(name);
             if (itm != null && itm.TimeOut.HasValue && itm.TimeOut.Value >= DateTime.Now)
@@ -196,29 +206,18 @@ namespace Utilities.Caching.Database.Context
                     Cache.LogError(ex.ToString());
                 }
             }
-            
+
             return new byte[0];
         }
 
-        public async Task SetAsync(string name, byte[] value, TimeSpan? timeout)
+        public async Task SetAsync(string name, string value, TimeSpan? timeout)
         {
-
-            var xml = Convert.ToBase64String(value);
-
-            //var itm = await GetItemAsync(name);
-            //itm = itm ?? new CachedEntry()
-            //{
-            //    Created = DateTime.Now,
-            //    Name = name,
-            //    Object = ""
-            //};
-
             using (var database = new DataCacheContext(ContextOptions))
             {
 
-                var itm = await (from ce in database.CachedEntries
-                           where ce.Name == name.ToUpper()
-                                 select ce).FirstOrDefaultAsync();
+                var itm = await(from ce in database.CachedEntries
+                                where ce.Name == name.ToUpper()
+                                select ce).FirstOrDefaultAsync();
                 if (itm == null)
                 {
                     itm = new CachedEntry()
@@ -233,7 +232,7 @@ namespace Utilities.Caching.Database.Context
 
                 if (value.Length == 0)
                 {
-                    if (itm.Id!=0)
+                    if (itm.Id != 0)
                     {
                         database.CachedEntries.Remove(itm);
                     }
@@ -249,7 +248,7 @@ namespace Utilities.Caching.Database.Context
                     }
                     itm.TimeOut = endTime;
                     itm.Changed = DateTime.Now;
-                    itm.Object = xml;
+                    itm.Object = value;
                 }
 
 
@@ -260,6 +259,12 @@ namespace Utilities.Caching.Database.Context
                 itm = await GetItemAsync(name, false);
             }
 
+        }
+        public async Task SetAsync(string name, byte[] value, TimeSpan? timeout)
+        {
+            var xml = Convert.ToBase64String(value);
+
+            await SetAsync(name, xml, timeout);
         }
 
         public async Task DeleteAsync(string name)
@@ -280,7 +285,19 @@ namespace Utilities.Caching.Database.Context
             throw new NotImplementedException();
         }
 
-        public byte[] Get(string name)
+        public string GetString(string name)
+        {
+            var itm = GetItem(name);
+            if (itm != null && itm.TimeOut.HasValue && itm.TimeOut.Value >= DateTime.Now)
+            {
+                var xml = itm.Object;
+                Cache.LogDebug("Data from DB:" + xml);
+                return xml;
+            }
+
+            return null;
+        }
+        public byte[] GetBytes(string name)
         {
 
 
@@ -306,24 +323,16 @@ namespace Utilities.Caching.Database.Context
             return new byte[0];
         }
 
-        public void Set(string name, byte[] value, TimeSpan? timeout)
+        public void Set(string name, string value, TimeSpan? timeout)
         {
-            var xml = Convert.ToBase64String(value);
-            Cache.LogDebug("Data to DB:" + xml);
-            //var itm =  GetItem(name);
+            Cache.LogDebug("Data to DB:" + value);
 
-            //itm = itm ?? new CachedEntry()
-            //{
-            //    Created = DateTime.Now,
-            //    Name = name,
-            //    Object = ""
-            //};
 
             using (var database = new DataCacheContext(ContextOptions))
             {
 
                 var itm = (from ce in database.CachedEntries
-                                where ce.Name == name.ToUpper()
+                           where ce.Name == name.ToUpper()
                            select ce).FirstOrDefault();
                 if (itm == null)
                 {
@@ -345,7 +354,7 @@ namespace Utilities.Caching.Database.Context
                     }
                     ValuesDictionary[name.ToUpper()] = null;
                 }
-                else if (value.Length>0)
+                else if (value.Length > 0)
                 {
                     DateTime? endTime = null;
                     if (timeout.HasValue)
@@ -354,7 +363,7 @@ namespace Utilities.Caching.Database.Context
                     }
                     itm.TimeOut = endTime;
                     itm.Changed = DateTime.Now;
-                    itm.Object = xml;
+                    itm.Object = value;
 
                 }
                 database.SaveChanges();
@@ -365,6 +374,11 @@ namespace Utilities.Caching.Database.Context
                 //await CleanOutTimeOutValuesAsync(database);
             }
 
+        }
+        public void Set(string name, byte[] value, TimeSpan? timeout)
+        {
+            var xml = Convert.ToBase64String(value);
+            Set(name, xml, timeout);
         }
 
         public void Delete(string name)
@@ -384,5 +398,10 @@ namespace Utilities.Caching.Database.Context
         {
             throw new NotImplementedException();
         }
+
+
+
+
+
     }
 }

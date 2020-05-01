@@ -8,8 +8,11 @@ using Utilities.Poco;
 
 namespace Utilities.ExcelLibrary
 {
+
+    [Obsolete("Use Utilities.ExcelLibrary.CSV.Importer instead", true)]
     public class CSVImporter
     {
+        [Obsolete("Use Utilities.ExcelLibrary.CSV.Importer instead", true)]
         public static DataTable ImportToDataTable<tt>(FileInfo fileInfo, Dictionary<string, string> columnMapping = null) where tt : class
         {
             var file = CSVFile.LoadFromFile(fileInfo.FullName);
@@ -42,6 +45,7 @@ namespace Utilities.ExcelLibrary
         }
 
 
+        [Obsolete("Use Utilities.ExcelLibrary.CSV.Importer instead", true)]
         public static List<tt> ImportFromFile<tt>(FileInfo fileInfo, Dictionary<string, string> columnMapping, Func<tt> getNewObject, Action<tt, DataTable, DataRow, List<string>> afterLoad = null) where tt : class
         {
             var table = ImportToDataTable<tt>(fileInfo, columnMapping);

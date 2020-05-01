@@ -115,12 +115,12 @@ namespace Utilities.Caching.Core
 
 
 
-        public void ClearCache()
+        public virtual void ClearCache()
         {
             ( BaseDictionaryGet()).Clear();
             //await BaseDictionarySetAsync(null);
         }
-        public async Task ClearCacheAsync()
+        public virtual async Task ClearCacheAsync()
         {
             (await BaseDictionaryGetAsync()).Clear();
             //await BaseDictionarySetAsync(null);

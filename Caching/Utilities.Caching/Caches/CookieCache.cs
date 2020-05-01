@@ -1,4 +1,5 @@
-﻿using Utilities.Caching.Core;
+﻿using System.Threading.Tasks;
+using Utilities.Caching.Core;
 
 namespace Utilities.Caching.Caches
 {
@@ -9,6 +10,20 @@ namespace Utilities.Caching.Caches
         {
             Area =  CacheArea.Cookie;
             Name = "DefaultCookie";
+        }
+
+
+
+        public override void ClearCache()
+        {
+            base.ClearCache();
+            CacheSystem.ResetCookieId();
+
+        }
+        public override async Task ClearCacheAsync()
+        {
+            await base.ClearCacheAsync();
+            CacheSystem.ResetCookieId();
         }
     }
 }

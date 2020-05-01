@@ -93,6 +93,7 @@ namespace Utilities.AspNetCore.Identity.Repo
     /// <typeparam name="TRoleClaim">The type representing a role claim.</typeparam>
     public class UserStore<TUser, TRole, TKey, TUserClaim, TUserRole, TUserLogin, TUserToken, TRoleClaim> :
         UserStoreBase<TUser, TRole, TKey, TUserClaim, TUserRole, TUserLogin, TUserToken, TRoleClaim>,
+        IUserStore<TUser>,
         IProtectedUserStore<TUser>,
         IUserLoginStore<TUser>,
         IUserClaimStore<TUser>,
@@ -173,7 +174,7 @@ namespace Utilities.AspNetCore.Identity.Repo
                 throw new ArgumentNullException(nameof(user));
             }
 
-            await _identityRepository.CreateUserAsync(user);
+            var u = await _identityRepository.CreateUserAsync(user);
 
             //Context.Add(user);
             //await SaveChanges(cancellationToken);

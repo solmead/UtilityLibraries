@@ -13,7 +13,7 @@ using DocumentFormat.OpenXml.Vml;
 
 namespace Utilities.ExcelLibrary
 {
-
+    [Obsolete("Use Utilities.ExcelLibrary.CSV.Exporter instead", true)]
     public class CSVFile
     {
         public class CSVLine
@@ -79,9 +79,15 @@ namespace Utilities.ExcelLibrary
                 var config = new CsvHelper.Configuration.Configuration();
                 config.Delimiter = Delimiter;
 
-                var p = new CsvHelper.CsvSerializer(tw, config);
-                var cols = (from c in Columns select "\"" + c.Replace("\"", "\"\"") + "\"").ToList();
-                p.Write(cols.ToArray());
+                var p = new CsvHelper.CsvWriter(tw, config, false);
+
+                foreach(var c in Columns)
+                {
+                    p.WriteField(c);
+                }
+                p.NextRecord();
+                p.Flush();
+
 
                 return sb.ToString();
 
@@ -121,10 +127,26 @@ namespace Utilities.ExcelLibrary
         public string GetAsCSV()
         {
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            var m = new StringWriter(sb);
+            TextWriter tw = m;
+            var config = new CsvHelper.Configuration.Configuration();
+            config.Delimiter = ColumnDelimiter;
+
+
+            var p = new CsvHelper.CsvWriter(tw, config, false);
 
             //CSVLine Line;
-            foreach (var Line in Lines)
-                sb.AppendLine(Line.GetCSVLine(ColumnDelimiter));
+            foreach (var line in Lines)
+            {
+                foreach (var c in line.Columns)
+                {
+                    p.WriteField(c);
+                }
+                p.NextRecord();
+
+            }
+            p.Flush();
+
             return sb.ToString();
         }
 
@@ -143,6 +165,7 @@ namespace Utilities.ExcelLibrary
         }
 
 
+        [Obsolete("Use Utilities.ExcelLibrary.CSV.Importer instead", true)]
         public static CSVFile LoadFromFileData(string Data, string ColDelimiter = ",")
         {
             MemoryStream mem = new MemoryStream();
@@ -151,16 +174,19 @@ namespace Utilities.ExcelLibrary
             StreamReader SR = new StreamReader(mem);
             return LoadFromFileData(SR, ColDelimiter);
         }
+        [Obsolete("Use Utilities.ExcelLibrary.CSV.Importer instead", true)]
         public static CSVFile LoadFromFileData(MemoryStream Data, string ColDelimiter = ",")
         {
             StreamReader SR = new StreamReader(Data);
             return LoadFromFileData(SR, ColDelimiter);
         }
+        [Obsolete("Use Utilities.ExcelLibrary.CSV.Importer instead", true)]
         public static CSVFile LoadFromFileData(Stream ReadFile, string ColDelimiter = ",")
         {
             StreamReader SR = new StreamReader(ReadFile);
             return LoadFromFileData(SR, ColDelimiter);
         }
+        [Obsolete("Use Utilities.ExcelLibrary.CSV.Importer instead", true)]
         public static CSVFile LoadFromFileData(StreamReader ReadFile, string ColDelimiter = ",")
         {
             CSVFile CSVF = new CSVFile();
@@ -237,6 +263,7 @@ namespace Utilities.ExcelLibrary
         //    }
         //    return CSVF;
         //}
+        [Obsolete("Use Utilities.ExcelLibrary.CSV.Importer instead", true)]
         public static CSVFile LoadFromFile(string strPath, string ColDelimiter = ",")
         {
             FileInfo FileHolder = new FileInfo(strPath);
@@ -246,12 +273,14 @@ namespace Utilities.ExcelLibrary
             ReadFile = null/* TODO Change to default(_) if this is not a reference type */;
             return CSVF;
         }
+        [Obsolete("Use Utilities.ExcelLibrary.CSV.Importer instead", true)]
         public static CSVFile LoadFromIEnumerable<t>(IEnumerable<t> list, bool HasHeader = true, bool useDisplayName = false)
         {
             var olist = (from i in list
                                   select i).ToList();
             return LoadFromDataTable(olist.ToDataTable(useDisplayName), HasHeader);
         }
+        [Obsolete("Use Utilities.ExcelLibrary.CSV.Importer instead", true)]
         public static CSVFile LoadFromDataTable(DataTable DT, bool HasHeader = true)
         {
             CSVFile CSVF = new CSVFile();
@@ -273,6 +302,7 @@ namespace Utilities.ExcelLibrary
             }
             return CSVF;
         }
+        [Obsolete("Use Utilities.ExcelLibrary.CSV.Exporter instead", true)]
         public DataTable ToDataTable(bool hasHeader = true, int headerLine = 0)
         {
             var maxcolumns = (from l in Lines

@@ -7,6 +7,7 @@ using System.Data;
 
 namespace Utilities.ExcelLibrary
 {
+    [Obsolete("Use Utilities.ExcelLibrary.Excel.Exporter instead", true)]
     public class ExcelExport
     {
         private XLWorkbook workbook;

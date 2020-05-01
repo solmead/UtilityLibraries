@@ -5,6 +5,12 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Utilities.AspNetCore.Identity.Repo.Models
 {
+    //public class ApplicationUser : AppUser<string>
+    //{
+
+    //}
+
+
     public class AppUser<TKey> : IdentityUser<TKey>
         where TKey : IEquatable<TKey>
     {

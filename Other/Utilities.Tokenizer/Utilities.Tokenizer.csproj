@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Utilities.Poco" Version="2.3.5" />
+    <PackageReference Include="Utilities.Poco" Version="2.3.6" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Utilities.Caching.CacheAreas;
 using Utilities.Caching.Caches;
 using Utilities.Caching.Core;
+using Utilities.SerializeExtensions;
 using Utilities.SerializeExtensions.Serializers;
 
 namespace Utilities.Caching
@@ -29,10 +30,14 @@ namespace Utilities.Caching
 
         public static ISerializer Serializer
         {
-            get => Cache.GetItem<ISerializer>(CacheArea.Global, "CachingSerializer", () => new BinarySerializer() {
-                LogMessage = CacheSystem.Instance.LogDebug,
-                BaseEncoding = Encoding.Unicode
+            get => Cache.GetItem<ISerializer>(CacheArea.Global, "CachingSerializer", () => new Serializer()
+            {
+                LogMessage = CacheSystem.Instance.LogDebug
             });
+            //get => Cache.GetItem<ISerializer>(CacheArea.Global, "CachingSerializer", () => new Serializer() {
+            //    LogMessage = CacheSystem.Instance.LogDebug,
+            //    BaseEncoding = Encoding.Unicode
+            //});
             set => Cache.SetItem<ISerializer>(CacheArea.Global, "CachingSerializer", value);
         }
 
@@ -204,7 +209,13 @@ namespace Utilities.Caching
             }
             return new Tuple<bool, string>(false, null);
         }
+        private static void ResetCookie(string name)
+        {
+            Cache.SetItem<string>(CacheArea.Request, "Cookie_" + name + "_Id", null);
 
+            CookieRepository.clearCookie("_" + name + "_Caching");
+
+        }
         private static string GetCookieValue(string name, bool isPerminate)
         {
             return Cache.GetItem<string>(CacheArea.Request, "Cookie_" + name + "_Id", () =>
@@ -305,6 +316,10 @@ namespace Utilities.Caching
         {
             return GetCookieValue("my_cook", true);
         }
+        public static void ResetCookieId()
+        {
+            ResetCookie("my_cook");
+        }
         //public static void CookieIdSet(string value)
         //{
         //    SetCookieValue("my_cook", value);
@@ -312,6 +327,11 @@ namespace Utilities.Caching
         public static async Task<string> SessionIdAsync()
         {
             return GetCookieValue("my_sess", false);
+        }
+
+        public static void ResetSessionId()
+        {
+            ResetCookie("my_sess");
         }
 
         //public static async Task SessionIdSetAsync(string value)

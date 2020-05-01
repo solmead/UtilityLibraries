@@ -46,7 +46,18 @@ namespace Utilities.Caching.Web
             HttpCookie cookie = null;
             try
             {
-                cookie = context.Request.Cookies[name];
+                cookie = context.Response.Cookies[name];
+            }
+            catch (Exception)
+            {
+
+            }
+            try
+            {
+                if (cookie == null)
+                {
+                    cookie = context.Request.Cookies[name];
+                }
             }
             catch (Exception)
             {
@@ -91,9 +102,13 @@ namespace Utilities.Caching.Web
             if (context != null)
             {
                 HttpCookie cookie = null;
+                
                 try
                 {
-                    cookie = context.Request.Cookies[name];
+                    if (cookie == null)
+                    {
+                        cookie = context.Request.Cookies[name];
+                    }
                 }
                 catch (Exception)
                 {
@@ -103,6 +118,20 @@ namespace Utilities.Caching.Web
 
             }
             return null;
+        }
+
+        public void clearCookie(string name)
+        {
+            HttpContext context = HttpContext.Current;
+
+            try
+            {
+                context.Request.Cookies.Remove(name);
+            }
+            catch (Exception)
+            {
+
+            }
         }
     }
 }

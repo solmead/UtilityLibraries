@@ -1,0 +1,60 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>2.1.9</Version>
+    <RuntimeIdentifiers>win10-x64;osx.10.11-x64;ubuntu.16.04-x64</RuntimeIdentifiers>
+    <Authors>Solmead Productions</Authors>
+    <Company>Solmead Productions</Company>
+    <Description>Solmead Productions</Description>
+    <Copyright>Copyright ©  2020</Copyright>
+    <RepositoryUrl>https://github.com/solmead/UtilityLibraries</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/solmead/UtilityLibraries</PackageProjectUrl>
+    <AssemblyVersion>2.1.3.0</AssemblyVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
+    <DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net462' ">
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Configuration" />
+  </ItemGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net462'">
+    <DefineConstants>NET45;NETFULL</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="ffmpeg\**" />
+    <Compile Remove="Resources\ffmpeg\**" />
+    <EmbeddedResource Remove="ffmpeg\**" />
+    <EmbeddedResource Remove="Resources\ffmpeg\**" />
+    <None Remove="ffmpeg\**" />
+    <None Remove="Resources\ffmpeg\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="PackNuget.bat" />
+    <None Remove="Resources\ffmpeg.zip" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\ffmpeg.zip" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.IO.Compression" Version="4.3.0" />
+    <PackageReference Include="Utilities.EnumExtensions" Version="6.2.1" />
+    <PackageReference Include="Utilities.FileExtensions" Version="1.0.1" />
+  </ItemGroup>
+
+</Project>

@@ -3,9 +3,9 @@
     <!--<TargetFramework>netstandard2.0</TargetFramework>-->
     <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.4.0</Version>
+    <Version>2.4.2</Version>
     <RuntimeIdentifiers>win10-x64;osx.10.11-x64;ubuntu.16.04-x64</RuntimeIdentifiers>
-    <Copyright>Copyright 2018</Copyright>
+    <Copyright>Copyright 2020</Copyright>
     <PackageLicenseUrl>https://git.uc.edu/Development/UC_Libraries</PackageLicenseUrl>
     <PackageProjectUrl>https://git.uc.edu/Development/UC_Libraries</PackageProjectUrl>
     <PackageIconUrl></PackageIconUrl>
@@ -18,7 +18,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Utilities.LinqDynamic" Version="2.2.1" />
-    <PackageReference Include="Utilities.Poco" Version="2.3.5" />
+    <PackageReference Include="Utilities.Poco" Version="2.3.6" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
     <DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>

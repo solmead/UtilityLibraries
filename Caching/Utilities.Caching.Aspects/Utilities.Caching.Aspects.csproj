@@ -4,7 +4,7 @@
     <!--<TargetFramework>netstandard2.0</TargetFramework>-->
     <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>6.2.5</Version>
+    <Version>6.2.6</Version>
     <Authors>Solmead Productions</Authors>
     <Company>Solmead Productions</Company>
     <Description>Aspect support for caching</Description>
@@ -19,9 +19,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PostSharp" Version="6.3.11" />
-    <PackageReference Include="Utilities.Caching" Version="6.7.6" />
-    <PackageReference Include="Utilities.SerializeExtensions" Version="6.3.10" />
+    <PackageReference Include="PostSharp" Version="6.6.6" />
+    <PackageReference Include="Utilities.Caching" Version="6.8.2" />
+    <PackageReference Include="Utilities.SerializeExtensions" Version="6.4.1" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">

@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <PackageReference Include="hiqpdf" Version="10.17.0" />
-    <PackageReference Include="Microsoft.Windows.Compatibility" Version="3.0.1" />
+    <PackageReference Include="Microsoft.Windows.Compatibility" Version="3.1.0" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">

@@ -18,11 +18,11 @@ namespace Utilities.Caching.Core
 
         public virtual CacheArea Area { get; protected set; }
         public virtual string Name { get; protected set; }
-        public void ClearCache()
+        public virtual void ClearCache()
         {
              _dataSource.DeleteAll();
         }
-        public async Task ClearCacheAsync()
+        public virtual async Task ClearCacheAsync()
         {
             await _dataSource.DeleteAllAsync();
         }
