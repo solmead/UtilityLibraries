@@ -16,12 +16,14 @@ namespace Utilities.Caching.Caches
         public override void ClearCache()
         {
             base.ClearCache();
+            CacheSystem.Instance.LogDebug("ClearCache: Calling ResetSessionId");
             CacheSystem.ResetSessionId();
 
         }
         public override async Task ClearCacheAsync()
         {
             await base.ClearCacheAsync();
+            CacheSystem.Instance.LogDebug("ClearCacheAsync: Calling ResetSessionId");
             CacheSystem.ResetSessionId();
         }
 
