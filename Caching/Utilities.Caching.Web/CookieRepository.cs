@@ -10,8 +10,8 @@ using Utilities.Caching.Core;
 namespace Utilities.Caching.Web
 {
     public class CookieRepository : ICookieRepository
-    { 
-        
+    {
+
         private  static string _cookiePath = null;
 
         public static string  CookiePath
@@ -43,6 +43,10 @@ namespace Utilities.Caching.Web
         public void addCookie(string name, string value, DateTime? expires, bool isPerminate)
         {
             HttpContext context = HttpContext.Current;
+
+
+            Cache.SetItem(CacheArea.Request, "Cookie_" + name, value);
+
             HttpCookie cookie = null;
             try
             {
@@ -72,7 +76,7 @@ namespace Utilities.Caching.Web
                 }
                 cookie.Value = value;
                 //cookie.HttpOnly = true;
-                cookie.Path = CookiePath; 
+                cookie.Path = CookiePath;
                 cookie.Secure = string.Equals("https", HttpContext.Current.Request.Url.Scheme, StringComparison.OrdinalIgnoreCase);
                 if (expires.HasValue)
                 {
@@ -98,35 +102,41 @@ namespace Utilities.Caching.Web
 
         public string getCookieValue(string name)
         {
-            var context = HttpContext.Current;
-            if (context != null)
+            return Cache.GetItem(CacheArea.Request, "Cookie_" + name, () =>
             {
-                HttpCookie cookie = null;
-                
-                try
+                var context = HttpContext.Current;
+                if (context != null)
                 {
-                    if (cookie == null)
+                    HttpCookie cookie = null;
+
+                    try
                     {
-                        cookie = context.Request.Cookies[name];
+                        if (cookie == null)
+                        {
+                            cookie = context.Request.Cookies[name];
+                        }
                     }
-                }
-                catch (Exception)
-                {
+                    catch (Exception)
+                    {
+
+                    }
+                    return cookie?.Value;
 
                 }
-                return cookie?.Value;
-
-            }
-            return null;
+                return null;
+            });
         }
 
         public void clearCookie(string name)
         {
             HttpContext context = HttpContext.Current;
+            CacheSystem.Instance.LogDebug("CookieRepository: clearCookie called [" + name + "]");
 
+            Cache.SetItem(CacheArea.Request, "Cookie_" + name, "");
             try
             {
-                context.Request.Cookies.Remove(name);
+                //context.Response.Cookies.Remove(name);
+                addCookie(name, "", DateTime.Now.AddDays(-1), false);
             }
             catch (Exception)
             {

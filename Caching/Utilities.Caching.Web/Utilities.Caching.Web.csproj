@@ -51,7 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Utilities.Caching">
-      <Version>6.8.2</Version>
+      <Version>6.8.3</Version>
     </PackageReference>
     <PackageReference Include="WebActivatorEx">
       <Version>2.2.0</Version>
