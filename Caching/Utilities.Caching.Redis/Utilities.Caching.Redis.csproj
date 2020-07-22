@@ -30,10 +30,10 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="StackExchange.Redis" Version="2.1.30" />
+    <PackageReference Include="StackExchange.Redis" Version="2.1.58" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
-    <PackageReference Include="Utilities.Caching" Version="6.8.3" />
-    <PackageReference Include="Utilities.SerializeExtensions" Version="6.4.1" />
+    <PackageReference Include="Utilities.Caching" Version="6.8.4" />
+    <PackageReference Include="Utilities.SerializeExtensions" Version="6.4.3" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">

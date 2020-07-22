@@ -29,6 +29,10 @@ namespace Utilities.SerializeExtensions
 
         public T Deserialize<T>(string data) where T : class
         {
+            if (string.IsNullOrWhiteSpace(data))
+            {
+                return null;
+            }
             var it = serializer.Deserialize<T>(data);
 
             if (it == null)

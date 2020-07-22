@@ -47,11 +47,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestCache.cs" />
     <Compile Include="RequestDataSource.cs" />
+    <Compile Include="Sessions\SessionCache.cs" />
+    <Compile Include="Sessions\SessionDataSource.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Utilities.Caching">
-      <Version>6.8.3</Version>
+      <Version>6.8.5</Version>
     </PackageReference>
     <PackageReference Include="WebActivatorEx">
       <Version>2.2.0</Version>

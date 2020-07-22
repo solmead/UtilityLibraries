@@ -21,7 +21,7 @@ namespace Utilities.EnumExtensions
         {
             FieldInfo fi = value.GetType().GetField(value.ToString());
 
-            DescriptionAttribute[] attributes = (DescriptionAttribute[])fi.GetCustomAttributes(typeof(DescriptionAttribute), false);
+            DescriptionAttribute[] attributes = (DescriptionAttribute[])fi?.GetCustomAttributes(typeof(DescriptionAttribute), false);
 
             if ((attributes != null) && (attributes.Length > 0))
                 return attributes[0].Description;
@@ -33,7 +33,7 @@ namespace Utilities.EnumExtensions
         {
             FieldInfo fi = value.GetType().GetField(value.ToString());
 
-            DescriptionAttribute[] attributes = (DescriptionAttribute[])fi.GetCustomAttributes(typeof(DescriptionAttribute), false);
+            DescriptionAttribute[] attributes = (DescriptionAttribute[])fi?.GetCustomAttributes(typeof(DescriptionAttribute), false);
 
             if ((attributes != null) && (attributes.Length > 0))
                 return attributes[0].Description;
@@ -63,7 +63,7 @@ namespace Utilities.EnumExtensions
                                     .Select(fieldInfo => new
                                     {
                                         name = fieldInfo.field.Name,
-                                        order = fieldInfo.attribute != null ? fieldInfo.attribute.Order : 0
+                                        order = fieldInfo.attribute?.Order ?? 0
                                     })
                                    .OrderBy(field => field.order)
                                    .Select(field => field.name);

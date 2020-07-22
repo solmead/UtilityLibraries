@@ -1,52 +1,32 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!--<TargetFramework>netstandard2.0</TargetFramework>-->
     <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>2.1.1</Version>
     <RuntimeIdentifiers>win10-x64;osx.10.11-x64;ubuntu.16.04-x64</RuntimeIdentifiers>
-    <Version>6.3.8</Version>
-    <Copyright>Copyright ©  2020</Copyright>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Solmead Productions</Authors>
     <Company>Solmead Productions</Company>
-    <Description>Database extension to perminate cache</Description>
+    <Copyright>Copyright © 2020</Copyright>
+    <Description>Dapper Utilities</Description>
     <RepositoryUrl>https://github.com/solmead/UtilityLibraries</RepositoryUrl>
     <PackageProjectUrl>https://github.com/solmead/UtilityLibraries</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/solmead/UtilityLibraries</PackageLicenseUrl>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Content\**" />
-    <EmbeddedResource Remove="Content\**" />
-    <None Remove="Content\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Remove="PackNuget.bat" />
-    <None Remove="Tutorials\Logging.md" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Tutorials\Logging.md" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.5">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Utilities.Caching" Version="6.8.4" />
-    <PackageReference Include="Utilities.SerializeExtensions" Version="6.4.3" />
+    <PackageReference Include="Dapper" Version="2.0.35" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
     <DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
   </PropertyGroup>
-
-
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net462' ">
     <Reference Include="mscorlib" />
@@ -59,9 +39,10 @@
     <Reference Include="System.Security" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Configuration" />
+    <Reference Include="System.ValueTuple" />
   </ItemGroup>
+  
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net462'">
     <DefineConstants>NET45;NETFULL</DefineConstants>
   </PropertyGroup>
-
 </Project>

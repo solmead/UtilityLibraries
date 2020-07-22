@@ -11,7 +11,7 @@
     <RepositoryUrl>https://github.com/solmead/UtilityLibraries</RepositoryUrl>
     <PackageProjectUrl>https://github.com/solmead/UtilityLibraries</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/solmead/UtilityLibraries</PackageLicenseUrl>
-    <Version>1.0.1</Version>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">

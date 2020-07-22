@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -30,7 +31,7 @@ namespace Utilities.Sql
 
             return p;
         }
-        
+
         public static DbParameter Param(string name, object value)
         {
             return new Parameter(name, (value ?? DBNull.Value));
@@ -66,6 +67,136 @@ namespace Utilities.Sql
 
 
 
+
+
+        public static async Task<TT> SqlQueryScalerAsync<TT>(this DbConnection db, string sql, List<DbParameter> parameters)
+        {
+            try
+            {
+
+                if (parameters == null)
+                {
+                    parameters = new List<DbParameter>();
+                }
+
+
+
+
+                db.DebugWrite(sql, parameters);
+                var st = DateTime.Now;
+                Log("-- Executing at " + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
+                var conn = db;
+                await conn.OpenAsync();
+                var cmd = conn.CreateCommand();
+                cmd.CommandText = sql;
+                cmd.CommandTimeout = (db.ConnectionTimeout != 0 ? db.ConnectionTimeout : 20);
+
+                foreach (var param in parameters)
+                {
+
+                    cmd.Parameters.Add(cmd.CreateParamFrom(param));
+                }
+
+                var ret = await cmd.ExecuteScalarAsync();
+                conn.Close();
+                Log("-- Loaded in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
+                return (TT)ret;
+            }
+            catch (Exception ex)
+            {
+
+                var tstr = db.ArgsAsSql(sql, parameters);
+                throw new Exception("Error: " + ex.Message + " on db call:" + tstr, ex);
+            }
+        }
+        public static TT SqlQueryScaler<TT>(this DbConnection db, string sql, List<DbParameter> parameters)
+        {
+            try
+            {
+
+                if (parameters == null)
+                {
+                    parameters = new List<DbParameter>();
+                }
+
+
+
+
+                db.DebugWrite(sql, parameters);
+                var st = DateTime.Now;
+                Log("-- Executing at " + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
+                var conn = db;
+
+                conn.Open();
+                var cmd = conn.CreateCommand();
+                cmd.CommandText = sql;
+                cmd.CommandTimeout = (db.ConnectionTimeout != 0 ? db.ConnectionTimeout : 20);
+
+                foreach (var param in parameters)
+                {
+                    cmd.Parameters.Add(cmd.CreateParamFrom(param));
+                }
+
+                var ret = cmd.ExecuteScalar();
+                conn.Close();
+                Log("-- Loaded in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
+                return (TT)ret;
+            }
+            catch (Exception ex)
+            {
+
+                var tstr = db.ArgsAsSql(sql, parameters);
+                throw new Exception("Error: " + ex.Message + " on db call:" + tstr, ex);
+            }
+        }
+
+
+        public static Task<TT> SqlQueryScalerAsync<TT>(this DbConnection db, string sql, object param = null)
+        {
+            var parameters = new List<DbParameter>();
+            if (param != null)
+            {
+                foreach (var p in param.GetPropertyNames(onlyWritable: false))
+                {
+                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
+                }
+            }
+
+            return db.SqlQueryScalerAsync<TT>(sql, parameters);
+        }
+
+        public static TT SqlQueryScaler<TT>(this DbConnection db, string sql, object param = null)
+        {
+            var parameters = new List<DbParameter>();
+            if (param != null)
+            {
+                foreach (var p in param.GetPropertyNames(onlyWritable: false))
+                {
+                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
+                }
+            }
+
+            return db.SqlQueryScaler<TT>(sql, parameters);
+        }
+        #region ScalerArea
+
+        public static async Task<TT> SqlQueryScalerAsync<TT>(this DbContext db, string sql, object param = null)
+        {
+            return await db.Database.GetDbConnection().SqlQueryScalerAsync<TT>(sql, param);
+        }
+        public static TT SqlQueryScaler<TT>(this DbContext db, string sql, object param = null)
+        {
+            return db.Database.GetDbConnection().SqlQueryScaler<TT>(sql, param);
+        }
+        public static async Task<TT> SqlQueryScalerAsync<TT>(this DatabaseFacade db, string sql, object param = null)
+        {
+            return await db.GetDbConnection().SqlQueryScalerAsync<TT>(sql, param);
+        }
+        public static TT SqlQueryScaler<TT>(this DatabaseFacade db, string sql, object param = null)
+        {
+            return db.GetDbConnection().SqlQueryScaler<TT>(sql, param);
+        }
+
         public static async Task<TT> SqlQueryScalerAsync<TT>(this DbContext db, string sql, List<DbParameter> parameters)
         {
             return await db.Database.GetDbConnection().SqlQueryScalerAsync<TT>(sql, parameters);
@@ -82,419 +213,7 @@ namespace Utilities.Sql
         {
             return db.GetDbConnection().SqlQueryScaler<TT>(sql, parameters);
         }
-        
-
-        public static async Task<DataSet> SqlQueryDataSetAsync(this DbContext db, string sql, List<DbParameter> parameters)
-        {
-            return await db.Database.GetDbConnection().SqlQueryDataSetAsync(sql, parameters);
-        }
-        public static DataSet SqlQueryDataSet(this DbContext db, string sql, List<DbParameter> parameters)
-        {
-            return db.Database.GetDbConnection().SqlQueryDataSet(sql, parameters);
-        }
-        public static async Task<DataSet> SqlQueryDataSetAsync(this DatabaseFacade db, string sql, List<DbParameter> parameters)
-        {
-            return await db.GetDbConnection().SqlQueryDataSetAsync(sql, parameters);
-        }
-        public static DataSet SqlQueryDataSet(this DatabaseFacade db, string sql, List<DbParameter> parameters)
-        {
-            return db.GetDbConnection().SqlQueryDataSet(sql, parameters);
-        }
-
-        public static async Task<DataTable> SqlQueryTableAsync(this DbConnection db, string sql, List<DbParameter> parameters)
-        {
-            return (await db.SqlQueryDataSetAsync(sql, parameters)).Tables[0];
-        }
-        public static DataTable SqlQueryTable(this DbConnection db, string sql, List<DbParameter> parameters)
-        {
-            return db.SqlQueryDataSet(sql, parameters).Tables[0];
-        }
-        public static async Task<DataTable> SqlQueryTableAsync(this DatabaseFacade db, string sql, List<DbParameter> parameters)
-        {
-            return await db.GetDbConnection().SqlQueryTableAsync(sql, parameters);
-        }
-        public static DataTable SqlQueryTable(this DatabaseFacade db, string sql, List<DbParameter> parameters)
-        {
-            return db.GetDbConnection().SqlQueryTable(sql, parameters);
-        }
-        public static async Task<DataTable> SqlQueryTableAsync(this DbContext db, string sql, List<DbParameter> parameters)
-        {
-            return await db.Database.GetDbConnection().SqlQueryTableAsync(sql, parameters);
-        }
-        public static DataTable SqlQueryTable(this DbContext db, string sql, List<DbParameter> parameters)
-        {
-            return db.Database.GetDbConnection().SqlQueryTable(sql, parameters);
-        }
-
-
-        public static async Task ExecuteSqlCommandAsync(this DbConnection db, string sql,
-            params DbParameter[] parameters)
-        {
-            await db.ExecuteSqlCommandAsync(sql, (from p in parameters select p).ToList());
-        }
-        public static async Task ExecuteSqlCommandAsync(this DatabaseFacade db, string sql,
-            params DbParameter[] parameters)
-        {
-            await db.GetDbConnection().ExecuteSqlCommandAsync(sql, parameters);
-        }
-        public static async Task ExecuteSqlCommandAsync(this DbContext db, string sql,
-            params DbParameter[] parameters)
-        {
-            await db.Database.GetDbConnection().ExecuteSqlCommandAsync(sql, parameters);
-        }
-
-
-        public static void ExecuteSqlCommand(this DbConnection db, string sql,
-            params DbParameter[] parameters)
-        {
-            db.ExecuteSqlCommand(sql, (from p in parameters select p).ToList());
-        }
-        public static void ExecuteSqlCommand(this DatabaseFacade db, string sql,
-            params DbParameter[] parameters)
-        {
-            db.GetDbConnection().ExecuteSqlCommand(sql, parameters);
-        }
-        public static void ExecuteSqlCommand(this DbContext db, string sql,
-            params DbParameter[] parameters)
-        {
-            db.Database.GetDbConnection().ExecuteSqlCommand(sql, parameters);
-        }
-
-
-        public static async Task ExecuteSqlCommandAsync(this DbConnection db, string sql,
-            List<DbParameter> parameters = null)
-        {
-            var st = DateTime.Now;
-            await db.SqlQueryDataSetAsync(sql, parameters);
-            Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
-        }
-        public static async Task ExecuteSqlCommandAsync(this DbContext db, string sql,
-            List<DbParameter> parameters = null)
-        {
-            await db.Database.GetDbConnection().ExecuteSqlCommandAsync(sql, parameters);
-        }
-        public static async Task ExecuteSqlCommandAsync(this DatabaseFacade db, string sql, List<DbParameter> parameters = null)
-        {
-            await db.GetDbConnection().ExecuteSqlCommandAsync(sql, parameters);
-        }
-
-
-
-        public static void ExecuteSqlCommand(this DbConnection db, string sql,
-            List<DbParameter> parameters = null)
-        {
-            var st = DateTime.Now;
-            db.SqlQueryDataSet(sql, parameters);
-            Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
-        }
-        public static void ExecuteSqlCommand(this DbContext db, string sql,
-            List<DbParameter> parameters = null)
-        {
-            db.Database.GetDbConnection().ExecuteSqlCommand(sql, parameters);
-        }
-        public static void ExecuteSqlCommand(this DatabaseFacade db, string sql, List<DbParameter> parameters = null)
-        {
-            db.GetDbConnection().ExecuteSqlCommand(sql, parameters);
-        }
-
-        public static async Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbConnection db, string sql,
-            List<DbParameter> parameters = null, Dictionary<string, string> mappings = null) where TTt : class
-        {
-            if (mappings == null)
-            {
-                mappings = new Dictionary<string, string>();
-            }
-            var st = DateTime.Now;
-            var tbl = await db.SqlQueryTableAsync(sql, parameters);
-            var st2 = DateTime.Now;
-            var q = tbl.ToList<TTt>(columnMapping: mappings).AsQueryable();
-            Log("-- Mapping in " + DateTime.Now.Subtract(st2).TotalMilliseconds + " ms");
-            Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
-            return q;
-        }
-
-        public static async Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbContext db, string sql,
-            List<DbParameter> parameters = null, Dictionary<string, string> mappings = null) where TTt : class
-        {
-            return await db.Database.GetDbConnection().SqlQueryAsync<TTt>(sql, parameters, mappings);
-        }
-        public static async Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DatabaseFacade db, string sql, List<DbParameter> parameters = null, Dictionary<string, string> mappings = null)
-            where TTt : class
-        {
-            return await db.GetDbConnection().SqlQueryAsync<TTt>(sql, parameters, mappings);
-        }
-
-        public static IQueryable<TTt> SqlQuery<TTt>(this DbConnection db, string sql,
-            List<DbParameter> parameters = null, Dictionary<string, string> mappings = null) where TTt : class
-        {
-            if (mappings == null)
-            {
-                mappings = new Dictionary<string, string>();
-            }
-            var st = DateTime.Now;
-            var tbl = db.SqlQueryTable(sql, parameters);
-            var st2 = DateTime.Now;
-            var q = tbl.ToList<TTt>(columnMapping: mappings).AsQueryable();
-            Log("-- Mapping in " + DateTime.Now.Subtract(st2).TotalMilliseconds + " ms");
-            Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
-            return q;
-        }
-        public static IQueryable<TTt> SqlQuery<TTt>(this DbContext db, string sql,
-            List<DbParameter> parameters = null, Dictionary<string, string> mappings = null) where TTt : class
-        {
-            return db.Database.GetDbConnection().SqlQuery<TTt>(sql, parameters, mappings);
-        }
-        public static IQueryable<TTt> SqlQuery<TTt>(this DatabaseFacade db, string sql, List<DbParameter> parameters = null, Dictionary<string, string> mappings = null)
-            where TTt : class
-        {
-            return db.GetDbConnection().SqlQuery<TTt>(sql, parameters, mappings);
-        }
-
-
-        public static Tuple<IQueryable<TT1>, IQueryable<TT2>> SqlQuery<TT1, TT2>(
-            this DbContext db, string sql, List<DbParameter> parameters = null,
-            Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
-            where TT1 : class
-            where TT2 : class
-        {
-            return db.Database.GetDbConnection().SqlQuery<TT1, TT2>(sql, parameters, mappings1, mappings2);
-        }
-        public static Tuple<IQueryable<TT1>, IQueryable<TT2>> SqlQuery<TT1, TT2>(
-            this DatabaseFacade db, string sql, List<DbParameter> parameters = null,
-            Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
-            where TT1 : class
-            where TT2 : class
-        {
-            return db.GetDbConnection().SqlQuery<TT1, TT2>(sql, parameters, mappings1, mappings2);
-        }
-
-        public static Tuple<IQueryable<TT1>, IQueryable<TT2>> SqlQuery<TT1, TT2>(this DbConnection db,
-            string sql, List<DbParameter> parameters = null, Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
-            where TT1 : class 
-            where TT2 : class
-        {
-            mappings1 = mappings1 ?? new Dictionary<string, string>();
-            mappings2 = mappings2 ?? new Dictionary<string, string>();
-            var st = DateTime.Now;
-            var ds = db.SqlQueryDataSet(sql, parameters);
-            var st2 = DateTime.Now;
-            IQueryable<TT1> q1 = null;
-            IQueryable<TT2> q2 = null;
-            if (ds.Tables.Count >= 1)
-            {
-                q1 = ds.Tables[0].ToList<TT1>(columnMapping: mappings1).AsQueryable();
-            }
-            if (ds.Tables.Count >= 2)
-            {
-                q2 = ds.Tables[1].ToList<TT2>(columnMapping: mappings2).AsQueryable();
-            }
-            var q = new Tuple<IQueryable<TT1>, IQueryable<TT2>>(q1, q2);
-            Log("-- Mapping in " + DateTime.Now.Subtract(st2).TotalMilliseconds + " ms");
-            Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
-            return q;
-        }
-
-
-        public static Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>> SqlQuery<TT1, TT2, TT3>(
-            this DbContext db, string sql, List<DbParameter> parameters = null,
-            Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null,
-            Dictionary<string, string> mappings3 = null)
-            where TT1 : class
-            where TT2 : class
-            where TT3 : class
-        {
-            return db.Database.GetDbConnection().SqlQuery<TT1, TT2, TT3>(sql, parameters, mappings1, mappings2, mappings3);
-        }
-        public static Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>> SqlQuery<TT1, TT2, TT3>(
-            this DatabaseFacade db, string sql, List<DbParameter> parameters = null,
-            Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null,
-            Dictionary<string, string> mappings3 = null)
-            where TT1 : class
-            where TT2 : class
-            where TT3 : class
-        {
-            return db.GetDbConnection().SqlQuery<TT1, TT2, TT3>(sql, parameters, mappings1, mappings2, mappings3);
-        }
-
-
-        public static Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>> SqlQuery<TT1, TT2, TT3>(this DbConnection db, string sql, List<DbParameter> parameters = null, Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null, Dictionary<string, string> mappings3 = null)
-            where TT1 : class
-            where TT2 : class
-            where TT3 : class
-        {
-            mappings1 = mappings1 ?? new Dictionary<string, string>();
-            mappings2 = mappings2 ?? new Dictionary<string, string>();
-            mappings3 = mappings3 ?? new Dictionary<string, string>();
-            var st = DateTime.Now;
-            var ds = db.SqlQueryDataSet(sql, parameters);
-            var st2 = DateTime.Now;
-            IQueryable<TT1> q1 = null;
-            IQueryable<TT2> q2 = null;
-            IQueryable<TT3> q3 = null;
-            if (ds.Tables.Count >= 1)
-            {
-                q1 = ds.Tables[0].ToList<TT1>(columnMapping: mappings1).AsQueryable();
-            }
-            if (ds.Tables.Count >= 2)
-            {
-                q2 = ds.Tables[1].ToList<TT2>(columnMapping: mappings2).AsQueryable();
-            }
-            if (ds.Tables.Count >= 3)
-            {
-                q3 = ds.Tables[2].ToList<TT3>(columnMapping: mappings3).AsQueryable();
-            }
-            var q = new Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>(q1, q2, q3);
-            Log("-- Mapping in " + DateTime.Now.Subtract(st2).TotalMilliseconds + " ms");
-            Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
-            return q;
-        }
-
-
-
-
-
-        public static IQueryable<TTt> SqlQuery<TTt>(this DbConnection db, string sql, params DbParameter[] parameters) where TTt : class
-        {
-            var map = new Dictionary<string, string>();
-            return db.SqlQuery<TTt>(sql, (from p in parameters select p).ToList(), map);
-        }
-        public static IQueryable<TTt> SqlQuery<TTt>(this DbContext db, string sql,
-            params DbParameter[] parameters) where TTt : class
-        {
-            return db.Database.GetDbConnection().SqlQuery<TTt>(sql, parameters);
-        }
-        public static IQueryable<TTt> SqlQuery<TTt>(this DatabaseFacade db, string sql, params DbParameter[] parameters) where TTt : class
-        {
-            return db.GetDbConnection().SqlQuery<TTt>(sql, parameters);
-        }
-
-
-
-
-
-
-
-
-
-
-        public static async Task<Tuple<IQueryable<TT1>, IQueryable<TT2>>> SqlQueryAsync<TT1, TT2>(
-            this DbContext db, string sql, List<DbParameter> parameters = null,
-            Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
-            where TT1 : class
-            where TT2 : class
-        {
-            return await db.Database.GetDbConnection().SqlQueryAsync<TT1, TT2>(sql, parameters, mappings1, mappings2);
-        }
-        public static async Task<Tuple<IQueryable<TT1>, IQueryable<TT2>>> SqlQueryAsync<TT1, TT2>(
-            this DatabaseFacade db, string sql, List<DbParameter> parameters = null,
-            Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
-            where TT1 : class
-            where TT2 : class
-        {
-            return await db.GetDbConnection().SqlQueryAsync<TT1, TT2>(sql, parameters, mappings1, mappings2);
-        }
-
-        public static async Task<Tuple<IQueryable<TT1>, IQueryable<TT2>>> SqlQueryAsync<TT1, TT2>(this DbConnection db,
-            string sql, List<DbParameter> parameters = null, Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
-            where TT1 : class
-            where TT2 : class
-        {
-            mappings1 = mappings1 ?? new Dictionary<string, string>();
-            mappings2 = mappings2 ?? new Dictionary<string, string>();
-            var st = DateTime.Now;
-            var ds = await db.SqlQueryDataSetAsync(sql, parameters);
-            var st2 = DateTime.Now;
-            IQueryable<TT1> q1 = null;
-            IQueryable<TT2> q2 = null;
-            if (ds.Tables.Count >= 1)
-            {
-                q1 = ds.Tables[0].ToList<TT1>(columnMapping: mappings1).AsQueryable();
-            }
-            if (ds.Tables.Count >= 2)
-            {
-                q2 = ds.Tables[1].ToList<TT2>(columnMapping: mappings2).AsQueryable();
-            }
-            var q = new Tuple<IQueryable<TT1>, IQueryable<TT2>>(q1, q2);
-            Log("-- Mapping in " + DateTime.Now.Subtract(st2).TotalMilliseconds + " ms");
-            Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
-            return q;
-        }
-
-
-        public static async Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(
-            this DbContext db, string sql, List<DbParameter> parameters = null,
-            Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null,
-            Dictionary<string, string> mappings3 = null)
-            where TT1 : class
-            where TT2 : class
-            where TT3 : class
-        {
-            return await db.Database.GetDbConnection().SqlQueryAsync<TT1, TT2, TT3>(sql, parameters, mappings1, mappings2, mappings3);
-        }
-        public static async Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(
-            this DatabaseFacade db, string sql, List<DbParameter> parameters = null,
-            Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null,
-            Dictionary<string, string> mappings3 = null)
-            where TT1 : class
-            where TT2 : class
-            where TT3 : class
-        {
-            return await db.GetDbConnection().SqlQueryAsync<TT1, TT2, TT3>(sql, parameters, mappings1, mappings2, mappings3);
-        }
-
-
-        public static async Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(this DbConnection db, string sql, List<DbParameter> parameters = null, Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null, Dictionary<string, string> mappings3 = null)
-            where TT1 : class
-            where TT2 : class
-            where TT3 : class
-        {
-            mappings1 = mappings1 ?? new Dictionary<string, string>();
-            mappings2 = mappings2 ?? new Dictionary<string, string>();
-            mappings3 = mappings3 ?? new Dictionary<string, string>();
-            var st = DateTime.Now;
-            var ds = await db.SqlQueryDataSetAsync(sql, parameters);
-            var st2 = DateTime.Now;
-            IQueryable<TT1> q1 = null;
-            IQueryable<TT2> q2 = null;
-            IQueryable<TT3> q3 = null;
-            if (ds.Tables.Count >= 1)
-            {
-                q1 = ds.Tables[0].ToList<TT1>(columnMapping: mappings1).AsQueryable();
-            }
-            if (ds.Tables.Count >= 2)
-            {
-                q2 = ds.Tables[1].ToList<TT2>(columnMapping: mappings2).AsQueryable();
-            }
-            if (ds.Tables.Count >= 3)
-            {
-                q3 = ds.Tables[2].ToList<TT3>(columnMapping: mappings3).AsQueryable();
-            }
-            var q = new Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>(q1, q2, q3);
-            Log("-- Mapping in " + DateTime.Now.Subtract(st2).TotalMilliseconds + " ms");
-            Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
-            return q;
-        }
-
-
-
-
-
-        public static async Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbConnection db, string sql, params DbParameter[] parameters) where TTt : class
-        {
-            var map = new Dictionary<string, string>();
-            return await db.SqlQueryAsync<TTt>(sql, (from p in parameters select p).ToList(), map);
-        }
-        public static async Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbContext db, string sql,
-            params DbParameter[] parameters) where TTt : class
-        {
-            return await db.Database.GetDbConnection().SqlQueryAsync<TTt>(sql, parameters);
-        }
-        public static async Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DatabaseFacade db, string sql, params DbParameter[] parameters) where TTt : class
-        {
-            return await db.GetDbConnection().SqlQueryAsync<TTt>(sql, parameters);
-        }
-
-
+        #endregion
 
 
 
@@ -615,87 +334,810 @@ namespace Utilities.Sql
         }
 
 
-
-        public static async Task<TT> SqlQueryScalerAsync<TT>(this DbConnection db, string sql, List<DbParameter> parameters)
+        public static Task<DataSet> SqlQueryDataSetAsync(this DbConnection db, string sql, object param = null)
         {
-            try
+            var parameters = new List<DbParameter>();
+            if (param != null)
             {
-
-                if (parameters == null)
+                foreach (var p in param.GetPropertyNames(onlyWritable: false))
                 {
-                    parameters = new List<DbParameter>();
+                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
                 }
-
-
-
-
-                db.DebugWrite(sql, parameters);
-                var st = DateTime.Now;
-                Log("-- Executing at " + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
-                var conn = db;
-                await conn.OpenAsync();
-                var cmd = conn.CreateCommand();
-                cmd.CommandText = sql;
-                cmd.CommandTimeout = (db.ConnectionTimeout != 0 ? db.ConnectionTimeout : 20);
-
-                foreach (var param in parameters)
-                {
-
-                    cmd.Parameters.Add(cmd.CreateParamFrom(param));
-                }
-
-                var ret = await cmd.ExecuteScalarAsync();
-                conn.Close();
-                Log("-- Loaded in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
-                return (TT)ret;
             }
-            catch (Exception ex)
-            {
 
-                var tstr = db.ArgsAsSql(sql, parameters);
-                throw new Exception("Error: " + ex.Message + " on db call:" + tstr, ex);
-            }
+            return db.SqlQueryDataSetAsync(sql, parameters);
         }
-        public static TT SqlQueryScaler<TT>(this DbConnection db, string sql, List<DbParameter> parameters)
+        public static DataSet SqlQueryDataSet(this DbConnection db, string sql, object param = null)
         {
-            try
+            var parameters = new List<DbParameter>();
+            if (param != null)
             {
-
-                if (parameters == null)
+                foreach (var p in param.GetPropertyNames(onlyWritable: false))
                 {
-                    parameters = new List<DbParameter>();
+                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
                 }
-
-
-
-
-                db.DebugWrite(sql, parameters);
-                var st = DateTime.Now;
-                Log("-- Executing at " + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
-                var conn = db;
-
-                 conn.Open();
-                var cmd = conn.CreateCommand();
-                cmd.CommandText = sql;
-                cmd.CommandTimeout = (db.ConnectionTimeout != 0 ? db.ConnectionTimeout : 20);
-
-                foreach (var param in parameters)
-                {
-                    cmd.Parameters.Add(cmd.CreateParamFrom(param));
-                }
-
-                var ret = cmd.ExecuteScalar();
-                conn.Close();
-                Log("-- Loaded in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
-                return (TT)ret;
             }
-            catch (Exception ex)
-            {
-
-                var tstr = db.ArgsAsSql(sql, parameters);
-                throw new Exception("Error: " + ex.Message + " on db call:" + tstr, ex);
-            }
+            return db.SqlQueryDataSet(sql, parameters);
         }
+
+
+        #region DataSetArea
+
+        public static async Task<DataSet> SqlQueryDataSetAsync(this DbContext db, string sql, object param = null)
+        {
+            return await db.Database.GetDbConnection().SqlQueryDataSetAsync(sql, param);
+        }
+        public static DataSet SqlQueryDataSet(this DbContext db, string sql, object param = null)
+        {
+            return db.Database.GetDbConnection().SqlQueryDataSet(sql, param);
+        }
+        public static async Task<DataSet> SqlQueryDataSetAsync(this DatabaseFacade db, string sql, object param = null)
+        {
+            return await db.GetDbConnection().SqlQueryDataSetAsync(sql, param);
+        }
+        public static DataSet SqlQueryDataSet(this DatabaseFacade db, string sql, object param = null)
+        {
+            return db.GetDbConnection().SqlQueryDataSet(sql, param);
+        }
+
+
+
+
+        public static async Task<DataSet> SqlQueryDataSetAsync(this DbContext db, string sql, List<DbParameter> parameters)
+        {
+            return await db.Database.GetDbConnection().SqlQueryDataSetAsync(sql, parameters);
+        }
+        public static DataSet SqlQueryDataSet(this DbContext db, string sql, List<DbParameter> parameters)
+        {
+            return db.Database.GetDbConnection().SqlQueryDataSet(sql, parameters);
+        }
+        public static async Task<DataSet> SqlQueryDataSetAsync(this DatabaseFacade db, string sql, List<DbParameter> parameters)
+        {
+            return await db.GetDbConnection().SqlQueryDataSetAsync(sql, parameters);
+        }
+        public static DataSet SqlQueryDataSet(this DatabaseFacade db, string sql, List<DbParameter> parameters)
+        {
+            return db.GetDbConnection().SqlQueryDataSet(sql, parameters);
+        }
+
+        #endregion
+
+
+
+        #region DataTableArea
+
+        public static async Task<DataTable> SqlQueryTableAsync(this DbConnection db, string sql, object param = null)
+        {
+            return (await db.SqlQueryDataSetAsync(sql, param)).Tables[0];
+        }
+        public static DataTable SqlQueryTable(this DbConnection db, string sql, object param = null)
+        {
+            return db.SqlQueryDataSet(sql, param).Tables[0];
+        }
+        public static async Task<DataTable> SqlQueryTableAsync(this DatabaseFacade db, string sql, object param = null)
+        {
+            return await db.GetDbConnection().SqlQueryTableAsync(sql, param);
+        }
+        public static DataTable SqlQueryTable(this DatabaseFacade db, string sql, object param = null)
+        {
+            return db.GetDbConnection().SqlQueryTable(sql, param);
+        }
+        public static async Task<DataTable> SqlQueryTableAsync(this DbContext db, string sql, object param = null)
+        {
+            return await db.Database.GetDbConnection().SqlQueryTableAsync(sql, param);
+        }
+        public static DataTable SqlQueryTable(this DbContext db, string sql, object param = null)
+        {
+            return db.Database.GetDbConnection().SqlQueryTable(sql, param);
+        }
+
+
+
+
+
+
+
+        public static async Task<DataTable> SqlQueryTableAsync(this DbConnection db, string sql, List<DbParameter> parameters)
+        {
+            return (await db.SqlQueryDataSetAsync(sql, parameters)).Tables[0];
+        }
+        public static DataTable SqlQueryTable(this DbConnection db, string sql, List<DbParameter> parameters)
+        {
+            return db.SqlQueryDataSet(sql, parameters).Tables[0];
+        }
+        public static async Task<DataTable> SqlQueryTableAsync(this DatabaseFacade db, string sql, List<DbParameter> parameters)
+        {
+            return await db.GetDbConnection().SqlQueryTableAsync(sql, parameters);
+        }
+        public static DataTable SqlQueryTable(this DatabaseFacade db, string sql, List<DbParameter> parameters)
+        {
+            return db.GetDbConnection().SqlQueryTable(sql, parameters);
+        }
+        public static async Task<DataTable> SqlQueryTableAsync(this DbContext db, string sql, List<DbParameter> parameters)
+        {
+            return await db.Database.GetDbConnection().SqlQueryTableAsync(sql, parameters);
+        }
+        public static DataTable SqlQueryTable(this DbContext db, string sql, List<DbParameter> parameters)
+        {
+            return db.Database.GetDbConnection().SqlQueryTable(sql, parameters);
+        }
+
+
+        #endregion
+
+
+        #region SqlCommandArea
+
+
+        public static async Task ExecuteSqlCommandAsync(this DbConnection db, string sql, object param = null)
+        {
+            var st = DateTime.Now;
+            await db.SqlQueryDataSetAsync(sql, param);
+            Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
+        }
+        public static async Task ExecuteSqlCommandAsync(this DbContext db, string sql, object param = null)
+        {
+            await db.Database.GetDbConnection().ExecuteSqlCommandAsync(sql, param);
+        }
+        public static async Task ExecuteSqlCommandAsync(this DatabaseFacade db, string sql, object param = null)
+        {
+            await db.GetDbConnection().ExecuteSqlCommandAsync(sql, param);
+        }
+
+
+
+        public static void ExecuteSqlCommand(this DbConnection db, string sql, object param = null)
+        {
+            var st = DateTime.Now;
+            db.SqlQueryDataSet(sql, param);
+            Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
+        }
+        public static void ExecuteSqlCommand(this DbContext db, string sql, object param = null)
+        {
+            db.Database.GetDbConnection().ExecuteSqlCommand(sql, param);
+        }
+        public static void ExecuteSqlCommand(this DatabaseFacade db, string sql, object param = null)
+        {
+            db.GetDbConnection().ExecuteSqlCommand(sql, param);
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        public static async Task ExecuteSqlCommandAsync(this DbConnection db, string sql,
+            List<DbParameter> parameters)
+        {
+            var st = DateTime.Now;
+            await db.SqlQueryDataSetAsync(sql, parameters);
+            Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
+        }
+        public static async Task ExecuteSqlCommandAsync(this DbContext db, string sql,
+            List<DbParameter> parameters)
+        {
+            await db.Database.GetDbConnection().ExecuteSqlCommandAsync(sql, parameters);
+        }
+        public static async Task ExecuteSqlCommandAsync(this DatabaseFacade db, string sql, List<DbParameter> parameters)
+        {
+            await db.GetDbConnection().ExecuteSqlCommandAsync(sql, parameters);
+        }
+
+
+
+        public static void ExecuteSqlCommand(this DbConnection db, string sql,
+            List<DbParameter> parameters)
+        {
+            var st = DateTime.Now;
+            db.SqlQueryDataSet(sql, parameters);
+            Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
+        }
+        public static void ExecuteSqlCommand(this DbContext db, string sql,
+            List<DbParameter> parameters)
+        {
+            db.Database.GetDbConnection().ExecuteSqlCommand(sql, parameters);
+        }
+        public static void ExecuteSqlCommand(this DatabaseFacade db, string sql, List<DbParameter> parameters)
+        {
+            db.GetDbConnection().ExecuteSqlCommand(sql, parameters);
+        }
+
+        #endregion
+
+
+        #region SqlCommandParamsArea
+        public static async Task ExecuteSqlCommandAsync(this DbConnection db, string sql,
+            params DbParameter[] parameters)
+        {
+            await db.ExecuteSqlCommandAsync(sql, (from p in parameters select p).ToList());
+        }
+        public static async Task ExecuteSqlCommandAsync(this DatabaseFacade db, string sql,
+            params DbParameter[] parameters)
+        {
+            await db.GetDbConnection().ExecuteSqlCommandAsync(sql, parameters);
+        }
+        public static async Task ExecuteSqlCommandAsync(this DbContext db, string sql,
+            params DbParameter[] parameters)
+        {
+            await db.Database.GetDbConnection().ExecuteSqlCommandAsync(sql, parameters);
+        }
+
+
+        public static void ExecuteSqlCommand(this DbConnection db, string sql,
+            params DbParameter[] parameters)
+        {
+            db.ExecuteSqlCommand(sql, (from p in parameters select p).ToList());
+        }
+        public static void ExecuteSqlCommand(this DatabaseFacade db, string sql,
+            params DbParameter[] parameters)
+        {
+            db.GetDbConnection().ExecuteSqlCommand(sql, parameters);
+        }
+        public static void ExecuteSqlCommand(this DbContext db, string sql,
+            params DbParameter[] parameters)
+        {
+            db.Database.GetDbConnection().ExecuteSqlCommand(sql, parameters);
+        }
+
+
+
+        #endregion
+
+
+
+
+
+        public static async Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbConnection db, string sql,
+            List<DbParameter> parameters, Dictionary<string, string> mappings = null) where TTt : class
+        {
+
+            mappings = (mappings?.Any() ?? false) ? mappings : Mapper.GetMapping<TTt>();
+            var st = DateTime.Now;
+            var tbl = await db.SqlQueryTableAsync(sql, parameters);
+            var st2 = DateTime.Now;
+            var q = tbl.ToList<TTt>(columnMapping: mappings).AsQueryable();
+            Log("-- Mapping in " + DateTime.Now.Subtract(st2).TotalMilliseconds + " ms");
+            Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
+            return q;
+        }
+
+        public static IQueryable<TTt> SqlQuery<TTt>(this DbConnection db, string sql,
+            List<DbParameter> parameters, Dictionary<string, string> mappings = null) where TTt : class
+        {
+
+            mappings = (mappings?.Any() ?? false) ? mappings : Mapper.GetMapping<TTt>();
+            var st = DateTime.Now;
+            var tbl = db.SqlQueryTable(sql, parameters);
+            var st2 = DateTime.Now;
+            var q = tbl.ToList<TTt>(columnMapping: mappings).AsQueryable();
+            Log("-- Mapping in " + DateTime.Now.Subtract(st2).TotalMilliseconds + " ms");
+            Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
+            return q;
+        }
+
+        public static async Task<Tuple<IQueryable<TT1>, IQueryable<TT2>>> SqlQueryAsync<TT1, TT2>(this DbConnection db,
+            string sql, List<DbParameter> parameters, Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
+            where TT1 : class
+            where TT2 : class
+        {
+            mappings1 = (mappings1?.Any() ?? false) ? mappings1 : Mapper.GetMapping<TT1>();
+            mappings2 = (mappings2?.Any() ?? false) ? mappings2 : Mapper.GetMapping<TT2>();
+
+            var st = DateTime.Now;
+            var ds = await db.SqlQueryDataSetAsync(sql, parameters);
+            var st2 = DateTime.Now;
+            IQueryable<TT1> q1 = null;
+            IQueryable<TT2> q2 = null;
+            if (ds.Tables.Count >= 1)
+            {
+                q1 = ds.Tables[0].ToList<TT1>(columnMapping: mappings1).AsQueryable();
+            }
+            if (ds.Tables.Count >= 2)
+            {
+                q2 = ds.Tables[1].ToList<TT2>(columnMapping: mappings2).AsQueryable();
+            }
+            var q = new Tuple<IQueryable<TT1>, IQueryable<TT2>>(q1, q2);
+            Log("-- Mapping in " + DateTime.Now.Subtract(st2).TotalMilliseconds + " ms");
+            Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
+            return q;
+        }
+
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>> SqlQuery<TT1, TT2>(this DbConnection db,
+            string sql, List<DbParameter> parameters, Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
+            where TT1 : class
+            where TT2 : class
+        {
+            mappings1 = (mappings1?.Any() ?? false) ? mappings1 : Mapper.GetMapping<TT1>();
+            mappings2 = (mappings2?.Any() ?? false) ? mappings2 : Mapper.GetMapping<TT2>();
+            var st = DateTime.Now;
+            var ds = db.SqlQueryDataSet(sql, parameters);
+            var st2 = DateTime.Now;
+            IQueryable<TT1> q1 = null;
+            IQueryable<TT2> q2 = null;
+            if (ds.Tables.Count >= 1)
+            {
+                q1 = ds.Tables[0].ToList<TT1>(columnMapping: mappings1).AsQueryable();
+            }
+            if (ds.Tables.Count >= 2)
+            {
+                q2 = ds.Tables[1].ToList<TT2>(columnMapping: mappings2).AsQueryable();
+            }
+            var q = new Tuple<IQueryable<TT1>, IQueryable<TT2>>(q1, q2);
+            Log("-- Mapping in " + DateTime.Now.Subtract(st2).TotalMilliseconds + " ms");
+            Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
+            return q;
+        }
+
+        public static async Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(this DbConnection db, string sql, List<DbParameter> parameters, Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null, Dictionary<string, string> mappings3 = null)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+        {
+            mappings1 = (mappings1?.Any() ?? false) ? mappings1 : Mapper.GetMapping<TT1>();
+            mappings2 = (mappings2?.Any() ?? false) ? mappings2 : Mapper.GetMapping<TT2>();
+            mappings3 = (mappings3?.Any() ?? false) ? mappings3 : Mapper.GetMapping<TT3>();
+            var st = DateTime.Now;
+            var ds = await db.SqlQueryDataSetAsync(sql, parameters);
+            var st2 = DateTime.Now;
+            IQueryable<TT1> q1 = null;
+            IQueryable<TT2> q2 = null;
+            IQueryable<TT3> q3 = null;
+            if (ds.Tables.Count >= 1)
+            {
+                q1 = ds.Tables[0].ToList<TT1>(columnMapping: mappings1).AsQueryable();
+            }
+            if (ds.Tables.Count >= 2)
+            {
+                q2 = ds.Tables[1].ToList<TT2>(columnMapping: mappings2).AsQueryable();
+            }
+            if (ds.Tables.Count >= 3)
+            {
+                q3 = ds.Tables[2].ToList<TT3>(columnMapping: mappings3).AsQueryable();
+            }
+            var q = new Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>(q1, q2, q3);
+            Log("-- Mapping in " + DateTime.Now.Subtract(st2).TotalMilliseconds + " ms");
+            Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
+            return q;
+        }
+
+
+
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>> SqlQuery<TT1, TT2, TT3>(this DbConnection db, string sql, List<DbParameter> parameters, Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null, Dictionary<string, string> mappings3 = null)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+        {
+            mappings1 = (mappings1?.Any() ?? false) ? mappings1 : Mapper.GetMapping<TT1>();
+            mappings2 = (mappings2?.Any() ?? false) ? mappings2 : Mapper.GetMapping<TT2>();
+            mappings3 = (mappings3?.Any() ?? false) ? mappings3 : Mapper.GetMapping<TT3>();
+            var st = DateTime.Now;
+            var ds = db.SqlQueryDataSet(sql, parameters);
+            var st2 = DateTime.Now;
+            IQueryable<TT1> q1 = null;
+            IQueryable<TT2> q2 = null;
+            IQueryable<TT3> q3 = null;
+            if (ds.Tables.Count >= 1)
+            {
+                q1 = ds.Tables[0].ToList<TT1>(columnMapping: mappings1).AsQueryable();
+            }
+            if (ds.Tables.Count >= 2)
+            {
+                q2 = ds.Tables[1].ToList<TT2>(columnMapping: mappings2).AsQueryable();
+            }
+            if (ds.Tables.Count >= 3)
+            {
+                q3 = ds.Tables[2].ToList<TT3>(columnMapping: mappings3).AsQueryable();
+            }
+            var q = new Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>(q1, q2, q3);
+            Log("-- Mapping in " + DateTime.Now.Subtract(st2).TotalMilliseconds + " ms");
+            Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
+            return q;
+        }
+
+
+
+
+
+        public static Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbConnection db, string sql, object param = null, Dictionary<string, string> mappings = null) where TTt : class
+        {
+                var parameters = new List<DbParameter>();
+            if (param != null)
+            {
+                foreach (var p in param.GetPropertyNames(onlyWritable: false))
+                {
+                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
+                }
+            }
+                return db.SqlQueryAsync<TTt>(sql, parameters, mappings);
+        }
+
+        public static IQueryable<TTt> SqlQuery<TTt>(this DbConnection db, string sql, object param = null, Dictionary<string, string> mappings = null) where TTt : class
+        {
+            var parameters = new List<DbParameter>();
+            if (param != null)
+            {
+                foreach (var p in param.GetPropertyNames(onlyWritable: false))
+                {
+                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
+                }
+            }
+            return db.SqlQuery<TTt>(sql, parameters, mappings);
+
+        }
+        public static Task<Tuple<IQueryable<TT1>, IQueryable<TT2>>> SqlQueryAsync<TT1, TT2>(this DbConnection db,
+            string sql, object param = null, Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
+            where TT1 : class
+            where TT2 : class
+        {
+
+            var parameters = new List<DbParameter>();
+            if (param != null)
+            {
+                foreach (var p in param.GetPropertyNames(onlyWritable: false))
+                {
+                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
+                }
+            }
+            return db.SqlQueryAsync<TT1, TT2>(sql, parameters, mappings1, mappings2);
+        }
+
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>> SqlQuery<TT1, TT2>(this DbConnection db,
+            string sql, object param = null, Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
+            where TT1 : class
+            where TT2 : class
+        {
+
+            var parameters = new List<DbParameter>();
+            if (param != null)
+            {
+                foreach (var p in param.GetPropertyNames(onlyWritable: false))
+                {
+                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
+                }
+            }
+            return db.SqlQuery<TT1, TT2>(sql, parameters, mappings1, mappings2);
+        }
+
+        public static  Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(this DbConnection db, string sql, object param = null, Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null, Dictionary<string, string> mappings3 = null)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+        {
+
+
+            var parameters = new List<DbParameter>();
+            if (param != null)
+            {
+                foreach (var p in param.GetPropertyNames(onlyWritable: false))
+                {
+                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
+                }
+            }
+            return db.SqlQueryAsync<TT1, TT2, TT3>(sql, parameters, mappings1, mappings2, mappings3);
+        }
+
+
+
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>> SqlQuery<TT1, TT2, TT3>(this DbConnection db, string sql, object param = null, Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null, Dictionary<string, string> mappings3 = null)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+        {
+
+            var parameters = new List<DbParameter>();
+            if (param != null)
+            {
+                foreach (var p in param.GetPropertyNames(onlyWritable: false))
+                {
+                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
+                }
+            }
+            return db.SqlQuery<TT1, TT2, TT3>(sql, parameters, mappings1, mappings2, mappings3);
+        }
+
+
+
+
+
+
+        #region SqlQueryArea
+
+        public static Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbContext db, string sql,
+            object param = null, Dictionary<string, string> mappings = null) where TTt : class
+        {
+            return db.Database.GetDbConnection().SqlQueryAsync<TTt>(sql, param, mappings);
+        }
+        public static Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DatabaseFacade db, string sql, object param = null, Dictionary<string, string> mappings = null)
+            where TTt : class
+        {
+            return db.GetDbConnection().SqlQueryAsync<TTt>(sql, param, mappings);
+        }
+        public static IQueryable<TTt> SqlQuery<TTt>(this DbContext db, string sql, object param = null, Dictionary<string, string> mappings = null) where TTt : class
+        {
+            return db.Database.GetDbConnection().SqlQuery<TTt>(sql, param, mappings);
+        }
+        public static IQueryable<TTt> SqlQuery<TTt>(this DatabaseFacade db, string sql, object param = null, Dictionary<string, string> mappings = null)
+            where TTt : class
+        {
+            return db.GetDbConnection().SqlQuery<TTt>(sql, param, mappings);
+        }
+
+
+        public static Task<Tuple<IQueryable<TT1>, IQueryable<TT2>>> SqlQueryAsync<TT1, TT2>(
+            this DbContext db, string sql, object param = null,
+            Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
+            where TT1 : class
+            where TT2 : class
+        {
+            return db.Database.GetDbConnection().SqlQueryAsync<TT1, TT2>(sql, param, mappings1, mappings2);
+        }
+        public static Task<Tuple<IQueryable<TT1>, IQueryable<TT2>>> SqlQueryAsync<TT1, TT2>(
+            this DatabaseFacade db, string sql, object param = null,
+            Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
+            where TT1 : class
+            where TT2 : class
+        {
+            return db.GetDbConnection().SqlQueryAsync<TT1, TT2>(sql, param, mappings1, mappings2);
+        }
+
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>> SqlQuery<TT1, TT2>(
+            this DbContext db, string sql, object param = null,
+            Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
+            where TT1 : class
+            where TT2 : class
+        {
+            return db.Database.GetDbConnection().SqlQuery<TT1, TT2>(sql, param, mappings1, mappings2);
+        }
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>> SqlQuery<TT1, TT2>(
+            this DatabaseFacade db, string sql, object param = null,
+            Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
+            where TT1 : class
+            where TT2 : class
+        {
+            return db.GetDbConnection().SqlQuery<TT1, TT2>(sql, param, mappings1, mappings2);
+        }
+
+
+
+
+
+
+        public static Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(
+            this DbContext db, string sql, object param = null,
+            Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null,
+            Dictionary<string, string> mappings3 = null)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+        {
+            return db.Database.GetDbConnection().SqlQueryAsync<TT1, TT2, TT3>(sql, param, mappings1, mappings2, mappings3);
+        }
+        public static Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(
+            this DatabaseFacade db, string sql, object param = null,
+            Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null,
+            Dictionary<string, string> mappings3 = null)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+        {
+            return db.GetDbConnection().SqlQueryAsync<TT1, TT2, TT3>(sql, param, mappings1, mappings2, mappings3);
+        }
+
+
+
+
+
+
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>> SqlQuery<TT1, TT2, TT3>(
+            this DbContext db, string sql, object param = null,
+            Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null,
+            Dictionary<string, string> mappings3 = null)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+        {
+            return db.Database.GetDbConnection().SqlQuery<TT1, TT2, TT3>(sql, param, mappings1, mappings2, mappings3);
+        }
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>> SqlQuery<TT1, TT2, TT3>(
+            this DatabaseFacade db, string sql, object param = null,
+            Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null,
+            Dictionary<string, string> mappings3 = null)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+        {
+            return db.GetDbConnection().SqlQuery<TT1, TT2, TT3>(sql, param, mappings1, mappings2, mappings3);
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        public static  Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbContext db, string sql,
+            List<DbParameter> parameters, Dictionary<string, string> mappings = null) where TTt : class
+        {
+            return  db.Database.GetDbConnection().SqlQueryAsync<TTt>(sql, parameters, mappings);
+        }
+        public static  Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DatabaseFacade db, string sql, List<DbParameter> parameters, Dictionary<string, string> mappings = null)
+            where TTt : class
+        {
+            return  db.GetDbConnection().SqlQueryAsync<TTt>(sql, parameters, mappings);
+        }
+        public static IQueryable<TTt> SqlQuery<TTt>(this DbContext db, string sql,
+            List<DbParameter> parameters, Dictionary<string, string> mappings = null) where TTt : class
+        {
+            return db.Database.GetDbConnection().SqlQuery<TTt>(sql, parameters, mappings);
+        }
+        public static IQueryable<TTt> SqlQuery<TTt>(this DatabaseFacade db, string sql, List<DbParameter> parameters, Dictionary<string, string> mappings = null)
+            where TTt : class
+        {
+            return db.GetDbConnection().SqlQuery<TTt>(sql, parameters, mappings);
+        }
+
+
+        public static  Task<Tuple<IQueryable<TT1>, IQueryable<TT2>>> SqlQueryAsync<TT1, TT2>(
+            this DbContext db, string sql, List<DbParameter> parameters,
+            Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
+            where TT1 : class
+            where TT2 : class
+        {
+            return db.Database.GetDbConnection().SqlQueryAsync<TT1, TT2>(sql, parameters, mappings1, mappings2);
+        }
+        public static  Task<Tuple<IQueryable<TT1>, IQueryable<TT2>>> SqlQueryAsync<TT1, TT2>(
+            this DatabaseFacade db, string sql, List<DbParameter> parameters,
+            Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
+            where TT1 : class
+            where TT2 : class
+        {
+            return db.GetDbConnection().SqlQueryAsync<TT1, TT2>(sql, parameters, mappings1, mappings2);
+        }
+
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>> SqlQuery<TT1, TT2>(
+            this DbContext db, string sql, List<DbParameter> parameters,
+            Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
+            where TT1 : class
+            where TT2 : class
+        {
+            return db.Database.GetDbConnection().SqlQuery<TT1, TT2>(sql, parameters, mappings1, mappings2);
+        }
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>> SqlQuery<TT1, TT2>(
+            this DatabaseFacade db, string sql, List<DbParameter> parameters,
+            Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
+            where TT1 : class
+            where TT2 : class
+        {
+            return db.GetDbConnection().SqlQuery<TT1, TT2>(sql, parameters, mappings1, mappings2);
+        }
+
+
+
+
+
+
+        public static  Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(
+            this DbContext db, string sql, List<DbParameter> parameters,
+            Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null,
+            Dictionary<string, string> mappings3 = null)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+        {
+            return  db.Database.GetDbConnection().SqlQueryAsync<TT1, TT2, TT3>(sql, parameters, mappings1, mappings2, mappings3);
+        }
+        public static  Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(
+            this DatabaseFacade db, string sql, List<DbParameter> parameters,
+            Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null,
+            Dictionary<string, string> mappings3 = null)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+        {
+            return  db.GetDbConnection().SqlQueryAsync<TT1, TT2, TT3>(sql, parameters, mappings1, mappings2, mappings3);
+        }
+
+
+
+
+
+
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>> SqlQuery<TT1, TT2, TT3>(
+            this DbContext db, string sql, List<DbParameter> parameters,
+            Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null,
+            Dictionary<string, string> mappings3 = null)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+        {
+            return db.Database.GetDbConnection().SqlQuery<TT1, TT2, TT3>(sql, parameters, mappings1, mappings2, mappings3);
+        }
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>> SqlQuery<TT1, TT2, TT3>(
+            this DatabaseFacade db, string sql, List<DbParameter> parameters,
+            Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null,
+            Dictionary<string, string> mappings3 = null)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+        {
+            return db.GetDbConnection().SqlQuery<TT1, TT2, TT3>(sql, parameters, mappings1, mappings2, mappings3);
+        }
+
+
+
+        #endregion
+
+
+
+        #region SqlQueryParamsArea
+        public static IQueryable<TTt> SqlQuery<TTt>(this DbConnection db, string sql, params DbParameter[] parameters) where TTt : class
+        {
+            var map = new Dictionary<string, string>();
+            return db.SqlQuery<TTt>(sql, (from p in parameters select p).ToList(), map);
+        }
+        public static IQueryable<TTt> SqlQuery<TTt>(this DbContext db, string sql,
+            params DbParameter[] parameters) where TTt : class
+        {
+            return db.Database.GetDbConnection().SqlQuery<TTt>(sql, parameters);
+        }
+        public static IQueryable<TTt> SqlQuery<TTt>(this DatabaseFacade db, string sql, params DbParameter[] parameters) where TTt : class
+        {
+            return db.GetDbConnection().SqlQuery<TTt>(sql, parameters);
+        }
+
+
+        public static async Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbConnection db, string sql, params DbParameter[] parameters) where TTt : class
+        {
+            var map = new Dictionary<string, string>();
+            return await db.SqlQueryAsync<TTt>(sql, (from p in parameters select p).ToList(), map);
+        }
+        public static async Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbContext db, string sql,
+            params DbParameter[] parameters) where TTt : class
+        {
+            return await db.Database.GetDbConnection().SqlQueryAsync<TTt>(sql, parameters);
+        }
+        public static async Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DatabaseFacade db, string sql, params DbParameter[] parameters) where TTt : class
+        {
+            return await db.GetDbConnection().SqlQueryAsync<TTt>(sql, parameters);
+        }
+
+
+        #endregion
+
+
 
 
     }

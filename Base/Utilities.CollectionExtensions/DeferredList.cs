@@ -20,11 +20,14 @@ namespace System.Collections.Extensions
             request = ()=> requester().ToList();
         }
 
+
+
+
         private List<tt> inner
         {
             get
             {
-                if (_list == null)
+                if (!(_list?.Any() ?? false))
                 {
                     _list = request();
                 }

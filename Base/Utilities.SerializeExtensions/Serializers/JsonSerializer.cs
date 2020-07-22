@@ -46,11 +46,12 @@ namespace Utilities.SerializeExtensions.Serializers
             {
                 return JsonConvert.DeserializeObject(data, type);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Log("JSON Deserialize - Exception:" + ex.ToString());
                 return null;
             }
-            
+
         }
 
 

@@ -120,7 +120,8 @@ namespace Utilities.Caching
             CacheAreas = new Dictionary<CacheArea, ICacheArea>();
             //CacheAreas.Add(CacheArea.Request, new RequestCache(_httpContextAccessor));
             CacheAreas.Add(CacheArea.Request, new NoCache());
-            CacheAreas.Add(CacheArea.Session, new SessionCache());
+            //CacheAreas.Add(CacheArea.Session, new SessionCache());
+            CacheAreas.Add(CacheArea.Session, new NoCache());
             CacheAreas.Add(CacheArea.Permanent, new NoCache());
             CacheAreas.Add(CacheArea.Global, new GlobalCache());
             CacheAreas.Add(CacheArea.Cookie, new CookieCache());
@@ -158,7 +159,7 @@ namespace Utilities.Caching
 
             get
             {
-                
+
                 //IMemoryCache _memoryCache = new MemoryCache(new MemoryCacheOptions());
 
                 var ctx = _instance;
@@ -185,7 +186,7 @@ namespace Utilities.Caching
         //private static void SetCookieValue(string name, string value)
         //{
         //    Cache.SetItem<string>(CacheArea.Request, "_" + name + "Id", value);
-            
+
 
         //}
 
@@ -231,7 +232,7 @@ namespace Utilities.Caching
                 {
                     cookie = Guid.NewGuid().ToString();
                     CookieRepository.addCookie("_" + name + "_Caching", cookie, (isPerminate ? DateTime.Now.AddYears(3) : (DateTime?)null), isPerminate);
-                    
+
                 }
 
                 //}
@@ -323,30 +324,30 @@ namespace Utilities.Caching
         //public static void CookieIdSet(string value)
         //{
         //    SetCookieValue("my_cook", value);
-        //}
-        public static async Task<string> SessionIdAsync()
-        {
-            return GetCookieValue("my_sess", false);
-        }
-
-        public static void ResetSessionId()
-        {
-            ResetCookie("my_sess");
-        }
-
-        //public static async Task SessionIdSetAsync(string value)
+        ////}
+        //public static async Task<string> SessionIdAsync()
         //{
-        //    SetCookieValue("my_sess", value);
+        //    return GetCookieValue("my_sess", false);
         //}
-        public static string SessionId()
-        {
-            return GetCookieValue("my_sess", false);
-        }
 
-        //public static void SessionIdSet(string value)
+        //public static void ResetSessionId()
         //{
-        //    SetCookieValue("my_sess", value);
+        //    ResetCookie("my_sess");
         //}
+
+        ////public static async Task SessionIdSetAsync(string value)
+        ////{
+        ////    SetCookieValue("my_sess", value);
+        ////}
+        //public static string SessionId()
+        //{
+        //    return GetCookieValue("my_sess", false);
+        //}
+
+        ////public static void SessionIdSet(string value)
+        ////{
+        ////    SetCookieValue("my_sess", value);
+        ////}
 
         public async Task ClearAllCacheAreasAsync()
         {

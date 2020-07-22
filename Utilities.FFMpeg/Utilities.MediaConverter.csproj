@@ -54,7 +54,7 @@
   <ItemGroup>
     <PackageReference Include="System.IO.Compression" Version="4.3.0" />
     <PackageReference Include="Utilities.EnumExtensions" Version="6.2.1" />
-    <PackageReference Include="Utilities.FileExtensions" Version="1.0.1" />
+    <PackageReference Include="Utilities.FileExtensions" Version="1.0.2" />
   </ItemGroup>
 
 </Project>

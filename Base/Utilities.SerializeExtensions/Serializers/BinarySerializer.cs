@@ -54,8 +54,17 @@ namespace Utilities.SerializeExtensions.Serializers
             if (string.IsNullOrWhiteSpace(data))
                 return null;
 
-            var obj = Deserialize(Convert.FromBase64String(data), type);
-            return obj;
+
+            try
+            {
+                var obj = Deserialize(Convert.FromBase64String(data), type);
+                return obj;
+
+            }
+            catch
+            {
+                return null;
+            }
         }
 
 
