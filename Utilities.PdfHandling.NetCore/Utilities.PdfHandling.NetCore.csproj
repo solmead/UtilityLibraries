@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>3.0.0</Version>
+    <Authors>Chris Powell</Authors>
+    <Company>Solmead Productions</Company>
+    <Description>PdfCreation for Dot Net core</Description>
+    <Copyright>2020</Copyright>
+    <PackageProjectUrl>https://github.com/solmead/UtilityLibraries.git</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/solmead/UtilityLibraries.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="PackNuget.bat" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HiQPdf_NetCore" Version="11.4.0" />
+    <PackageReference Include="Utilities.PdfHandling" Version="3.0.0" />
+  </ItemGroup>
+
+</Project>
