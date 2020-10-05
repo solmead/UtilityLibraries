@@ -19,8 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PostSharp" Version="6.6.8" />
-    <PackageReference Include="Utilities.Caching" Version="6.8.4" />
+    <PackageReference Include="PostSharp" Version="6.6.14" />
+    <PackageReference Include="Utilities.Caching" Version="6.8.5" />
     <PackageReference Include="Utilities.SerializeExtensions" Version="6.4.3" />
   </ItemGroup>
 

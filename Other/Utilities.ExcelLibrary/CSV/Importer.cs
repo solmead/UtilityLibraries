@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -45,7 +46,7 @@ namespace Utilities.ExcelLibrary.CSV
             DataTable dt = new DataTable();
             //var file = CSVFile.LoadFromFile(fileInfo.FullName);
             using (var reader = new StreamReader(fileInfo.FullName))
-            using (var csv = new CsvReader(reader))
+            using (var csv = new CsvReader(reader, CultureInfo.CurrentCulture))
             {
                 // Do any configuration to `CsvReader` before creating CsvDataReader.
                 using (var dr = new CsvDataReader(csv))
@@ -69,7 +70,7 @@ namespace Utilities.ExcelLibrary.CSV
             DataTable dt = new DataTable();
             //var file = CSVFile.LoadFromFile(fileInfo.FullName);
             using (var reader = new StreamReader(stream))
-            using (var csv = new CsvReader(reader))
+            using (var csv = new CsvReader(reader, CultureInfo.CurrentCulture))
             {
                 // Do any configuration to `CsvReader` before creating CsvDataReader.
                 using (var dr = new CsvDataReader(csv))
@@ -87,7 +88,7 @@ namespace Utilities.ExcelLibrary.CSV
             DataTable dt = new DataTable();
             //var file = CSVFile.LoadFromFile(fileInfo.FullName);
             using (var reader = new StreamReader(fileInfo.FullName))
-            using (var csv = new CsvReader(reader))
+            using (var csv = new CsvReader(reader, CultureInfo.CurrentCulture))
             {
                 // Do any configuration to `CsvReader` before creating CsvDataReader.
                 using (var dr = new CsvDataReader(csv))
@@ -111,7 +112,7 @@ namespace Utilities.ExcelLibrary.CSV
             DataTable dt = new DataTable();
             //var file = CSVFile.LoadFromFile(fileInfo.FullName);
             using (var reader = new StreamReader(stream))
-            using (var csv = new CsvReader(reader))
+            using (var csv = new CsvReader(reader, CultureInfo.CurrentCulture))
             {
                 // Do any configuration to `CsvReader` before creating CsvDataReader.
                 using (var dr = new CsvDataReader(csv))

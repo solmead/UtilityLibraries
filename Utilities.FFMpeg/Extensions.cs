@@ -65,7 +65,7 @@ namespace Utilities.MediaConverter
         }
         internal static async Task RefreshAsync(this VideoInfo video)
         {
-            var ffmpeg = new FFMpeg();
+            var ffmpeg = new FFMpeg(Core.Logger);
             await ffmpeg.RefreshAsync(video);
             var a = 1;
         }

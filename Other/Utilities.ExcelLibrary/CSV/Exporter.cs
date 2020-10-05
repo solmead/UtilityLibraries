@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Linq.Dynamic;
@@ -56,12 +57,12 @@ namespace Utilities.ExcelLibrary.CSV
         {
             var sb = new StringBuilder();
             var dt = sheets.Values.FirstOrDefault();
-            using(var textWriter = new StringWriter(sb))
-            using (var csv = new CsvWriter(textWriter))
+            using (var textWriter = new StringWriter(sb))
+            using (var csv = new CsvWriter(textWriter, CultureInfo.CurrentCulture))
             {
                 textWriter.NewLine = (useWindowsLines ? "\r\n" : "\r");
                 // Write columns
-                foreach (DataColumn column in dt.Columns)      
+                foreach (DataColumn column in dt.Columns)
                 {
                     csv.WriteField(column.ColumnName);
                 }

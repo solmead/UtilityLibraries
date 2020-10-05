@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -13,20 +14,23 @@ namespace Utilities.MediaConverter
 {
     public static class Core
     {
+        public static ILogger Logger { get; set; } = new NullLogger();
 
-        public static Action<string> DebugMessage { get; set; }
 
-        public static void DebugMsg(string msg)
-        {
-            if (DebugMessage != null)
-            {
-                DebugMessage(msg);
-            }
-            else
-            {
-                Debug.WriteLine(DateTime.Now.ToShortTimeString() + " - " + msg);
-            }
-        }
+
+        //public static Action<string> DebugMessage { get; set; }
+
+        //public static void DebugMsg(string msg)
+        //{
+        //    if (DebugMessage != null)
+        //    {
+        //        DebugMessage(msg);
+        //    }
+        //    else
+        //    {
+        //        Debug.WriteLine(DateTime.Now.ToShortTimeString() + " - " + msg);
+        //    }
+        //}
 
         public static string FFMpegBaseDirectory { get; set; }
 
@@ -61,30 +65,32 @@ namespace Utilities.MediaConverter
         public static async Task GenerateImageAsync(this VideoInfo video, System.IO.FileInfo imageFile, int width, int height)
         {
 
-            var ffmpeg = new FFMpeg();
+            var ffmpeg = new FFMpeg(Logger);
             await ffmpeg.GenerateImageAsync(video, imageFile, width, height);
         }
 
         public static async Task GenerateAudioAsync(this VideoInfo video, System.IO.FileInfo audiofile, AudioEncodingEnum audioEncoding = AudioEncodingEnum.mp3, SoundTypeEnum channels = SoundTypeEnum.Stereo, int audioBitRate = 128, int audioFrequency = 44100)
         {
 
-            var ffmpeg = new FFMpeg();
+            var ffmpeg = new FFMpeg(Logger);
             await ffmpeg.GenerateAudioAsync(video, audiofile, audioEncoding, channels, audioBitRate, audioFrequency);
         }
-
-
-
         public static async Task<VideoInfo> ConvertToAsync(this VideoInfo video, VideoConvertInfo newfile)
         {
 
-            var ffmpeg = new FFMpeg();
+            var ffmpeg = new FFMpeg(Logger);
             return await ffmpeg.ConvertToAsync(video, newfile);
         }
 
 
-        internal static void InitializationCheck()
+        public static void Init(ILogger logger)
         {
+            InitializationCheck(logger);
+        }
 
+        internal static void InitializationCheck(ILogger logger)
+        {
+            Core.Logger = logger;
             //if (ffMpegPath.IsNullOrWhiteSpace())
             //{
             //    ffMpegPath = DefaultFFmpegFilePath;
@@ -94,23 +100,24 @@ namespace Utilities.MediaConverter
             var s = FFMpegLocation;
 
 
-            EnsureDirectoryExists();
-            EnsureFFmpegFileExists();
+            EnsureDirectoryExists(logger);
+            EnsureFFmpegFileExists(logger);
             //EnsureFFmpegIsNotUsed();
         }
 
-        private static void EnsureDirectoryExists()
+        private static void EnsureDirectoryExists(ILogger logger)
         {
             //string directory = FFMpegLocation?.FullName ?? Directory.GetCurrentDirectory(); ;
 
             if (!FFMpegLocation.Exists)
             {
+                logger.LogDebug("Creating FFMpeg Directory");
                 FFMpegLocation.Create();
             }
             FFMpegLocation.Refresh();
         }
 
-        private static void EnsureFFmpegFileExists()
+        private static void EnsureFFmpegFileExists(ILogger logger)
         {
             if (!FFMpegExecutable.Exists || !FFMpegOldExecutable.Exists || !FLVToolExecutable.Exists)
             {
@@ -120,7 +127,7 @@ namespace Utilities.MediaConverter
 
 
 
-                UnpackFFmpegExecutable(FFMpegLocation);
+                UnpackFFmpegExecutable(FFMpegLocation, logger);
             }
             FFMpegExecutable.Refresh();
         }
@@ -128,8 +135,10 @@ namespace Utilities.MediaConverter
         ///-------------------------------------------------------------------------------------------------
         /// <summary>   Unpack ffmpeg executable. </summary>
         /// <exception cref="Exception">    Thrown when an exception error condition occurs. </exception>
-        private static void UnpackFFmpegExecutable(DirectoryInfo path)
+        private static void UnpackFFmpegExecutable(DirectoryInfo path, ILogger logger)
         {
+
+            logger.LogDebug("Unpacking FFMpeg");
             Stream compressedFFmpegStream = Assembly.GetExecutingAssembly()
                                                     .GetManifestResourceStream("Utilities.MediaConverter.Resources.ffmpeg.zip");
 

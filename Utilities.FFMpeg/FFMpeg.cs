@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Utilities.EnumExtensions;
 using Utilities.FileExtensions;
+using Microsoft.Extensions.Logging;
 
 namespace Utilities.MediaConverter
 {
@@ -32,21 +33,20 @@ namespace Utilities.MediaConverter
         public float MaxQualityFound = 0;
 
         private ShellCommand CMD = new ShellCommand();
+        private readonly ILogger _logger;
 
-
-
-
-        public FFMpeg()
+        public FFMpeg(ILogger logger)
         {
+            _logger = logger;
             CMD.DebugMessage += CMD_DebugMessage;
             CMD.ShellMessage += CMD_ShellMessage;
 
-            Core.InitializationCheck();
+            Core.InitializationCheck(_logger);
 
         }
         private void CMD_DebugMessage(string Msg)
         {
-            DebugMsg(Msg);
+            _logger.LogDebug(Msg);
         }
 
         private void CMD_ShellMessage(string msg)
@@ -81,21 +81,21 @@ namespace Utilities.MediaConverter
         }
 
 
-        public static void DebugMsg(string msg)
-        {
-            if (Core.DebugMessage != null)
-            {
-                Core.DebugMessage(msg);
-            } else
-            {
-                Debug.WriteLine(DateTime.Now.ToShortTimeString() + " - " +  msg);
-            }
-        }
+        //public static void DebugMsg(string msg)
+        //{
+        //    if (Core.DebugMessage != null)
+        //    {
+        //        Core.DebugMessage(msg);
+        //    } else
+        //    {
+        //        Debug.WriteLine(DateTime.Now.ToShortTimeString() + " - " +  msg);
+        //    }
+        //}
 
 
         public async Task RefreshAsync(VideoInfo video)
         {
-            DebugMsg("RefreshAsync - " + Core.FFMpegLocation.FullName);
+            _logger.LogDebug("RefreshAsync - " + Core.FFMpegLocation.FullName);
             var TempDirectory = new System.IO.DirectoryInfo(video.File.Directory.FullName + @"\.Temp");
             if (!TempDirectory.Exists)
                 TempDirectory.Create();
@@ -104,20 +104,20 @@ namespace Utilities.MediaConverter
 
             if (TempVideoLogFile.Exists)
                 TempVideoLogFile.Delete();
-            DebugMsg("RefreshAsync - Getting Video Info");
+            _logger.LogDebug("RefreshAsync - Getting Video Info");
             var task = RunFFMpegAsync("-i \"" + video.File.FullName + "\"");
             await Task.Delay(1000);
-            DebugMsg("RefreshAsync - Awaiting Finishing of Refresh");
+            _logger.LogDebug("RefreshAsync - Awaiting Finishing of Refresh");
             var InfoData = await task;
-            DebugMsg("RefreshAsync - Convert Finished");
+            _logger.LogDebug("RefreshAsync - Convert Finished");
 
 
-            DebugMsg("RefreshAsync - Writing Info Data");
+            _logger.LogDebug("RefreshAsync - Writing Info Data");
             var SW = new System.IO.StreamWriter(TempVideoLogFile.OpenWrite());
             SW.Write(InfoData);
             SW.Close();
             TempVideoLogFile.Refresh();
-            DebugMsg("RefreshAsync - Processing Video Info");
+            _logger.LogDebug("RefreshAsync - Processing Video Info");
             string[] Lines = InfoData.Split(System.Environment.NewLine.ToCharArray());
 
             foreach (var Line in Lines)
@@ -231,7 +231,7 @@ namespace Utilities.MediaConverter
                 }
             }
 
-            DebugMsg("RefreshAsync - Video Info Loaded");
+            _logger.LogDebug("RefreshAsync - Video Info Loaded");
         }
 
         public async Task GenerateImageAsync(VideoInfo video, System.IO.FileInfo ImageFile, int Width, int Height)
@@ -247,14 +247,14 @@ namespace Utilities.MediaConverter
             if (TempLogFile.Exists)
                 TempLogFile.Delete();
 
-            DebugMsg("Grabbing Image");
+            _logger.LogDebug("Grabbing Image");
             var LogData = await RunFFMpegAsync("-i \"" + video.File.FullName + "\" -an -ss 00:00:07 -an -s " + Width + "x" + Height + " -r 1 -vframes 1 -f image2 -y \"" + ImageFile.FullName + "\"");
 
             var SW = new System.IO.StreamWriter(TempLogFile.OpenWrite());
             SW.Write(LogData);
             SW.Close();
 
-            DebugMsg("Image Grabbed");
+            _logger.LogDebug("Image Grabbed");
             ImageFile.Refresh();
         }
 
@@ -271,19 +271,19 @@ namespace Utilities.MediaConverter
             if (TempLogFile.Exists)
                 TempLogFile.Delete();
 
-            DebugMsg("Grabbing Audio");
+            _logger.LogDebug("Grabbing Audio");
             var LogData = await RunFFMpegAsync("-i \"" + video.File.FullName + "\" -vn -acodec " + AudioEncoding.AudioFormat() + " -ab " + AudioBitRate + "k -ac " + System.Convert.ToInt32(Channels) + " -ar " + AudioFrequency + " -y \"" + Audiofile.FullName + "\"");
             var SW = new System.IO.StreamWriter(TempLogFile.OpenWrite());
             SW.Write(LogData);
             SW.Close();
             if (EncodingState == EncodingStateEnum.Not_Encoding)
                 throw new Exception("No audio was encoded.\n\r" + LogData);
-            DebugMsg("Audio Grabbed");
+            _logger.LogDebug("Audio Grabbed");
             Audiofile.Refresh();
         }
         public async Task<VideoInfo> ConvertToAsync(VideoInfo video, VideoConvertInfo newfile)
         {
-            DebugMsg("Converting Video");
+            _logger.LogDebug("Converting Video");
             DateTime STime = DateTime.Now;
 
             FileInfo FinalVideoFile = null;
@@ -298,7 +298,7 @@ namespace Utilities.MediaConverter
                 var TempDirectory = new System.IO.DirectoryInfo(video.File.Directory.FullName + @"\.Temp");
                 if (!TempDirectory.Exists)
                     TempDirectory.Create();
-                DebugMsg("Setting up file links");
+                _logger.LogDebug("Setting up file links");
                 if (newfile.File == null)
                 {
                     newfile.File = new System.IO.FileInfo(video.File.Directory.FullName + @"\" + FNWE + "." + newfile.VideoEncoding.ToString());
@@ -336,10 +336,10 @@ namespace Utilities.MediaConverter
 
                 string AdditionalString = "";
 
-                DebugMsg("Currently    : " + video.Width + "x" + video.Height);
-                DebugMsg("Currently Adj: " + video.WidthAdjusted + "x" + video.HeightAdjusted);
-                DebugMsg("Going to    : " + newfile.Width + "x" + newfile.Height);
-                DebugMsg("Going to Adj: " + newfile.WidthAdjusted + "x" + newfile.HeightAdjusted);
+                _logger.LogDebug("Currently    : " + video.Width + "x" + video.Height);
+                _logger.LogDebug("Currently Adj: " + video.WidthAdjusted + "x" + video.HeightAdjusted);
+                _logger.LogDebug("Going to    : " + newfile.Width + "x" + newfile.Height);
+                _logger.LogDebug("Going to Adj: " + newfile.WidthAdjusted + "x" + newfile.HeightAdjusted);
                 var TopPad = 0;
                 var BottomPad = 0;
                 var LeftPad = 0;
@@ -382,7 +382,7 @@ namespace Utilities.MediaConverter
                     }
                 }
 
-                DebugMsg("Converting Video");
+                _logger.LogDebug("Converting Video");
                 string LogData = "";
                 if (newfile.VideoEncoding == VideoEncodingEnum.flv)
                 {
@@ -410,15 +410,15 @@ namespace Utilities.MediaConverter
 
                     TempVideoFile.Refresh();
                     int Cnt = 0;
-                    DebugMsg("TestList.Count=" + TestList.Count);
+                    _logger.LogDebug("TestList.Count=" + TestList.Count);
                     while (((!TempVideoFile.Exists || TempVideoFile.Length < 1000) && (Cnt < TestList.Count)))
                     {
-                        DebugMsg("Cnt=" + Cnt + " Q=" + TestList[Cnt].Quality + " Passes=" + TestList[Cnt].Passes.ToString());
+                        _logger.LogDebug("Cnt=" + Cnt + " Q=" + TestList[Cnt].Quality + " Passes=" + TestList[Cnt].Passes.ToString());
                         newfile.QMax = TestList[Cnt].Quality;
                         newfile.NumberPasses = TestList[Cnt].Passes;
                         newfile.BitRate = TestList[Cnt].BitRate;
 
-                        DebugMsg("MaxQuality looking for=" + TestList[Cnt].MaxQuality);
+                        _logger.LogDebug("MaxQuality looking for=" + TestList[Cnt].MaxQuality);
                         MaxQualityFound = 0;
 
                         string Arguments = "-i \"" + video.File.FullName + "\" -r " + newfile.FrameRate + " -f flv " + (newfile.Deinterlace ? "-deinterlace " : "") + "-ac " + System.Convert.ToInt32(newfile.Channels) + " -ar " + newfile.AudioFrequency + " -ab " + newfile.AudioBitRate + "k" + (newfile.AudioEncoding != AudioEncodingEnum.None ? " -acodec " + newfile.AudioEncoding.AudioFormat() : "") + " -b " + newfile.BitRate + "k -s " + (newfile.WidthAdjusted - LeftPad - RightPad) + "x" + (newfile.HeightAdjusted - TopPad - BottomPad) + " -aspect 16:9 ";
@@ -455,11 +455,11 @@ namespace Utilities.MediaConverter
                         }
                         Cnt += 1;
                         TempVideoFile.Refresh();
-                        DebugMsg("MaxQualityFound=" + MaxQualityFound);
-                        DebugMsg("TempVideoFile.Exists=" + TempVideoFile.Exists);
+                        _logger.LogDebug("MaxQualityFound=" + MaxQualityFound);
+                        _logger.LogDebug("TempVideoFile.Exists=" + TempVideoFile.Exists);
                         if (MaxQualityFound > (TestList[Cnt - 1].MaxQuality) && TempVideoFile.Exists && TempVideoFile.Length > 1000 && Cnt < TestList.Count)
                         {
-                            DebugMsg("Video Created but not good enough quality");
+                            _logger.LogDebug("Video Created but not good enough quality");
 
                             TempVideoFile.Delete();
                             TempVideoFile.Refresh();
@@ -474,9 +474,9 @@ namespace Utilities.MediaConverter
                         SW2.Close();
                         TempVideoLogFile.Refresh();
 
-                        DebugMsg("");
+                        _logger.LogDebug("");
                     }
-                    DebugMsg("TempVideoFile.Exists=" + TempVideoFile.Exists);
+                    _logger.LogDebug("TempVideoFile.Exists=" + TempVideoFile.Exists);
                 }
                 else if (newfile.VideoEncoding == VideoEncodingEnum.h264)
                 {
@@ -484,9 +484,9 @@ namespace Utilities.MediaConverter
                     StartConversion?.Invoke(PassEnum.One, 1);
                     var task =  RunFFMpegOldAsync("-i \"" + video.File.FullName + "\" -r " + newfile.FrameRate + " -vcodec libx264 -threads 0 " + (newfile.Deinterlace ? "-deinterlace " : "") + "-ac " + System.Convert.ToInt32(newfile.Channels) + " -ar " + newfile.AudioFrequency + " -ab " + newfile.AudioBitRate + "k" + (newfile.AudioEncoding != AudioEncodingEnum.None ? " -acodec " + newfile.AudioEncoding.AudioFormat() : "") + " -s " + (newfile.WidthAdjusted - LeftPad - RightPad) + "x" + (newfile.HeightAdjusted - TopPad - BottomPad) + " -aspect 16:9 " + AdditionalString + (video.IsAudio ? " -vn" : "") + " -level 41 -crf 20 -bufsize 20000k -maxrate 25000k -g 250 -coder 1 -flags +loop -cmp +chroma -partitions +parti4x4+partp8x8+partb8x8 -flags2 +dct8x8+bpyramid -me_method umh -subq 7 -me_range 16 -keyint_min 25 -sc_threshold 40 -i_qfactor 0.71 -rc_eq 'blurCplx^(1-qComp)' -bf 16 -b_strategy 1 -bidir_refine 1 -refs 6 -deblockalpha 0 -deblockbeta 0 -y \"" + TempVideoFile.FullName + "\"");
 
-                    DebugMsg("ConvertTo - Awaiting Finishing of Convert");
+                    _logger.LogDebug("ConvertTo - Awaiting Finishing of Convert");
                     LogData = await task;
-                    DebugMsg("ConvertTo - Convert Finished");
+                    _logger.LogDebug("ConvertTo - Convert Finished");
                     //newfile.EncodingState = video.EncodingState;
                     EndConversion?.Invoke();
 
@@ -544,7 +544,7 @@ namespace Utilities.MediaConverter
                 }
                 newfile.MaxQualityFound = MaxQualityFound;
 
-                DebugMsg("Video Converted");
+                _logger.LogDebug("Video Converted");
                 TempVideoFile.Refresh();
 
                 if (TempVideoLogFile.Exists)
@@ -556,7 +556,7 @@ namespace Utilities.MediaConverter
 
                 if (newfile.VideoEncoding == VideoEncodingEnum.flv)
                 {
-                    DebugMsg("Setting Meta Data");
+                    _logger.LogDebug("Setting Meta Data");
                     LogData =await RunFLVToolAsync("-Uk \"" + TempVideoFile.FullName + "\"");
                 }
 
@@ -567,7 +567,7 @@ namespace Utilities.MediaConverter
 
 
 
-                DebugMsg("Handling Temp Video File");
+                _logger.LogDebug("Handling Temp Video File");
                 bool AllOK = true;
                 if (TempVideoFile.Exists && TempVideoFile.Length > 1000)
                 {
@@ -580,13 +580,13 @@ namespace Utilities.MediaConverter
                     if (!FinalVideoFile.Exists)
                         TempVideoFile.MoveTo(FinalVideoFile.FullName);
                     else
-                        DebugMsg("FINAL VIDEO FILE still exists");
+                        _logger.LogDebug("FINAL VIDEO FILE still exists");
                 }
                 else
                     AllOK = false;
 
 
-                DebugMsg("Cleaning up directory");
+                _logger.LogDebug("Cleaning up directory");
                 if (AllOK)
                 {
                     var HisDir = new System.IO.DirectoryInfo(video.File.Directory.FullName + @"\.Temp\" + DateTime.Now.Year + DateTime.Now.Month.ToString("00") + DateTime.Now.Day.ToString("00"));
@@ -601,11 +601,11 @@ namespace Utilities.MediaConverter
             }
             catch (Exception ex)
             {
-                DebugMsg("Error: " + ex.ToString());
+                _logger.LogError(ex, ex.ToString());
                 throw;
             }
 
-            DebugMsg("Time to convert:" + (DateTime.Now.Subtract(STime).TotalMilliseconds / 1000));
+            _logger.LogDebug("Time to convert:" + (DateTime.Now.Subtract(STime).TotalMilliseconds / 1000));
             Debug.WriteLine(DateTime.Now.Subtract(STime).TotalMilliseconds / 1000);
 
 

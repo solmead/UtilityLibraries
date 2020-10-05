@@ -55,6 +55,10 @@ namespace Utilities.Caching.Web.Sessions
 
         public CachedEntry<tt> GetItem<tt>(string name)
         {
+            if (HttpContext.Current == null || HttpContext.Current.Session == null)
+            {
+                return null;
+            }
             if (!Names.ContainsKey(name.ToUpper()))
             {
                 Names.Add(name.ToUpper(), "");
@@ -73,6 +77,12 @@ namespace Utilities.Caching.Web.Sessions
 
         public void SetItem<tt>(CachedEntry<tt> item)
         {
+            if (HttpContext.Current == null || HttpContext.Current.Session==null)
+            {
+                return;
+            }
+
+
             if (item == null)
             {
                 throw new ArgumentNullException();
@@ -85,83 +95,24 @@ namespace Utilities.Caching.Web.Sessions
             object empty = default(tt);
             if (comp != empty)
             {
-
-                if (item.TimeOut.HasValue && item.TimeOut.Value.Subtract(DateTime.Now).TotalSeconds > 0)
-                {
-                    var lifeSpanSeconds = item.TimeOut.Value.Subtract(DateTime.Now).TotalSeconds;
-
-                    int totSeconds = (int)lifeSpanSeconds;
-                    int ms = (int)((lifeSpanSeconds - (1.0 * totSeconds)) * 1000.0);
-                    try
-                    {
-                        HttpContext.Current.Session[item.Name.ToUpper()] = item;
-                        //HttpContext.Current.Session.Remove(item.Name.ToUpper());
-
-
-                        //var t = HttpContext.Current.Session[name.ToUpper()] as CachedEntry<tt>;
-                        //return t;
-
-
-
-                        //lock (_memoryCache)
-                        //{
-                        //    try
-                        //    {
-                        //        _memoryCache.Remove(item.Name.ToUpper());
-                        //    }
-                        //    catch (Exception)
-                        //    {
-
-                        //    }
-                        //    _memoryCache.Set(item.Name.ToUpper(), item, new TimeSpan(0, 0, 0, totSeconds, ms));
-                        //}
-                    }
-                    catch (Exception ex)
-                    {
-
-                        throw;
-                    }
-                }
-                else
-                {
-                    HttpContext.Current.Session[item.Name.ToUpper()] = item;
-                    //lock (_memoryCache)
-                    //{
-                    //    try
-                    //    {
-                    //        _memoryCache.Remove(item.Name.ToUpper());
-                    //    }
-                    //    catch (Exception)
-                    //    {
-
-                    //    }
-                    //    _memoryCache.Set(item.Name.ToUpper(), item);
-                    //}
-                }
-
-
+                HttpContext.Current.Session[item.Name.ToUpper()] = item;
             }
             else
             {
-                HttpContext.Current.Session.Remove(item.Name.ToUpper());
-                //lock (_memoryCache)
-                //{
-                //    try
-                //    {
-                //        _memoryCache.Remove(item.Name.ToUpper());
-                //    }
-                //    catch (Exception)
-                //    {
-
-                //    }
-                //}
-                ////_memoryCache.Remove(item.Name.ToUpper());
-                ////HttpRuntime.Cache.Remove(item.Name.ToUpper());
+                if (HttpContext.Current.Session[item.Name.ToUpper()] != null)
+                {
+                    HttpContext.Current.Session.Remove(item.Name.ToUpper());
+                }
             }
         }
 
         public CachedEntry<object> GetItem(string name, Type type)
         {
+            if (HttpContext.Current == null || HttpContext.Current.Session == null)
+            {
+                return null;
+            }
+
             if (!Names.ContainsKey(name.ToUpper()))
             {
                 Names.Add(name.ToUpper(), "");
@@ -188,6 +139,10 @@ namespace Utilities.Caching.Web.Sessions
 
         public void SetItem(Type type, CachedEntry<object> item)
         {
+            if (HttpContext.Current == null || HttpContext.Current.Session == null)
+            {
+                return;
+            }
             if (item == null)
             {
                 throw new ArgumentNullException();
@@ -265,6 +220,10 @@ namespace Utilities.Caching.Web.Sessions
 
         public void DeleteItem(string name)
         {
+            if (HttpContext.Current == null || HttpContext.Current.Session == null)
+            {
+                return;
+            }
             if (Names.ContainsKey(name.ToUpper()))
             {
                 Names.Remove(name.ToUpper());

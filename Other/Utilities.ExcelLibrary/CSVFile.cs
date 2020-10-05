@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Linq.Dynamic;
@@ -76,7 +77,7 @@ namespace Utilities.ExcelLibrary
                 var m = new StringWriter(sb);
                 TextWriter tw = m;// new StreamWriter(m);
 
-                var config = new CsvHelper.Configuration.Configuration();
+                var config = new CsvConfiguration(CultureInfo.CurrentCulture);//.Configuration();
                 config.Delimiter = Delimiter;
 
                 var p = new CsvHelper.CsvWriter(tw, config, false);
@@ -129,7 +130,7 @@ namespace Utilities.ExcelLibrary
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
             var m = new StringWriter(sb);
             TextWriter tw = m;
-            var config = new CsvHelper.Configuration.Configuration();
+            var config = new CsvConfiguration(CultureInfo.CurrentCulture);
             config.Delimiter = ColumnDelimiter;
 
 
@@ -192,7 +193,7 @@ namespace Utilities.ExcelLibrary
             CSVFile CSVF = new CSVFile();
             CSVF.ColumnDelimiter = ColDelimiter;
 
-            var parser = new CsvHelper.CsvParser(ReadFile, new Configuration() { Delimiter = ColDelimiter });
+            var parser = new CsvHelper.CsvParser(ReadFile, new CsvConfiguration(CultureInfo.CurrentCulture) { Delimiter = ColDelimiter });
             while ((true))
             {
                 var line = parser.Read();

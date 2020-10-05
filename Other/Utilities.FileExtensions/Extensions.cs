@@ -12,6 +12,42 @@ namespace Utilities.FileExtensions
         public static List<string> VideoList = new List<string>() { "FLV", "MOD", "AVI", "MPG", "MPEG", "MOV", "WMV", "VOB", "VRO", "MTS", "QT", "SWF", "MP4", "M4V", "OGV" };
         public static List<string> ImageList = new List<string>() { "JPG", "JPEG", "PNG", "BMP", "TGA", "GIF", "ICO" };
         public static List<string> AudioList = new List<string>() { "MP3", "WAV", "OGG", "AAC", "WMA", "M4A" };
+
+
+        static readonly string[] SizeSuffixes =
+                   { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
+        public static string SizeSuffix(this int value, int decimalPlaces = 1)
+        {
+            return ((long)value).SizeSuffix(decimalPlaces);
+        }
+        public static string SizeSuffix(this long value, int decimalPlaces = 1)
+        {
+            if (decimalPlaces < 0) { throw new ArgumentOutOfRangeException("decimalPlaces"); }
+            if (value < 0) { return "-" + (-value).SizeSuffix(); }
+            if (value == 0) { return string.Format("{0:n" + decimalPlaces + "} bytes", 0); }
+
+            // mag is 0 for bytes, 1 for KB, 2, for MB, etc.
+            int mag = (int)Math.Log(value, 1024);
+
+            // 1L << (mag * 10) == 2 ^ (10 * mag)
+            // [i.e. the number of bytes in the unit corresponding to mag]
+            decimal adjustedSize = (decimal)value / (1L << mag * 10);
+
+            // make adjustment when the value is large enough that
+            // it would round up to 1000 or more
+            if (Math.Round(adjustedSize, decimalPlaces) >= 1000)
+            {
+                mag += 1;
+                adjustedSize /= 1024;
+            }
+
+            return string.Format("{0:n" + decimalPlaces + "} {1}",
+                adjustedSize,
+                SizeSuffixes[mag]);
+        }
+
+
+
         /// <summary>
         /// Removes the illegal characters from a file name.
         /// </summary>
@@ -143,103 +179,103 @@ namespace Utilities.FileExtensions
             var ext = file.Extension.Substring(1);
             return AudioList.Contains(ext.ToUpper());
         }
-        public static string ContentType(this System.IO.FileInfo File)
-        {
-            string Extension = File.Extension.ToUpper().Substring(1);
+        //public static string ContentType(this System.IO.FileInfo File)
+        //{
+        //    string Extension = File.Extension.ToUpper().Substring(1);
 
 
-            var mContentType = "application/octet-stream";
-            if (VideoList.Contains(Extension))
-                mContentType = "video/mpeg";
-            switch (Extension)
-            {
-                case "JPG":
-                    {
-                        mContentType = "image/jpeg";
-                        break;
-                    }
+        //    var mContentType = "application/octet-stream";
+        //    if (VideoList.Contains(Extension))
+        //        mContentType = "video/mpeg";
+        //    switch (Extension)
+        //    {
+        //        case "JPG":
+        //            {
+        //                mContentType = "image/jpeg";
+        //                break;
+        //            }
 
-                case "GIF":
-                    {
-                        mContentType = "image/gif";
-                        break;
-                    }
+        //        case "GIF":
+        //            {
+        //                mContentType = "image/gif";
+        //                break;
+        //            }
 
-                case "PNG":
-                    {
-                        mContentType = "image/png";
-                        break;
-                    }
+        //        case "PNG":
+        //            {
+        //                mContentType = "image/png";
+        //                break;
+        //            }
 
-                case "ICO":
-                    {
-                        mContentType = "image/ico";
-                        break;
-                    }
+        //        case "ICO":
+        //            {
+        //                mContentType = "image/ico";
+        //                break;
+        //            }
 
-                case "BMP":
-                    {
-                        mContentType = "image/bmp";
-                        break;
-                    }
+        //        case "BMP":
+        //            {
+        //                mContentType = "image/bmp";
+        //                break;
+        //            }
 
-                case "MP3":
-                    {
-                        mContentType = "audio/mp3";
-                        break;
-                    }
+        //        case "MP3":
+        //            {
+        //                mContentType = "audio/mp3";
+        //                break;
+        //            }
 
-                case "WAV":
-                    {
-                        mContentType = "audio/wav";
-                        break;
-                    }
+        //        case "WAV":
+        //            {
+        //                mContentType = "audio/wav";
+        //                break;
+        //            }
 
-                case "M4A":
-                    {
-                        mContentType = "audio/x-m4a";
-                        break;
-                    }
+        //        case "M4A":
+        //            {
+        //                mContentType = "audio/x-m4a";
+        //                break;
+        //            }
 
-                case "MP4":
-                    {
-                        mContentType = "video/mp4";
-                        break;
-                    }
+        //        case "MP4":
+        //            {
+        //                mContentType = "video/mp4";
+        //                break;
+        //            }
 
-                case "M4V":
-                    {
-                        mContentType = "video/x-m4v";
-                        break;
-                    }
+        //        case "M4V":
+        //            {
+        //                mContentType = "video/x-m4v";
+        //                break;
+        //            }
 
-                case "MOV":
-                    {
-                        mContentType = "video/quicktime";
-                        break;
-                    }
+        //        case "MOV":
+        //            {
+        //                mContentType = "video/quicktime";
+        //                break;
+        //            }
 
-                case "PDF":
-                    {
-                        mContentType = "application/pdf";
-                        break;
-                    }
+        //        case "PDF":
+        //            {
+        //                mContentType = "application/pdf";
+        //                break;
+        //            }
 
-                case "OGV":
-                    {
-                        mContentType = "video/ogg";
-                        break;
-                    }
+        //        case "OGV":
+        //            {
+        //                mContentType = "video/ogg";
+        //                break;
+        //            }
 
-                case "WEBM":
-                    {
-                        mContentType = "video/webm";
-                        break;
-                    }
-            }
+        //        case "WEBM":
+        //            {
+        //                mContentType = "video/webm";
+        //                break;
+        //            }
+        //    }
 
-            return mContentType;
-        }
+        //    return mContentType;
+        //}
 
 
     }

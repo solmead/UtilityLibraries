@@ -85,10 +85,14 @@ namespace Utilities.Logging
         }
         public static void Warn(string msg)
         {
+            //var lei = new LogEventInfo()
+
+
             _logger.Warn(getMessage(msg));
         }
         public static void Error(Exception ex)
         {
+            
             _logger.Error(getMessage(ex.ToString()));
         }
         public static void Error(string msg)
