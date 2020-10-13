@@ -13,7 +13,7 @@ namespace Utilities.Logging
         {
             Log.userRepo = userRepo;
 
-            var t = new Task(Log.CleanLogging);
+            var t = new Task(()=> { Log.CleanLogging(); });
             t.Start();
             //CleanLogging();
 

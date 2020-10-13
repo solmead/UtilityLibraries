@@ -5,13 +5,19 @@ using System.Text;
 
 namespace Utilities.Logging
 {
-    class GenericLogger : ILogger
+    public class GenericLogger : ILogger
     {
         private readonly ILogger _logger;
 
         public GenericLogger(ILogger logger)
         {
             _logger = logger;
+        }
+        public GenericLogger()
+        {
+            var lg = new NLog.Extensions.Logging.NLogLoggerFactory();
+            var lgg = lg.CreateLogger("");
+            _logger = lgg;
         }
 
 
@@ -28,7 +34,15 @@ namespace Utilities.Logging
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
-            throw new NotImplementedException();
+
+            _logger.Log(logLevel, eventId, state, exception, (TState st, Exception ex) =>
+            {
+                var f = formatter(st, ex);
+                var msg = Utilities.Logging.Log.getMessage(f);
+                return msg;
+            });
+
+            //throw new NotImplementedException();
         }
     }
 }
