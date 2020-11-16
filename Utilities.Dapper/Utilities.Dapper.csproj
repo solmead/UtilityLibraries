@@ -1,49 +1,88 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
-    <Version>2.3.1</Version>
-    <RuntimeIdentifiers>win10-x64;osx.10.11-x64;ubuntu.16.04-x64</RuntimeIdentifiers>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Authors>Solmead Productions</Authors>
-    <Company>Solmead Productions</Company>
-    <Copyright>Copyright © 2020</Copyright>
-    <Description>Dapper Utilities</Description>
-    <RepositoryUrl>https://github.com/solmead/UtilityLibraries</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/solmead/UtilityLibraries</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/solmead/UtilityLibraries</PackageLicenseUrl>
+	  <TargetFrameworks>netstandard2.0;net462;net472;net48</TargetFrameworks>
+	<Version>2.4.0</Version>
+	<RuntimeIdentifiers>win10-x64;osx.10.11-x64;ubuntu.16.04-x64</RuntimeIdentifiers>
+	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	<Authors>Solmead Productions</Authors>
+	<Company>Solmead Productions</Company>
+	<Copyright>Copyright © 2020</Copyright>
+	<Description>Dapper Utilities</Description>
+	<RepositoryUrl>https://github.com/solmead/UtilityLibraries</RepositoryUrl>
+	<PackageProjectUrl>https://github.com/solmead/UtilityLibraries</PackageProjectUrl>
+	<PackageLicenseUrl>https://github.com/solmead/UtilityLibraries</PackageLicenseUrl>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="PackNuget.bat" />
+	<None Remove="PackNuget.bat" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Dapper" Version="2.0.35" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.8" />
-    <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
+	<PackageReference Include="Dapper" Version="2.0.35" />
+	<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
+	<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+	<PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
   </ItemGroup>
+	
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net462' ">
+		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
+	</ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
-    <DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
+	<DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
   </PropertyGroup>
 
+	
   <ItemGroup Condition=" '$(TargetFramework)' == 'net462' ">
-    <Reference Include="mscorlib" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Security" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.ValueTuple" />
+	<Reference Include="mscorlib" />
+	<Reference Include="System" />
+	<Reference Include="System.Core" />
+	<Reference Include="Microsoft.CSharp" />
+	<Reference Include="System.Data" />
+	<Reference Include="System.Web" />
+	<Reference Include="System.Drawing" />
+	<Reference Include="System.Security" />
+	<Reference Include="System.Xml" />
+	<Reference Include="System.Configuration" />
+	<Reference Include="System.ValueTuple" />
   </ItemGroup>
   
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net462'">
-    <DefineConstants>NET45;NETFULL</DefineConstants>
+	<DefineConstants>NET45;NETFULL</DefineConstants>
   </PropertyGroup>
+
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
+		<Reference Include="mscorlib" />
+		<Reference Include="System" />
+		<Reference Include="System.Core" />
+		<Reference Include="Microsoft.CSharp" />
+		<Reference Include="System.Data" />
+		<Reference Include="System.Web" />
+		<Reference Include="System.Drawing" />
+		<Reference Include="System.Security" />
+		<Reference Include="System.Xml" />
+		<Reference Include="System.Configuration" />
+	</ItemGroup>
+
+	<PropertyGroup Condition=" '$(TargetFramework)' == 'net472'">
+		<DefineConstants>NET45;NETFULL</DefineConstants>
+	</PropertyGroup>
+
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">
+		<Reference Include="mscorlib" />
+		<Reference Include="System" />
+		<Reference Include="System.Core" />
+		<Reference Include="Microsoft.CSharp" />
+		<Reference Include="System.Data" />
+		<Reference Include="System.Web" />
+		<Reference Include="System.Drawing" />
+		<Reference Include="System.Security" />
+		<Reference Include="System.Xml" />
+		<Reference Include="System.Configuration" />
+	</ItemGroup>
+
+	<PropertyGroup Condition=" '$(TargetFramework)' == 'net48'">
+		<DefineConstants>NET45;NETFULL</DefineConstants>
+	</PropertyGroup>
 </Project>

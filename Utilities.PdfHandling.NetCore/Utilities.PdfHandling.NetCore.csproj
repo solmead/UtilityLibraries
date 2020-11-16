@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>3.0.1</Version>
+    <Version>3.1.0</Version>
     <Authors>Chris Powell</Authors>
     <Company>Solmead Productions</Company>
     <Description>PdfCreation for Dot Net core</Description>
@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="HiQPdf_NetCore" Version="11.4.0" />
-    <PackageReference Include="Utilities.PdfHandling" Version="3.0.1" />
+    <PackageReference Include="Utilities.PdfHandling" Version="3.1.0" />
   </ItemGroup>
 
 </Project>

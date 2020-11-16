@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>6.3.8</Version>
+    <Version>6.4.0</Version>
     <PackageId>Utilities.Caching.AspNetCore</PackageId>
     <Authors>Solmead Productions</Authors>
     <Company>Solmead Productions</Company>
@@ -21,9 +21,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Extensions" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="3.1.8" />
-    <PackageReference Include="Utilities.Caching" Version="6.8.5" />
-    <PackageReference Include="Utilities.SerializeExtensions" Version="6.4.3" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0" />
+    <PackageReference Include="Utilities.Caching" Version="6.9.0" />
+    <PackageReference Include="Utilities.SerializeExtensions" Version="6.5.0" />
   </ItemGroup>
 
 </Project>

@@ -11,19 +11,25 @@ namespace Utilities.Logging
 {
     public static class Log
     {
+
+        private static Logger _baseLogger;
+
         public static ILogUserRepository userRepo { get; set; }
 
 
         [Obsolete("Please use ILogger from now on")]
-        public static Logger Logger { get; set; }
+        public static Logger Logger { 
+            get => _baseLogger;
+            set => _baseLogger = value;
+        }
 
         private static Logger _logger
         {
             get
             {
-                if (Logger == null)
+                if (_baseLogger == null)
                 {
-                    Logger = LogManager.GetCurrentClassLogger();
+                    _baseLogger = LogManager.GetCurrentClassLogger();
                 }
 
 
@@ -36,7 +42,7 @@ namespace Utilities.Logging
                     //var logFac = logger.Factory.LoadConfiguration("Content/NLog.config");
                 }
 
-                return Logger;
+                return _baseLogger;
             }
         }
         private static bool isLoaded = false;
@@ -198,7 +204,7 @@ namespace Utilities.Logging
                     {
                         f.Delete();
                     }
-                    catch (Exception ex)
+                    catch
                     {
                     }
 
