@@ -3,7 +3,7 @@
   <PropertyGroup>
     <!--<TargetFramework>netstandard2.0</TargetFramework>-->
 	  <TargetFrameworks>netstandard2.0;net462;net472;net48</TargetFrameworks>
-    <Version>6.5.0</Version>
+    <Version>6.6.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Company>University of Cincinnati</Company>
     <Authors>University of Cincinnati</Authors>
@@ -30,7 +30,7 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="StackExchange.Redis" Version="2.1.58" />
+    <PackageReference Include="StackExchange.Redis" Version="2.2.4" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
     <PackageReference Include="Utilities.Caching" Version="6.9.0" />
     <PackageReference Include="Utilities.SerializeExtensions" Version="6.5.0" />

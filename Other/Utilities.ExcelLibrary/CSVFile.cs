@@ -77,10 +77,10 @@ namespace Utilities.ExcelLibrary
                 var m = new StringWriter(sb);
                 TextWriter tw = m;// new StreamWriter(m);
 
-                var config = new CsvConfiguration(CultureInfo.CurrentCulture);//.Configuration();
-                config.Delimiter = Delimiter;
+                var config = new CsvConfiguration(CultureInfo.CurrentCulture, delimiter: Delimiter);//.Configuration();
+                //config.Delimiter = Delimiter;
 
-                var p = new CsvHelper.CsvWriter(tw, config, false);
+                var p = new CsvHelper.CsvWriter(tw, config);
 
                 foreach(var c in Columns)
                 {
@@ -130,11 +130,11 @@ namespace Utilities.ExcelLibrary
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
             var m = new StringWriter(sb);
             TextWriter tw = m;
-            var config = new CsvConfiguration(CultureInfo.CurrentCulture);
-            config.Delimiter = ColumnDelimiter;
+            var config = new CsvConfiguration(CultureInfo.CurrentCulture, delimiter: ColumnDelimiter);
+            //config.Delimiter = ColumnDelimiter;
 
 
-            var p = new CsvHelper.CsvWriter(tw, config, false);
+            var p = new CsvHelper.CsvWriter(tw, config);
 
             //CSVLine Line;
             foreach (var line in Lines)
@@ -193,15 +193,15 @@ namespace Utilities.ExcelLibrary
             CSVFile CSVF = new CSVFile();
             CSVF.ColumnDelimiter = ColDelimiter;
 
-            var parser = new CsvHelper.CsvParser(ReadFile, new CsvConfiguration(CultureInfo.CurrentCulture) { Delimiter = ColDelimiter });
-            while ((true))
+            var parser = new CsvHelper.CsvReader(ReadFile, new CsvConfiguration(CultureInfo.CurrentCulture) { Delimiter = ColDelimiter });
+            while (parser.Read())
             {
-                var line = parser.Read();
-
-                if ((line == null))
-                    break;
-                else
-                    CSVF.Lines.Add(new CSVLine(line.ToList()));
+                var cols = new List<string>();
+                for(int a=0;a< parser.ColumnCount;a++)
+                {
+                    cols.Add(parser.GetField(a));
+                }
+                CSVF.Lines.Add(new CSVLine(cols));
             }
             return CSVF;
         }

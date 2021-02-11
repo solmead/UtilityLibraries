@@ -4,7 +4,7 @@
     <!--<TargetFramework>netstandard2.0</TargetFramework>-->
 	  <TargetFrameworks>netstandard2.0;net462;net472;net48</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>6.4.0</Version>
+    <Version>6.5.0</Version>
     <RuntimeIdentifiers>win10-x64;osx.10.11-x64;ubuntu.16.04-x64</RuntimeIdentifiers>
     <Company>University of Cincinnati</Company>
     <Copyright>Copyright ©2019 University of Cincinnati</Copyright>
@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="2.0.1" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="2.1.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.8" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
