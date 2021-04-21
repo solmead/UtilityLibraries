@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using PostSharp.Aspects;
 using PostSharp.Reflection;
+using Utilities.SerializeExtensions;
 using Utilities.SerializeExtensions.Serializers;
 
 namespace Utilities.Caching.Aspects.Naming
@@ -94,7 +95,7 @@ namespace Utilities.Caching.Aspects.Naming
 
         private string Serialize(Dictionary<string, object> arguments)
         {
-            var s = new JsonSerializer();
+            var s = new Serializer();
             return s.Serialize(arguments);
             //return arguments.Select(json.Serialize).ToArray();
         }

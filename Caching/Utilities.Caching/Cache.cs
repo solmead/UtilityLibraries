@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Utilities.Caching.CacheAreas;
+using Utilities.Caching.Configuration;
 using Utilities.Caching.Core;
+using Utilities.SerializeExtensions.Serializers;
 
 namespace Utilities.Caching
 {
@@ -35,24 +37,26 @@ namespace Utilities.Caching
     {
 
 
-        public static void LogDebug(string msg)
-        {
-            CacheSystem.Instance.LogDebugMessage?.Invoke(msg);
-        }
-        public static void LogError(string msg)
-        {
-            CacheSystem.Instance.LogErrorMessage?.Invoke(msg);
-        }
+        //public static void LogDebug(string msg)
+        //{
+        //    CacheSystem.Instance.LogDebugMessage?.Invoke(msg);
+        //}
+        //public static void LogError(string msg)
+        //{
+        //    CacheSystem.Instance.LogErrorMessage?.Invoke(msg);
+        //}
 
 
-        public static void SetLogDebugFunction(Action<string> logCall)
-        {
-            CacheSystem.Instance.LogDebugMessage = logCall;
-        }
-        public static void SetLogErrorFunction(Action<string> logCall)
-        {
-            CacheSystem.Instance.LogErrorMessage = logCall;
-        }
+        //public static void SetLogDebugFunction(Action<string> logCall)
+        //{
+        //    CacheSystem.Instance.LogDebugMessage = logCall;
+        //}
+        //public static void SetLogErrorFunction(Action<string> logCall)
+        //{
+        //    CacheSystem.Instance.LogErrorMessage = logCall;
+        //}
+        public static CacheSystem Instance => Configurator.Instance;
+        public static ISerializer Serializer => Configurator.Serializer;
 
 
         /// <summary>
@@ -74,7 +78,7 @@ namespace Utilities.Caching
                 {
                     lSS = null;
                 }
-                if (!name.Contains("CacheEnabled") && !CacheSystem.Instance.CacheEnabled)
+                if (!name.Contains("CacheEnabled") && !Instance.CacheEnabled)
                 {
                     if (createMethod != null)
                     {
@@ -127,7 +131,7 @@ namespace Utilities.Caching
                 {
                     lSS = null;
                 }
-                if (!name.Contains("CacheEnabled") && !CacheSystem.Instance.CacheEnabled)
+                if (!name.Contains("CacheEnabled") && !Instance.CacheEnabled)
                 {
                     if (createMethod != null)
                     {
@@ -252,7 +256,7 @@ namespace Utilities.Caching
         /// <returns></returns>
         public static async Task<tt> GetItemAsync<tt>(CacheArea area, string name, Func<Task<tt>> createMethod, double lifeSpanSeconds, string tags = "")
         {
-            var ca = CacheSystem.Instance.GetCacheArea(area);
+            var ca = Instance.GetCacheArea(area);
             return await GetItemAsync(ca, name, createMethod, lifeSpanSeconds, tags);
         }
         /// <summary>
@@ -266,7 +270,7 @@ namespace Utilities.Caching
         /// <returns></returns>
         public static tt GetItem<tt>(CacheArea area, string name, Func<tt> createMethod, double lifeSpanSeconds, string tags = "")
         {
-            var ca = CacheSystem.Instance.GetCacheArea(area);
+            var ca = Instance.GetCacheArea(area);
             return GetItem(ca, name, createMethod, lifeSpanSeconds, tags);
         }
         /// <summary>
@@ -280,7 +284,7 @@ namespace Utilities.Caching
         /// <returns></returns>
         public static Task<object> GetItemAsync(CacheArea area, string name, Type type, Func<Task<object>> createMethod, double lifeSpanSeconds, string tags = "")
         {
-            var ca = CacheSystem.Instance.GetCacheArea(area);
+            var ca = Instance.GetCacheArea(area);
             try
             {
 
@@ -289,7 +293,7 @@ namespace Utilities.Caching
                 {
                     lSS = null;
                 }
-                if (!name.Contains("CacheEnabled") && !CacheSystem.Instance.CacheEnabled)
+                if (!name.Contains("CacheEnabled") && !Instance.CacheEnabled)
                 {
                     return createMethod?.Invoke();
                 }
@@ -321,7 +325,7 @@ namespace Utilities.Caching
         /// <returns></returns>
         public static object GetItem(CacheArea area, string name, Type type, Func<object> createMethod, double lifeSpanSeconds, string tags = "")
         {
-            var ca = CacheSystem.Instance.GetCacheArea(area);
+            var ca = Instance.GetCacheArea(area);
             return GetItem(ca, name, createMethod, lifeSpanSeconds, tags);
         }
 
@@ -361,7 +365,7 @@ namespace Utilities.Caching
         /// <param name="lifeSpanSeconds"></param>
         public static async Task SetItemAsync<tt>(CacheArea area, string name, tt obj, double lifeSpanSeconds, string tags = "")
         {
-            var ca = CacheSystem.Instance.GetCacheArea(area);
+            var ca = Instance.GetCacheArea(area);
             await SetItemAsync(ca, name, obj, lifeSpanSeconds, tags);
         }
         /// <summary>
@@ -374,7 +378,7 @@ namespace Utilities.Caching
         /// <param name="lifeSpanSeconds"></param>
         public static async Task SetItemAsync(CacheArea area, string name, Type type, object obj, double lifeSpanSeconds, string tags = "")
         {
-            var ca = CacheSystem.Instance.GetCacheArea(area);
+            var ca = Instance.GetCacheArea(area);
             await SetItemAsync(ca, name, obj, lifeSpanSeconds, tags);
         }
         /// <summary>
@@ -387,7 +391,7 @@ namespace Utilities.Caching
         /// <param name="lifeSpanSeconds"></param>
         public static void SetItem<tt>(CacheArea area, string name, tt obj, double lifeSpanSeconds, string tags = "")
         {
-            var ca = CacheSystem.Instance.GetCacheArea(area);
+            var ca = Instance.GetCacheArea(area);
             SetItem(ca, name, obj, lifeSpanSeconds, tags);
         }
         /// <summary>
@@ -400,7 +404,7 @@ namespace Utilities.Caching
         /// <param name="lifeSpanSeconds"></param>
         public static void SetItem(CacheArea area, string name, Type type, object obj, double lifeSpanSeconds, string tags = "")
         {
-            var ca = CacheSystem.Instance.GetCacheArea(area);
+            var ca = Instance.GetCacheArea(area);
             SetItem(ca, name, obj, lifeSpanSeconds, tags);
         }
 

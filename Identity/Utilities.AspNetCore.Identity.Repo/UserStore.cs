@@ -240,30 +240,30 @@ namespace Utilities.AspNetCore.Identity.Repo
         }
 
 
-        private void UpdateRolesInClaims(TUser user)
-        {
-            var cList = (from c in user.Claims
-                         where c.ClaimType == ClaimTypes.Role
-                         select c).ToList();
-            foreach(var cm in cList)
-            {
-                user.Claims.Remove(cm);
-            }
+        //private void UpdateRolesInClaims(TUser user)
+        //{
+        //    var cList = (from c in user.Claims
+        //                 where c.ClaimType == ClaimTypes.Role
+        //                 select c).ToList();
+        //    foreach(var cm in cList)
+        //    {
+        //        user.Claims.Remove(cm);
+        //    }
 
 
-            var cnt = 0;
-            foreach (var r in user.Roles)
-            {
-                user.Claims.Add(new IdentityUserClaim<TKey>()
-                {
-                    UserId = user.Id,
-                    ClaimType = ClaimTypes.Role,
-                    ClaimValue = r,
-                    Id = user.Claims.Count + cnt * 100
-                });
-                cnt++;
-            }
-        }
+        //    var cnt = 0;
+        //    foreach (var r in user.Roles)
+        //    {
+        //        user.Claims.Add(new IdentityUserClaim<TKey>()
+        //        {
+        //            UserId = user.Id,
+        //            ClaimType = ClaimTypes.Role,
+        //            ClaimValue = r,
+        //            Id = user.Claims.Count + cnt * 100
+        //        });
+        //        cnt++;
+        //    }
+        //}
 
         /// <summary>
         /// Finds and returns a user, if any, who has the specified <paramref name="userId"/>.
@@ -281,7 +281,7 @@ namespace Utilities.AspNetCore.Identity.Repo
             
 
             var u = await _identityRepository.FindUserByIdAsync(id);
-            UpdateRolesInClaims(u);
+            //UpdateRolesInClaims(u);
             return u;
             //var id = ConvertIdFromString(userId);
             //return UsersSet.FindUserByIdAsync(new object[] { id }, cancellationToken);
@@ -300,7 +300,7 @@ namespace Utilities.AspNetCore.Identity.Repo
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
             var u = await _identityRepository.FindUserByUsernameAsync(normalizedUserName);
-            UpdateRolesInClaims(u);
+            //UpdateRolesInClaims(u);
             return u;
         }
 
@@ -358,7 +358,7 @@ namespace Utilities.AspNetCore.Identity.Repo
         protected override async Task<TUser> FindUserAsync(TKey userId, CancellationToken cancellationToken)
         {
             var u = await _identityRepository.FindUserByIdAsync(userId);
-            UpdateRolesInClaims(u);
+            //UpdateRolesInClaims(u);
             return u;
         }
 
@@ -425,7 +425,7 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <param name="normalizedRoleName">The role to add.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public async override Task AddToRoleAsync(TUser user, string normalizedRoleName, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task AddToRoleAsync(TUser user, string normalizedRoleName, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -457,7 +457,7 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <param name="normalizedRoleName">The role to remove.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public async override Task RemoveFromRoleAsync(TUser user, string normalizedRoleName, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task RemoveFromRoleAsync(TUser user, string normalizedRoleName, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -515,12 +515,12 @@ namespace Utilities.AspNetCore.Identity.Repo
             {
                 throw new ArgumentNullException(nameof(user));
             }
-            var roles = await GetRoleListAsync(user, cancellationToken);
+            //var roles = await GetRoleListAsync(user, cancellationToken);
 
             
-            var query = from userRole in roles
-                        select userRole.Name;
-            return query.ToList();
+            //var query = from userRole in roles
+            //            select userRole.Name;
+            return user.Roles.ToList();
         }
 
         /// <summary>
@@ -558,15 +558,16 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <param name="user">The user whose claims should be retrieved.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>A <see cref="Task{TResult}"/> that contains the claims granted to a user.</returns>
-        public async override Task<IList<Claim>> GetClaimsAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public  override Task<IList<Claim>> GetClaimsAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             ThrowIfDisposed();
             if (user == null)
             {
                 throw new ArgumentNullException(nameof(user));
             }
+            IList<Claim> lst = user.Claims.Select(c => c.ToClaim()).ToList();
 
-            return user.Claims.Select(c => c.ToClaim()).ToList();
+            return Task.FromResult(lst);
         }
 
         /// <summary>
@@ -741,7 +742,7 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <returns>
         /// The <see cref="Task"/> for the asynchronous operation, containing a list of <see cref="UserLoginInfo"/> for the specified <paramref name="user"/>, if any.
         /// </returns>
-        public override async Task<IList<UserLoginInfo>> GetLoginsAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<IList<UserLoginInfo>> GetLoginsAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -752,7 +753,9 @@ namespace Utilities.AspNetCore.Identity.Repo
             //var userId = user.Id;
             var list = user.SocialLogins.Select((u) => new UserLoginInfo(u.LoginProvider, u.ProviderKey, user.UserName)).ToList();
 
-            return list;
+            IList<UserLoginInfo> lst = list;
+
+            return Task.FromResult(lst);
 
 
 
@@ -795,7 +798,7 @@ namespace Utilities.AspNetCore.Identity.Repo
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
             var u = await _identityRepository.FindUserByEmailAsync(normalizedEmail);
-            UpdateRolesInClaims(u);
+            //UpdateRolesInClaims(u);
             return u;
 
 
@@ -810,7 +813,7 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <returns>
         /// The <see cref="Task"/> contains a list of users, if any, that contain the specified claim. 
         /// </returns>
-        public async override Task<IList<TUser>> GetUsersForClaimAsync(Claim claim, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<IList<TUser>> GetUsersForClaimAsync(Claim claim, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -831,9 +834,13 @@ namespace Utilities.AspNetCore.Identity.Repo
             //            join user in Users on userclaims.UserId equals user.Id
             //            where userclaims.ClaimValue == claim.Value
             //            && userclaims.ClaimType == claim.Type
-            //            select user;
+            //       
+            //select user;
 
-            return list;
+            IList<TUser> lst = list;
+
+
+            return Task.FromResult(lst);
         }
 
         /// <summary>
@@ -883,7 +890,7 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <param name="name">The name of the token.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The user token if it exists.</returns>
-        protected override async Task<TUserToken> FindTokenAsync(TUser user, string loginProvider, string name,
+        protected override Task<TUserToken> FindTokenAsync(TUser user, string loginProvider, string name,
             CancellationToken cancellationToken)
         {
 
@@ -898,7 +905,7 @@ namespace Utilities.AspNetCore.Identity.Repo
             finToken.Value = ut.Value;
 
 
-            return finToken;
+            return Task.FromResult(finToken);
         }
             
 

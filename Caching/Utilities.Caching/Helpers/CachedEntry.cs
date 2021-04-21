@@ -39,7 +39,7 @@ namespace Utilities.Caching.Helpers
         public string GetDataString()
         {
             Type myType = typeof(tt);
-            return CacheSystem.Serializer.Serialize(Item, myType);
+            return Cache.Serializer.Serialize(Item, myType);
         }
 
         [XmlIgnore]

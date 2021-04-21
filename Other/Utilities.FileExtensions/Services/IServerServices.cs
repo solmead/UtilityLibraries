@@ -6,6 +6,8 @@ namespace Utilities.FileExtensions.Services
 {
     public interface IServerServices
     {
+        string GetTempDirectory();
+
         string MapPath(string path);
         //string BaseUrl();
         string GetUrl(string path);

@@ -77,8 +77,8 @@ namespace Utilities.ExcelLibrary
                 var m = new StringWriter(sb);
                 TextWriter tw = m;// new StreamWriter(m);
 
-                var config = new CsvConfiguration(CultureInfo.CurrentCulture, delimiter: Delimiter);//.Configuration();
-                //config.Delimiter = Delimiter;
+                var config = new CsvConfiguration(CultureInfo.CurrentCulture);//.Configuration();
+                config.Delimiter = Delimiter;
 
                 var p = new CsvHelper.CsvWriter(tw, config);
 
@@ -130,8 +130,8 @@ namespace Utilities.ExcelLibrary
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
             var m = new StringWriter(sb);
             TextWriter tw = m;
-            var config = new CsvConfiguration(CultureInfo.CurrentCulture, delimiter: ColumnDelimiter);
-            //config.Delimiter = ColumnDelimiter;
+            var config = new CsvConfiguration(CultureInfo.CurrentCulture);
+            config.Delimiter = ColumnDelimiter;
 
 
             var p = new CsvHelper.CsvWriter(tw, config);

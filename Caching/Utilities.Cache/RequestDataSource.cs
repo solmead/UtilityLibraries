@@ -66,7 +66,8 @@ namespace Utilities.Caching.AspNetCore
             {
                     if (context.Items.ContainsKey(name.ToUpper()))
                     {
-                        var t = (CachedEntry<tt>) context.Items[name.ToUpper()];
+                        var t = context.Items[name.ToUpper()] as CachedEntry<tt>;
+                    //var t = (CachedEntry<tt>) context.Items[name.ToUpper()];
                         return t;
                     }
             }

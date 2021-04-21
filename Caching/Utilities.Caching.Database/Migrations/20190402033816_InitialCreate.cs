@@ -38,7 +38,7 @@ namespace Utilities.Caching.Database.Migrations
         {
 
             //var r = this.Resources;
-            return DoesFieldExist(Core.ConnString, "CachedEntries", "Name");
+            return DoesFieldExist(Configuration.Configurator.ConnString, "CachedEntries", "Name");
         }
 
         protected override void Up(MigrationBuilder migrationBuilder)

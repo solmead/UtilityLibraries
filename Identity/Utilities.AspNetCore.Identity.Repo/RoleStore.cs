@@ -143,7 +143,7 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <param name="role">The role to create in the store.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>A <see cref="Task{TResult}"/> that represents the <see cref="IdentityResult"/> of the asynchronous query.</returns>
-        public async virtual Task<IdentityResult> CreateAsync(TRole role, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task<IdentityResult> CreateAsync(TRole role, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -156,7 +156,7 @@ namespace Utilities.AspNetCore.Identity.Repo
 
             //Context.Add(role);
             //await SaveChanges(cancellationToken);
-            return IdentityResult.Failed();
+            return Task.FromResult(IdentityResult.Failed());
         }
 
         /// <summary>
@@ -165,7 +165,7 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <param name="role">The role to update in the store.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>A <see cref="Task{TResult}"/> that represents the <see cref="IdentityResult"/> of the asynchronous query.</returns>
-        public async virtual Task<IdentityResult> UpdateAsync(TRole role, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task<IdentityResult> UpdateAsync(TRole role, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -185,7 +185,7 @@ namespace Utilities.AspNetCore.Identity.Repo
             //{
             //    return IdentityResult.Failed(ErrorDescriber.ConcurrencyFailure());
             //}
-            return IdentityResult.Failed();
+            return Task.FromResult(IdentityResult.Failed());
         }
 
         /// <summary>
@@ -194,7 +194,7 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <param name="role">The role to delete from the store.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>A <see cref="Task{TResult}"/> that represents the <see cref="IdentityResult"/> of the asynchronous query.</returns>
-        public async virtual Task<IdentityResult> DeleteAsync(TRole role, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task<IdentityResult> DeleteAsync(TRole role, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -214,7 +214,7 @@ namespace Utilities.AspNetCore.Identity.Repo
             //{
             //    return IdentityResult.Failed(ErrorDescriber.ConcurrencyFailure());
             //}
-            return IdentityResult.Failed();
+            return Task.FromResult(IdentityResult.Failed());
         }
 
         /// <summary>
@@ -385,7 +385,7 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <param name="role">The role whose claims should be retrieved.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>A <see cref="Task{TResult}"/> that contains the claims granted to a role.</returns>
-        public async virtual Task<IList<Claim>> GetClaimsAsync(TRole role, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task<IList<Claim>> GetClaimsAsync(TRole role, CancellationToken cancellationToken = default(CancellationToken))
         {
             ThrowIfDisposed();
             if (role == null)
@@ -394,7 +394,8 @@ namespace Utilities.AspNetCore.Identity.Repo
             }
 
             //throw new NotImplementedException();
-            return new List<Claim>();
+            IList<Claim> lst = new List<Claim>();
+            return Task.FromResult(lst);
            // return await RoleClaims.Where(rc => rc.RoleId.Equals(role.Id)).Select(c => new Claim(c.ClaimType, c.ClaimValue)).ToListAsync(cancellationToken);
         }
 
@@ -429,7 +430,7 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <param name="claim">The claim to remove from the role.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public async virtual Task RemoveClaimAsync(TRole role, Claim claim, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task RemoveClaimAsync(TRole role, Claim claim, CancellationToken cancellationToken = default(CancellationToken))
         {
             ThrowIfDisposed();
             if (role == null)

@@ -1,4 +1,5 @@
-﻿using NLog;
+﻿using Microsoft.Extensions.Logging;
+using NLog;
 using NLog.Targets;
 using System;
 using System.IO;
@@ -8,18 +9,34 @@ namespace Utilities.Logging
 {
     public static class Startup
     {
-
-        public static void Init(ILogUserRepository userRepo = null)
+        public static FileInfo logLocation;
+        private static void InitSystem(ILogUserRepository userRepo = null)
         {
             Log.userRepo = userRepo;
 
-            var t = new Task(()=> { Log.CleanLogging(); });
+            var t = new Task(() => { Log.CleanLogging(); });
             t.Start();
             //CleanLogging();
 
         }
+        public static void Init(ILogUserRepository userRepo = null)
+        {
+            var mf = Log.GetConfiguredMainLogFile();
+            mf = mf.Replace("/", "\\");
+            if (!mf.StartsWith("\\") && !mf.Contains(":\\") && !mf.StartsWith("~"))
+            {
+                mf = "~\\" + mf;
+            }
 
-        public static void Init(string logPath, ILogUserRepository userRepo)
+            var pos = mf.LastIndexOf("\\");
+
+            var dir = mf.Substring(0, pos+1);
+            var fname = mf.Substring(pos + 1);
+
+            Init(dir, userRepo, fname);
+        }
+
+        public static void Init(string logPath, ILogUserRepository userRepo, string fileName = "logFile.txt")
         {
             FileInfo fi = null;
             try
@@ -42,22 +59,38 @@ namespace Utilities.Logging
                 //            return System.Web.Hosting.HostingEnvironment.MapPath(basePath);
 
                 //var di = new DirectoryInfo(HostingEnvironment.MapPath("/Documents/Logs/"));
-                fi = new FileInfo(userRepo.MapPath(logPath + "/logFile.txt"));
+                fi = new FileInfo(userRepo.MapPath(logPath + "/" + fileName));
+                logLocation = fi;
                 if (!fi.Directory.Exists)
                 {
                     fi.Directory.Create();
                 }
 
-                fTarget.ArchiveFileName = fi.FullName.Replace(".txt", ".{#}.txt");
+                fTarget.ArchiveFileName = fi.FullName.Replace(fi.Extension, ".{#}" + fi.Extension);
                 fTarget.FileName = fi.FullName;
-                Init(userRepo);
+                InitSystem(userRepo);
+
+
+                //Microsoft.Extensions.Logging.ILogger _logger = new GenericLogger();
+                //_logger.LogInformation("Finished Logger Setup");
+
 
             } catch(Exception ex)
             {
                 var msg = "Error: " + ex.Message + " logPath = [" + logPath + "] fi=[" + fi?.FullName + "]";
+                
                 throw new Exception(msg, ex);
             }
 
+            Microsoft.Extensions.Logging.ILogger _logger = new GenericLogger();
+
+
+            _logger.LogInformation("Information Log");
+            _logger.LogWarning("Warning Log");
+            _logger.LogCritical("Critical Log");
+            _logger.LogDebug("Debug Log");
+            _logger.LogError("Error Log");
+            _logger.LogTrace("Trace Log");
         }
     }
 }

@@ -17,11 +17,76 @@ namespace Utilities.Sql
 
         public static Action<string> LogMessage { get; set; }
 
+        private static Dictionary<Type, DbType> _typeMap;
+
         public static void Log(string msg)
         {
             //Debug.WriteLine(msg);
             LogMessage?.Invoke(msg);
         }
+
+        private static Dictionary<Type, DbType> TypeMap
+        {
+            get
+            {
+                if (_typeMap == null)
+                {
+                    var typeMap = new Dictionary<Type, DbType>();
+                    typeMap[typeof(byte)] = DbType.Byte;
+                    typeMap[typeof(sbyte)] = DbType.SByte;
+                    typeMap[typeof(short)] = DbType.Int16;
+                    typeMap[typeof(ushort)] = DbType.UInt16;
+                    typeMap[typeof(int)] = DbType.Int32;
+                    typeMap[typeof(uint)] = DbType.UInt32;
+                    typeMap[typeof(long)] = DbType.Int64;
+                    typeMap[typeof(ulong)] = DbType.UInt64;
+                    typeMap[typeof(float)] = DbType.Single;
+                    typeMap[typeof(double)] = DbType.Double;
+                    typeMap[typeof(decimal)] = DbType.Decimal;
+                    typeMap[typeof(bool)] = DbType.Boolean;
+                    typeMap[typeof(string)] = DbType.String;
+                    typeMap[typeof(char)] = DbType.StringFixedLength;
+                    typeMap[typeof(Guid)] = DbType.Guid;
+                    typeMap[typeof(DateTime)] = DbType.DateTime;
+                    typeMap[typeof(DateTimeOffset)] = DbType.DateTimeOffset;
+                    typeMap[typeof(byte[])] = DbType.Binary;
+                    typeMap[typeof(byte?)] = DbType.Byte;
+                    typeMap[typeof(sbyte?)] = DbType.SByte;
+                    typeMap[typeof(short?)] = DbType.Int16;
+                    typeMap[typeof(ushort?)] = DbType.UInt16;
+                    typeMap[typeof(int?)] = DbType.Int32;
+                    typeMap[typeof(uint?)] = DbType.UInt32;
+                    typeMap[typeof(long?)] = DbType.Int64;
+                    typeMap[typeof(ulong?)] = DbType.UInt64;
+                    typeMap[typeof(float?)] = DbType.Single;
+                    typeMap[typeof(double?)] = DbType.Double;
+                    typeMap[typeof(decimal?)] = DbType.Decimal;
+                    typeMap[typeof(bool?)] = DbType.Boolean;
+                    typeMap[typeof(char?)] = DbType.StringFixedLength;
+                    typeMap[typeof(Guid?)] = DbType.Guid;
+                    typeMap[typeof(DateTime?)] = DbType.DateTime;
+                    typeMap[typeof(DateTimeOffset?)] = DbType.DateTimeOffset;
+                    //typeMap[typeof(System.Data.Linq.Binary)] = DbType.Binary;
+                    _typeMap = typeMap;
+                }
+                return _typeMap;
+            }
+        }
+
+
+        private static DbType AsDbType(this Type type)
+        {
+
+            var tp = TypeMap[type];
+            return tp;
+        }
+        //private static DbType DbType<TItem>(this TItem item)
+        //{
+        //    var type = typeof(TItem);
+        //    var tp = TypeMap[type];
+        //    return tp;
+        //}
+
 
         private static DbParameter CreateParamFrom(this DbCommand cmd, DbParameter param)
         {
@@ -34,7 +99,17 @@ namespace Utilities.Sql
 
         public static DbParameter Param(string name, object value)
         {
-            return new Parameter(name, (value ?? DBNull.Value));
+
+            var v = (object)value?.ToString();
+            v = value;
+
+            var p = new Parameter(name, (v ?? DBNull.Value));
+            if (v != null)
+            {
+                p.DbType = value.GetType().AsDbType();
+            }
+
+            return p;
         }
 
 
@@ -88,6 +163,24 @@ namespace Utilities.Sql
                 var conn = db;
                 await conn.OpenAsync();
                 var cmd = conn.CreateCommand();
+                if (!sql.ToUpper().Contains("EXEC "))
+                {
+                    sql = "EXEC " + sql;
+                }
+                if (!sql.Contains("@"))
+                {
+                    var fst = true;
+                    foreach (var param in parameters)
+                    {
+                        if (!fst)
+                        {
+                            sql = sql + ",";
+                        }
+                        sql = sql + " @" + param.ParameterName;
+                        //cmd.Parameters.Add(cmd.CreateParamFrom(param));
+                        fst = false;
+                    }
+                }
                 cmd.CommandText = sql;
                 cmd.CommandTimeout = (db.ConnectionTimeout != 0 ? db.ConnectionTimeout : 20);
 
@@ -129,6 +222,24 @@ namespace Utilities.Sql
 
                 conn.Open();
                 var cmd = conn.CreateCommand();
+                if (!sql.ToUpper().Contains("EXEC "))
+                {
+                    sql = "EXEC " + sql;
+                }
+                if (!sql.Contains("@"))
+                {
+                    var fst = true;
+                    foreach (var param in parameters)
+                    {
+                        if (!fst)
+                        {
+                            sql = sql + ",";
+                        }
+                        sql = sql + " @" + param.ParameterName;
+                        //cmd.Parameters.Add(cmd.CreateParamFrom(param));
+                        fst = false;
+                    }
+                }
                 cmd.CommandText = sql;
                 cmd.CommandTimeout = (db.ConnectionTimeout != 0 ? db.ConnectionTimeout : 20);
 
@@ -225,7 +336,6 @@ namespace Utilities.Sql
                 parameters = new List<DbParameter>();
             }
 
-            db.DebugWrite(sql, parameters);
 
             var st = DateTime.Now;
             Log("-- Executing at " + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
@@ -241,6 +351,27 @@ namespace Utilities.Sql
                 }
                 {
                     var cmd = conn.CreateCommand();
+                    if (!sql.ToUpper().Contains("EXEC "))
+                    {
+                        sql = "EXEC " + sql;
+                    }
+                    if (!sql.Contains("@"))
+                    {
+                        var fst = true;
+                        foreach (var param in parameters)
+                        {
+                            if (!fst)
+                            {
+                                sql = sql + ",";
+                            }
+                            sql = sql + " @" + param.ParameterName;
+                            //cmd.Parameters.Add(cmd.CreateParamFrom(param));
+                            fst = false;
+                        }
+                    }
+
+                    db.DebugWrite(sql, parameters);
+
                     cmd.CommandText = sql;
                     cmd.CommandTimeout = (db.ConnectionTimeout != 0 ? db.ConnectionTimeout : 20);
 
@@ -298,6 +429,24 @@ namespace Utilities.Sql
                 }
                 {
                     var cmd = conn.CreateCommand();
+                    if (!sql.ToUpper().Contains("EXEC "))
+                    {
+                        sql = "EXEC " + sql;
+                    }
+                    if (!sql.Contains("@"))
+                    {
+                        var fst = true;
+                        foreach (var param in parameters)
+                        {
+                            if (!fst)
+                            {
+                                sql = sql + ",";
+                            }
+                            sql = sql + " @" + param.ParameterName;
+                            //cmd.Parameters.Add(cmd.CreateParamFrom(param));
+                            fst = false;
+                        }
+                    }
                     cmd.CommandText = sql;
                     cmd.CommandTimeout = (db.ConnectionTimeout != 0 ? db.ConnectionTimeout : 20);
 
@@ -466,15 +615,165 @@ namespace Utilities.Sql
         #endregion
 
 
+
+
+        public static async Task ExecuteSqlCommandAsync(this DbConnection db, string sql, List<DbParameter> parameters)
+        {
+            try
+            {
+
+                if (parameters == null)
+                {
+                    parameters = new List<DbParameter>();
+                }
+
+
+
+
+                db.DebugWrite(sql, parameters);
+                var st = DateTime.Now;
+                Log("-- Executing at " + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
+                var conn = db;
+                await conn.OpenAsync();
+                var cmd = conn.CreateCommand();
+                if (!sql.ToUpper().Contains("EXEC "))
+                {
+                    sql = "EXEC " + sql;
+                }
+                if (!sql.Contains("@"))
+                {
+                    var fst = true;
+                    foreach (var param in parameters)
+                    {
+                        if (!fst)
+                        {
+                            sql = sql + ",";
+                        }
+                        sql = sql + " @" + param.ParameterName;
+                        //cmd.Parameters.Add(cmd.CreateParamFrom(param));
+                        fst = false;
+                    }
+                }
+                cmd.CommandText = sql;
+                cmd.CommandTimeout = (db.ConnectionTimeout != 0 ? db.ConnectionTimeout : 20);
+
+                foreach (var param in parameters)
+                {
+
+                    cmd.Parameters.Add(cmd.CreateParamFrom(param));
+                }
+
+                //var ret = await cmd.ExecuteNonQueryAsync();
+                var ret = cmd.ExecuteNonQuery();
+                conn.Close();
+                Log("-- Loaded in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
+                //return (TT)ret;
+            }
+            catch (Exception ex)
+            {
+
+                var tstr = db.ArgsAsSql(sql, parameters);
+                throw new Exception("Error: " + ex.Message + " on db call:" + tstr, ex);
+            }
+        }
+        public static void ExecuteSqlCommand(this DbConnection db, string sql, List<DbParameter> parameters)
+        {
+            try
+            {
+
+                if (parameters == null)
+                {
+                    parameters = new List<DbParameter>();
+                }
+
+
+
+
+                db.DebugWrite(sql, parameters);
+                var st = DateTime.Now;
+                Log("-- Executing at " + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
+                var conn = db;
+
+                conn.Open();
+                var cmd = conn.CreateCommand();
+                if (!sql.ToUpper().Contains("EXEC "))
+                {
+                    sql = "EXEC " + sql;
+                }
+                if (!sql.Contains("@"))
+                {
+                    var fst = true;
+                    foreach (var param in parameters)
+                    {
+                        if (!fst)
+                        {
+                            sql = sql + ",";
+                        }
+                        sql = sql + " @" + param.ParameterName;
+                        //cmd.Parameters.Add(cmd.CreateParamFrom(param));
+                        fst = false;
+                    }
+                }
+                cmd.CommandText = sql;
+                cmd.CommandTimeout = (db.ConnectionTimeout != 0 ? db.ConnectionTimeout : 20);
+
+                foreach (var param in parameters)
+                {
+                    cmd.Parameters.Add(cmd.CreateParamFrom(param));
+                }
+
+                cmd.ExecuteNonQuery();
+                conn.Close();
+                Log("-- Loaded in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
+                //return (TT)ret;
+            }
+            catch (Exception ex)
+            {
+
+                var tstr = db.ArgsAsSql(sql, parameters);
+                throw new Exception("Error: " + ex.Message + " on db call:" + tstr, ex);
+            }
+        }
+
+
+        public static Task ExecuteSqlCommandAsync(this DbConnection db, string sql, object param = null)
+        {
+            var parameters = new List<DbParameter>();
+            if (param != null)
+            {
+                foreach (var p in param.GetPropertyNames(onlyWritable: false))
+                {
+                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
+                }
+            }
+
+            return db.ExecuteSqlCommandAsync(sql, parameters);
+        }
+
+        public static void ExecuteSqlCommand(this DbConnection db, string sql, object param = null)
+        {
+            var parameters = new List<DbParameter>();
+            if (param != null)
+            {
+                foreach (var p in param.GetPropertyNames(onlyWritable: false))
+                {
+                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
+                }
+            }
+
+            db.ExecuteSqlCommand(sql, parameters);
+        }
+
+
         #region SqlCommandArea
 
 
-        public static async Task ExecuteSqlCommandAsync(this DbConnection db, string sql, object param = null)
-        {
-            var st = DateTime.Now;
-            await db.SqlQueryDataSetAsync(sql, param);
-            Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
-        }
+        //public static async Task ExecuteSqlCommandAsync(this DbConnection db, string sql, object param = null)
+        //{
+        //    var st = DateTime.Now;
+        //    await db.SqlQueryDataSetAsync(sql, param);
+        //    Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
+        //}
         public static async Task ExecuteSqlCommandAsync(this DbContext db, string sql, object param = null)
         {
             await db.Database.GetDbConnection().ExecuteSqlCommandAsync(sql, param);
@@ -486,12 +785,12 @@ namespace Utilities.Sql
 
 
 
-        public static void ExecuteSqlCommand(this DbConnection db, string sql, object param = null)
-        {
-            var st = DateTime.Now;
-            db.SqlQueryDataSet(sql, param);
-            Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
-        }
+        //public static void ExecuteSqlCommand(this DbConnection db, string sql, object param = null)
+        //{
+        //    var st = DateTime.Now;
+        //    db.ExecuteSqlCommand(sql, param);
+        //    Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
+        //}
         public static void ExecuteSqlCommand(this DbContext db, string sql, object param = null)
         {
             db.Database.GetDbConnection().ExecuteSqlCommand(sql, param);
@@ -516,13 +815,13 @@ namespace Utilities.Sql
 
 
 
-        public static async Task ExecuteSqlCommandAsync(this DbConnection db, string sql,
-            List<DbParameter> parameters)
-        {
-            var st = DateTime.Now;
-            await db.SqlQueryDataSetAsync(sql, parameters);
-            Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
-        }
+        //public static async Task ExecuteSqlCommandAsync(this DbConnection db, string sql,
+        //    List<DbParameter> parameters)
+        //{
+        //    var st = DateTime.Now;
+        //    await db.SqlQueryDataSetAsync(sql, parameters);
+        //    Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
+        //}
         public static async Task ExecuteSqlCommandAsync(this DbContext db, string sql,
             List<DbParameter> parameters)
         {
@@ -535,13 +834,13 @@ namespace Utilities.Sql
 
 
 
-        public static void ExecuteSqlCommand(this DbConnection db, string sql,
-            List<DbParameter> parameters)
-        {
-            var st = DateTime.Now;
-            db.SqlQueryDataSet(sql, parameters);
-            Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
-        }
+        //public static void ExecuteSqlCommand(this DbConnection db, string sql,
+        //    List<DbParameter> parameters)
+        //{
+        //    var st = DateTime.Now;
+        //    db.SqlQueryDataSet(sql, parameters);
+        //    Log("-- Completed in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
+        //}
         public static void ExecuteSqlCommand(this DbContext db, string sql,
             List<DbParameter> parameters)
         {

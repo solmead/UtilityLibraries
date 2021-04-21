@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Utilities.Caching;
 using Utilities.Caching.Core;
 using Utilities.Caching.Web.Sessions;
+using Utilities.Logging;
 
 [assembly: WebActivatorEx.PreApplicationStartMethod(
     typeof(Utilities.Caching.Web.Startup), "PostStart")]
@@ -25,7 +26,9 @@ namespace Utilities.Caching.Web
 
         public static void Init()
         {
-            var system = CacheSystem.Instance;
+
+            Utilities.Caching.Configuration.Configurator.InitCache(new GenericLogger());
+            var system = Cache.Instance;
             system.SetCookieRepository(new CookieRepository());
             system.CacheAreas[CacheArea.Session] = new SessionCache();
             system.CacheAreas[CacheArea.Request] = new RequestCache();

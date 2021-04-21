@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utilities.Caching.AspNetCor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utilities.Caching", "Caching\Utilities.Caching\Utilities.Caching.csproj", "{2F0DDF2E-6991-45C5-B2C3-3F733B6BD3C6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utilities.Caching.Web", "Caching\Utilities.Caching.Web\Utilities.Caching.Web.csproj", "{404A20F1-1709-4A90-AFF2-88326DC57B64}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utilities.Caching.Web", "Caching\Utilities.Caching.Web\Utilities.Caching.Web.csproj", "{404A20F1-1709-4A90-AFF2-88326DC57B64}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utilities.Crypto", "Other\Utilities.Crypto\Utilities.Crypto.csproj", "{A91B4A48-B247-4A0B-8AAC-CE0E766419F7}"
 EndProject
@@ -61,9 +61,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pdf", "Pdf", "{83BCCA9D-7E7
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sql", "Sql", "{139321CF-7CAE-4926-8B91-2219D99CB6CE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utilities.PdfHandling.NetFramework", "Utilities.PdfHandling.NetFramework\Utilities.PdfHandling.NetFramework.csproj", "{9C30C6A2-EE4A-45CA-8301-3E161B16A397}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utilities.PdfHandling.NetFramework", "Utilities.PdfHandling.NetFramework\Utilities.PdfHandling.NetFramework.csproj", "{9C30C6A2-EE4A-45CA-8301-3E161B16A397}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utilities.PdfHandling.NetCore", "Utilities.PdfHandling.NetCore\Utilities.PdfHandling.NetCore.csproj", "{E1AACA5B-B102-4972-911B-8F28F55429EB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utilities.PdfHandling.NetCore", "Utilities.PdfHandling.NetCore\Utilities.PdfHandling.NetCore.csproj", "{E1AACA5B-B102-4972-911B-8F28F55429EB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utilities.TimedTasks", "Utilities.TimedTasks\Utilities.TimedTasks.csproj", "{EA7F5995-3EF7-4126-86F5-22416F299A30}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -171,6 +173,10 @@ Global
 		{E1AACA5B-B102-4972-911B-8F28F55429EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E1AACA5B-B102-4972-911B-8F28F55429EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E1AACA5B-B102-4972-911B-8F28F55429EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA7F5995-3EF7-4126-86F5-22416F299A30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA7F5995-3EF7-4126-86F5-22416F299A30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA7F5995-3EF7-4126-86F5-22416F299A30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA7F5995-3EF7-4126-86F5-22416F299A30}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -201,6 +207,7 @@ Global
 		{AA88951D-17A8-4FF8-910C-76F817D8459F} = {139321CF-7CAE-4926-8B91-2219D99CB6CE}
 		{9C30C6A2-EE4A-45CA-8301-3E161B16A397} = {83BCCA9D-7E72-459D-87BC-752D0713A8FB}
 		{E1AACA5B-B102-4972-911B-8F28F55429EB} = {83BCCA9D-7E72-459D-87BC-752D0713A8FB}
+		{EA7F5995-3EF7-4126-86F5-22416F299A30} = {23E93D9B-4962-49D3-9960-30DF041E01C1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {660BFF2F-8F24-4314-9AFB-8A70F565F5C0}

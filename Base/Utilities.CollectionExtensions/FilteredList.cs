@@ -19,15 +19,15 @@ namespace System.Collections.Extensions
             SortColumn = "";
             //OrderDirection = "ASC";
         }
-        public int Page { get; set; }
-        public int PageSize { get; set; }
+        public int? Page { get; set; }
+        public int? PageSize { get; set; }
 
         public string SortColumn { get; set; }
-        public OrderDirectionEnum OrderDirection { get; set; }
+        public OrderDirectionEnum? OrderDirection { get; set; }
 
         //page, rows, sidx, sord
         //public int page { get { return Page; } set { Page = value; } }
-        public int rows { get { return PageSize; } set { PageSize = value; } }
+        public int? rows { get { return PageSize; } set { PageSize = value; } }
         public string sidx { get { return SortColumn; } set { SortColumn = value; } }
         public string sord { get { return OrderDirection.ToString().ToUpper(); }
             set
@@ -51,7 +51,7 @@ namespace System.Collections.Extensions
         public FilteredInfo Info { get; set; }
 
         public int TotalItems => BaseData.Count();
-        public int TotalPages => (int)Math.Ceiling(((double)BaseData.Count())/((double)Info.PageSize));
+        public int TotalPages => (int)Math.Ceiling(((double)BaseData.Count())/((double)(Info.PageSize ?? 20)));
 
         public FilteredList(IQueryable<tt> baseData, FilteredInfo info)
         {
@@ -79,7 +79,7 @@ namespace System.Collections.Extensions
 
             try
             {
-                startPosition = checked((Info.Page - 1) * Info.PageSize);
+                startPosition = checked(((Info.Page ?? 1) - 1) * (Info.PageSize ?? 20));
             }
             catch (OverflowException)
             {
@@ -94,7 +94,7 @@ namespace System.Collections.Extensions
                 startPosition = 0;
             }
 
-            int stopPosition = startPosition + Info.PageSize;
+            int stopPosition = startPosition + (Info.PageSize ?? 20);
             if (stopPosition > TotalItems)
             {
                 stopPosition = TotalItems;
@@ -106,7 +106,7 @@ namespace System.Collections.Extensions
             {
                 try
                 {
-                    pList = BaseData.OrderBy(Info.SortColumn + " " + Info.OrderDirection.ToString());
+                    pList = BaseData.OrderBy(Info.SortColumn + " " + Info.OrderDirection?.ToString());
                 }
                 catch
                 {

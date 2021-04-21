@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
@@ -7,13 +8,20 @@ namespace Utilities.SerializeExtensions.Serializers
 {
     public class BinarySerializer : ISerializer
     {
+        private readonly ILogger _logger = null;
 
-        public Action<string> LogMessage { get; set; }
+        //public Action<string> LogMessage { get; set; }
         public Encoding BaseEncoding { get; set; } = Encoding.Unicode;
 
-        private void Log(string msg)
+
+        public BinarySerializer()
         {
-            LogMessage?.Invoke(msg);
+
+        }
+
+        public BinarySerializer(ILogger logger)
+        {
+            _logger = logger;
         }
 
         public byte[] SerializeToArray<T>(T item) where T : class

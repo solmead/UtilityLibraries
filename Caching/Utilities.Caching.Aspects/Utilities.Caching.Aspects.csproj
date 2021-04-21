@@ -19,9 +19,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PostSharp" Version="6.8.8" />
-    <PackageReference Include="Utilities.Caching" Version="6.9.0" />
-    <PackageReference Include="Utilities.SerializeExtensions" Version="6.5.0" />
+    <PackageReference Include="PostSharp" Version="6.9.4" />
+    <PackageReference Include="Utilities.Caching" Version="7.0.0" />
+    <PackageReference Include="Utilities.SerializeExtensions" Version="6.6.4" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">

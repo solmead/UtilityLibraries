@@ -9,9 +9,10 @@ namespace Utilities.Caching.Database
     {
 
 
+        [Obsolete("Use Utilities.Caching.Database.Configuration.InitDatabaseCache", true)]
         public static void Init(string connectionString)
         {
-            Core.Setup(connectionString);
+            //Core.Setup(connectionString);
 
 
         }

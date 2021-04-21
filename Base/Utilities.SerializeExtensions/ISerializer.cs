@@ -5,7 +5,7 @@ namespace Utilities.SerializeExtensions.Serializers
 {
     public interface ISerializer
     {
-        Action<string> LogMessage { get; set; }
+        //Action<string> LogMessage { get; set; }
         Encoding BaseEncoding { get; set; }
         string Serialize<T>(T item) where T: class;
         string Serialize(object item, Type type);

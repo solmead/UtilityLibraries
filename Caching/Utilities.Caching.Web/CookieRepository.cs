@@ -130,7 +130,7 @@ namespace Utilities.Caching.Web
         public void clearCookie(string name)
         {
             HttpContext context = HttpContext.Current;
-            CacheSystem.Instance.LogDebug("CookieRepository: clearCookie called [" + name + "]");
+            Cache.Instance.LogDebug("CookieRepository: clearCookie called [" + name + "]");
 
             Cache.SetItem(CacheArea.Request, "Cookie_" + name, "");
             try

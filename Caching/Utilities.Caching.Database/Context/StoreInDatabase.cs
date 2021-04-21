@@ -203,7 +203,7 @@ namespace Utilities.Caching.Database.Context
                 }
                 catch (Exception ex)
                 {
-                    Cache.LogError(ex.ToString());
+                    Cache.Instance.LogError(ex.ToString());
                 }
             }
 
@@ -291,7 +291,7 @@ namespace Utilities.Caching.Database.Context
             if (itm != null && itm.TimeOut.HasValue && itm.TimeOut.Value >= DateTime.Now)
             {
                 var xml = itm.Object;
-                Cache.LogDebug("Data from DB:" + xml);
+                Cache.Instance.LogDebug("Data from DB:" + xml);
                 return xml;
             }
 
@@ -305,7 +305,7 @@ namespace Utilities.Caching.Database.Context
             if (itm != null && itm.TimeOut.HasValue && itm.TimeOut.Value >= DateTime.Now)
             {
                 var xml = itm.Object;
-                Cache.LogDebug("Data from DB:" + xml);
+                Cache.Instance.LogDebug("Data from DB:" + xml);
                 try
                 {
                     if (!string.IsNullOrWhiteSpace(xml))
@@ -316,7 +316,7 @@ namespace Utilities.Caching.Database.Context
                 }
                 catch (Exception ex)
                 {
-                    Cache.LogError(ex.ToString());
+                    Cache.Instance.LogError(ex.ToString());
                 }
             }
 
@@ -325,7 +325,7 @@ namespace Utilities.Caching.Database.Context
 
         public void Set(string name, string value, TimeSpan? timeout)
         {
-            Cache.LogDebug("Data to DB:" + value);
+            Cache.Instance.LogDebug("Data to DB:" + value);
 
 
             using (var database = new DataCacheContext(ContextOptions))

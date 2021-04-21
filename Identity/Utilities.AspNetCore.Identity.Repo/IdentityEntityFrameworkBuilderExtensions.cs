@@ -66,7 +66,10 @@ namespace Utilities.AspNetCore.Identity.Repo
         {
 
             AddStores<TUser,TRole,TKey>(builder.Services, builder.UserType, builder.RoleType);//, context);
-            return builder.AddUserManager<UserManager<TUser, TRole, TKey>>(); ;
+            builder = builder.AddUserManager<UserManager<TUser, TRole, TKey>>();
+           // builder = builder.AddRoleManager<RoleManager<TRole>>();
+            //builder = builder.AddSignInManager<SignInManager<TUser>>();
+            return builder;
         }
 
         private static void AddStores<TUser, TRole, TKey>(IServiceCollection services, Type userType, Type roleType)//, IIdentityRepository<TUser, TRole, TKey> context)
@@ -97,6 +100,8 @@ namespace Utilities.AspNetCore.Identity.Repo
                 roleType = typeof(TRole);
                 //throw new InvalidOperationException(Resources.NotIdentityRole);
             }
+            
+
 
             var userStoreType = typeof(UserStore<,,>).MakeGenericType(userType, roleType, keyType);
             var roleStoreType = typeof(RoleStore<,,>).MakeGenericType(userType, roleType, keyType);

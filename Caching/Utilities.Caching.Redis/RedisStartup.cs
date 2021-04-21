@@ -1,5 +1,5 @@
 ﻿
-using HttpObjectCaching.Caches;
+
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -14,10 +14,11 @@ namespace Utilities.Caching.Redis
 {
     public static class RedisStartup
     {
-        
+
+        [Obsolete("Use Utilities.Caching.Redis.Configuration.InitRedisCache", true)]
         public static void Init(string hostName, string cacheKey, bool allowNonSSL = false, int defaultTimeoutMinutes = 5)
         {
-            Core.Setup(hostName, cacheKey, allowNonSSL, defaultTimeoutMinutes);
+            //Core.Setup(hostName, cacheKey, allowNonSSL, defaultTimeoutMinutes);
 
 
         }

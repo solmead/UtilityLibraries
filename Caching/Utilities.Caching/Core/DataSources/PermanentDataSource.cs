@@ -32,7 +32,7 @@ namespace Utilities.Caching.Core.DataSources
 
 
 
-                return CacheSystem.Serializer.Deserialize<CachedEntry<tt>>(t);
+                return Cache.Serializer.Deserialize<CachedEntry<tt>>(t);
             }
             catch
             {
@@ -51,7 +51,7 @@ namespace Utilities.Caching.Core.DataSources
             object empty = default(tt);
             if (comp != empty)
             {
-                var s = CacheSystem.Serializer.Serialize(item);
+                var s = Cache.Serializer.Serialize(item);
                 if (item.TimeOut.HasValue)
                 {
                     await CacheRepo.SetAsync(item.Name.ToUpper(), s, item.TimeOut.Value.Subtract(DateTime.Now));
@@ -75,7 +75,7 @@ namespace Utilities.Caching.Core.DataSources
             try
             {
                 var t = await CacheRepo.GetStringAsync(name.ToUpper());
-                return CacheSystem.Serializer.Deserialize(t, type) as CachedEntry<object>;
+                return Cache.Serializer.Deserialize(t, type) as CachedEntry<object>;
             }
             catch
             {
@@ -94,7 +94,7 @@ namespace Utilities.Caching.Core.DataSources
             object empty = null;
             if (comp != empty)
             {
-                var s = CacheSystem.Serializer.Serialize(item, type);
+                var s = Cache.Serializer.Serialize(item, type);
                 if (item.TimeOut.HasValue)
                 {
                     await CacheRepo.SetAsync(item.Name.ToUpper(), s, item.TimeOut.Value.Subtract(DateTime.Now));
@@ -134,7 +134,7 @@ namespace Utilities.Caching.Core.DataSources
             try
             {
                 var t = CacheRepo.GetString(name.ToUpper());
-                return CacheSystem.Serializer.Deserialize<CachedEntry<tt>>(t);
+                return Cache.Serializer.Deserialize<CachedEntry<tt>>(t);
             }
             catch
             {
@@ -153,7 +153,7 @@ namespace Utilities.Caching.Core.DataSources
             object empty = default(tt);
             if (comp != empty)
             {
-                var s = CacheSystem.Serializer.Serialize(item);
+                var s = Cache.Serializer.Serialize(item);
                 if (item.TimeOut.HasValue)
                 {
                     CacheRepo.Set(item.Name.ToUpper(), s, item.TimeOut.Value.Subtract(DateTime.Now));
@@ -174,7 +174,7 @@ namespace Utilities.Caching.Core.DataSources
             try
             {
                 var t = CacheRepo.GetString(name.ToUpper());
-                return CacheSystem.Serializer.Deserialize(t, type) as CachedEntry<object>;
+                return Cache.Serializer.Deserialize(t, type) as CachedEntry<object>;
             }
             catch
             {
@@ -193,7 +193,7 @@ namespace Utilities.Caching.Core.DataSources
             object empty = null;
             if (comp != empty)
             {
-                var s = CacheSystem.Serializer.Serialize(item, type);
+                var s = Cache.Serializer.Serialize(item, type);
                 if (item.TimeOut.HasValue)
                 {
                     CacheRepo.Set(item.Name.ToUpper(), s, item.TimeOut.Value.Subtract(DateTime.Now));
@@ -245,10 +245,10 @@ namespace Utilities.Caching.Core.DataSources
         //    CacheDatabase.L
         //}
 
-        private void WriteLine(string msg)
-        {
-            Cache.LogDebug(msg);
-        }
+        //private void WriteLine(string msg)
+        //{
+        //    Cache.LogDebug(msg);
+        //}
 
         public List<tt> GetList<tt>(string name)
         {

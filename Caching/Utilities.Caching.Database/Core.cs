@@ -10,13 +10,14 @@ namespace Utilities.Caching.Database
     public static class Core
     {
 
-        public static string ConnString { get; set; }
+        //public static string ConnString { get; set; }
 
+        [Obsolete("Use Utilities.Caching.Database.Configuration.InitDatabaseCache", true)]
         public static void Setup(string connectionString)
         {
-            ConnString = connectionString;
-            var system = CacheSystem.Instance;
-            system.CacheAreas[CacheArea.Permanent] = new DatabaseCache(connectionString);
+            //ConnString = connectionString;
+            //var system = CacheSystem.Instance;
+            //system.CacheAreas[CacheArea.Permanent] = new DatabaseCache(connectionString);
         }
     }
 }

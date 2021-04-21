@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace Utilities.SerializeExtensions.Serializers
@@ -8,14 +9,19 @@ namespace Utilities.SerializeExtensions.Serializers
     public class JsonSerializer : ISerializer
     {
 
-        public Action<string> LogMessage { get; set; }
-
-        private void Log(string msg)
-        {
-            LogMessage?.Invoke(msg);
-        }
-
         public Encoding BaseEncoding { get; set; } = Encoding.Unicode;
+
+
+
+        private readonly ILogger _logger = null;
+        public JsonSerializer()
+        {
+            
+        }
+        public JsonSerializer(ILogger logger)
+        {
+            _logger = logger;
+        }
 
         public T Deserialize<T>(string data) where T : class
         {
@@ -48,7 +54,7 @@ namespace Utilities.SerializeExtensions.Serializers
             }
             catch (Exception ex)
             {
-                Log("JSON Deserialize - Exception:" + ex.ToString());
+                _logger?.LogError(ex, "JSON Deserialize - Exception:" + ex.ToString());
                 return null;
             }
 
@@ -65,7 +71,7 @@ namespace Utilities.SerializeExtensions.Serializers
 
         public string Serialize(object item, Type type)
         {
-            return JsonConvert.SerializeObject(item);
+            return JsonConvert.SerializeObject(item).Replace("\n","").Replace("\r", "");
         }
 
         public byte[] SerializeToArray<T>(T item) where T : class
