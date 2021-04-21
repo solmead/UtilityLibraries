@@ -1,5 +1,6 @@
 ﻿
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,15 +9,15 @@ using System.Threading.Tasks;
 using Utilities.Caching.CacheAreas;
 using Utilities.Caching.Caches;
 using Utilities.Caching.Core;
+using Utilities.SerializeExtensions;
 using Utilities.SerializeExtensions.Serializers;
 
 namespace Utilities.Caching
 {
     public class CacheSystem
     {
-        private static CacheSystem _instance;
-
-        private static object CacheSystemCreateLock = new object();
+        public ICookieRepository CookieRepository;
+        private readonly ILogger _logger;
 
         public Dictionary<CacheArea, ICacheArea> CacheAreas { get; private set; }
 
@@ -24,38 +25,58 @@ namespace Utilities.Caching
 
         public bool CacheEnabled { get; set; }
 
-        public static ICookieRepository CookieRepository { get; set; }
+        
 
 
-        public static ISerializer Serializer
-        {
-            get => Cache.GetItem<ISerializer>(CacheArea.Global, "CachingSerializer", () => new BinarySerializer() {
-                LogMessage = CacheSystem.Instance.LogDebug,
-                BaseEncoding = Encoding.Unicode
-            });
-            set => Cache.SetItem<ISerializer>(CacheArea.Global, "CachingSerializer", value);
-        }
-
-
-        public Action<string> LogErrorMessage { get; set; }
-        public Action<string> LogDebugMessage { get; set; }
+        //public Action<string> LogErrorMessage { get; set; }
+        //public Action<string> LogDebugMessage { get; set; }
 
         public void LogDebug(string msg)
         {
-            LogDebugMessage?.Invoke(msg);
+            _logger.LogDebug(msg);   
         }
         public void LogError(string msg)
         {
-            LogErrorMessage?.Invoke(msg);
+            _logger.LogError(msg);
+            //LogErrorMessage?.Invoke(msg);
         }
-        public static void SetLogDebugFunction(Action<string> logCall)
-        {
-            CacheSystem.Instance.LogDebugMessage = logCall;
-        }
-        public static void SetLogErrorFunction(Action<string> logCall)
-        {
-            CacheSystem.Instance.LogErrorMessage = logCall;
-        }
+        //public static void SetLogDebugFunction(Action<string> logCall)
+        //{
+        //    CacheSystem.Instance.LogDebugMessage = logCall;
+        //}
+        //public static void SetLogErrorFunction(Action<string> logCall)
+        //{
+        //    CacheSystem.Instance.LogErrorMessage = logCall;
+        //}
+
+
+        //public static CacheSystem Instance
+        //{
+
+        //    get
+        //    {
+
+        //        //IMemoryCache _memoryCache = new MemoryCache(new MemoryCacheOptions());
+
+        //        var ctx = _instance;
+        //        if (ctx == null)
+        //        {
+        //            lock (CacheSystemCreateLock)
+        //            {
+        //                ctx = _instance;
+        //                if (ctx == null)
+        //                {
+        //                    ctx = new CacheSystem();
+        //                    _instance = ctx;
+        //                    //_memoryCache.Set("CurrentCacheInstance", ctx);
+        //                    //ctx = _memoryCache.Get<CacheSystem>("CurrentCacheInstance");
+        //                }
+        //            }
+        //        }
+        //        return ctx;
+        //    }
+        //}
+
 
 
 
@@ -106,6 +127,18 @@ namespace Utilities.Caching
         }
 
 
+        public CacheSystem(ILogger logger, ICookieRepository cookieRepository) : this()
+        {
+            CookieRepository = cookieRepository;
+
+            _logger = logger;
+        }
+
+        public CacheSystem(ILogger logger) : this()
+        {
+
+            _logger = logger;
+        }
         private CacheSystem()
         {
             CacheEnabled = true;
@@ -115,7 +148,8 @@ namespace Utilities.Caching
             CacheAreas = new Dictionary<CacheArea, ICacheArea>();
             //CacheAreas.Add(CacheArea.Request, new RequestCache(_httpContextAccessor));
             CacheAreas.Add(CacheArea.Request, new NoCache());
-            CacheAreas.Add(CacheArea.Session, new SessionCache());
+            //CacheAreas.Add(CacheArea.Session, new SessionCache());
+            CacheAreas.Add(CacheArea.Session, new NoCache());
             CacheAreas.Add(CacheArea.Permanent, new NoCache());
             CacheAreas.Add(CacheArea.Global, new GlobalCache());
             CacheAreas.Add(CacheArea.Cookie, new CookieCache());
@@ -146,188 +180,6 @@ namespace Utilities.Caching
 
             return null;
         }
-
-
-        public static CacheSystem Instance
-        {
-
-            get
-            {
-                
-                //IMemoryCache _memoryCache = new MemoryCache(new MemoryCacheOptions());
-
-                var ctx = _instance;
-                if (ctx == null)
-                {
-                    lock (CacheSystemCreateLock)
-                    {
-                        ctx = _instance;
-                        if (ctx == null)
-                        {
-                            ctx = new CacheSystem();
-                            _instance = ctx;
-                            //_memoryCache.Set("CurrentCacheInstance", ctx);
-                            //ctx = _memoryCache.Get<CacheSystem>("CurrentCacheInstance");
-                        }
-                    }
-                }
-                return ctx;
-            }
-        }
-
-
-
-        //private static void SetCookieValue(string name, string value)
-        //{
-        //    Cache.SetItem<string>(CacheArea.Request, "_" + name + "Id", value);
-            
-
-        //}
-
-        private static Tuple<bool, string> IsValidCookie(string cookie)
-        {
-            try
-            {
-                var baseData = cookie;
-
-                //var cdata = MachineKey.Unprotect(Convert.FromBase64String(baseData), context.Request.UserHostAddress);
-                var cdata = Convert.FromBase64String(baseData);
-                if (cdata != null)
-                {
-                    var _cookieId = Encoding.UTF8.GetString(cdata);
-                    return new Tuple<bool, string>(true, _cookieId);
-                }
-            }
-            catch
-            {
-
-            }
-            return new Tuple<bool, string>(false, null);
-        }
-
-        private static string GetCookieValue(string name, bool isPerminate)
-        {
-            return Cache.GetItem<string>(CacheArea.Request, "Cookie_" + name + "_Id", () =>
-            {
-                if (CookieRepository==null)
-                {
-                    throw new Exception("CookieRepository not initialized");
-                }
-                //try
-                //{
-                string cookie = CookieRepository.getCookieValue("_" + name + "_Caching");
-                if (string.IsNullOrWhiteSpace(cookie))
-                {
-                    cookie = Guid.NewGuid().ToString();
-                    CookieRepository.addCookie("_" + name + "_Caching", cookie, (isPerminate ? DateTime.Now.AddYears(3) : (DateTime?)null), isPerminate);
-                    
-                }
-
-                //}
-                //catch (Exception)
-                //{
-
-                //}
-                return cookie;
-            });
-
-
-
-            //var _cookieId = Cache.GetItem<string>(CacheArea.Request, "_" + name + "Id", () => Guid.NewGuid().ToString());
-            //var baseData = "";
-            //string cookie = null;
-            //if (CookieRepository != null)
-            //{
-            //    try
-            //    {
-            //        cookie = CookieRepository.getCookieValue("_" + name + "_Cache");
-            //    }
-            //    catch (Exception)
-            //    {
-
-            //    }
-            //}
-
-            ////////_cookieId = MachineKey.Unprotect(Convert.FromBase64String(cookie?.Value), HttpContext.Current.Request.UserHostAddress);
-            //var validCookie = false;
-            //if (cookie != null)
-            //{
-            //    try
-            //    {
-            //        baseData = cookie;
-
-            //        //var cdata = MachineKey.Unprotect(Convert.FromBase64String(baseData), context.Request.UserHostAddress);
-            //        var cdata = Convert.FromBase64String(baseData);
-            //        if (cdata != null)
-            //        {
-            //            _cookieId = Encoding.UTF8.GetString(cdata);
-            //            validCookie = true;
-            //        }
-            //    }
-            //    catch
-            //    {
-
-            //    }
-            //}
-            //if ((cookie == null || !validCookie) && CookieRepository != null)
-            //{
-            //    try
-            //    {
-            //        var cdata = Encoding.UTF8.GetBytes(_cookieId);
-            //        //baseData = Convert.ToBase64String(MachineKey.Protect(cdata,
-            //        //        HttpContext.Current.Request.UserHostAddress));
-            //        baseData = Convert.ToBase64String(cdata);
-            //        CookieRepository.addCookie("_" + name + "_Cache", baseData, (isPerminate ? DateTime.Now.AddYears(3) : (DateTime?)null), true);
-
-            //    }
-            //    catch (Exception)
-            //    {
-
-            //    }
-            //}
-
-
-
-            //Cache.SetItem<string>(CacheArea.Request, "_" + name + "Id", _cookieId);
-            //return _cookieId;
-        }
-
-
-        public static async Task<string> CookieIdAsync()
-        {
-            return GetCookieValue("my_cook", true);
-        }
-        //public static async Task CookieIdSetAsync(string value)
-        //{
-        //    SetCookieValue("my_cook", value);
-        //}
-        public static string CookieId()
-        {
-            return GetCookieValue("my_cook", true);
-        }
-        //public static void CookieIdSet(string value)
-        //{
-        //    SetCookieValue("my_cook", value);
-        //}
-        public static async Task<string> SessionIdAsync()
-        {
-            return GetCookieValue("my_sess", false);
-        }
-
-        //public static async Task SessionIdSetAsync(string value)
-        //{
-        //    SetCookieValue("my_sess", value);
-        //}
-        public static string SessionId()
-        {
-            return GetCookieValue("my_sess", false);
-        }
-
-        //public static void SessionIdSet(string value)
-        //{
-        //    SetCookieValue("my_sess", value);
-        //}
-
         public async Task ClearAllCacheAreasAsync()
         {
             foreach (var area in CacheAreas.Keys)
@@ -342,8 +194,6 @@ namespace Utilities.Caching
                 }
             }
         }
-
-
         public List<TaggedCacheEntry> GetTaggedCacheEntries(string tag)
         {
             return (from t in TaggedEntries
@@ -414,5 +264,85 @@ namespace Utilities.Caching
             }
             return null;
         }
+
+
+
+
+
+
+        private  Tuple<bool, string> IsValidCookie(string cookie)
+        {
+            try
+            {
+                var baseData = cookie;
+
+                //var cdata = MachineKey.Unprotect(Convert.FromBase64String(baseData), context.Request.UserHostAddress);
+                var cdata = Convert.FromBase64String(baseData);
+                if (cdata != null)
+                {
+                    var _cookieId = Encoding.UTF8.GetString(cdata);
+                    return new Tuple<bool, string>(true, _cookieId);
+                }
+            }
+            catch
+            {
+
+            }
+            return new Tuple<bool, string>(false, null);
+        }
+        private  void ResetCookie(string name)
+        {
+            Cache.SetItem<string>(CacheArea.Request, "Cookie_" + name + "_Id", null);
+
+            CookieRepository.clearCookie("_" + name + "_Caching");
+
+        }
+        private  string GetCookieValue(string name, bool isPerminate)
+        {
+            return Cache.GetItem<string>(CacheArea.Request, "Cookie_" + name + "_Id", () =>
+            {
+                if (CookieRepository == null)
+                {
+                    throw new Exception("CookieRepository not initialized");
+                }
+                //try
+                //{
+                string cookie = CookieRepository.getCookieValue("_" + name + "_Caching");
+                if (string.IsNullOrWhiteSpace(cookie))
+                {
+                    cookie = Guid.NewGuid().ToString();
+                    CookieRepository.addCookie("_" + name + "_Caching", cookie, (isPerminate ? DateTime.Now.AddYears(3) : (DateTime?)null), isPerminate);
+
+                }
+
+                //}
+                //catch (Exception)
+                //{
+
+                //}
+                return cookie;
+            });
+
+
+        }
+
+
+        public  async Task<string> CookieIdAsync()
+        {
+            return GetCookieValue("my_cook", true);
+        }
+        //public static async Task CookieIdSetAsync(string value)
+        //{
+        //    SetCookieValue("my_cook", value);
+        //}
+        public  string CookieId()
+        {
+            return GetCookieValue("my_cook", true);
+        }
+        public  void ResetCookieId()
+        {
+            ResetCookie("my_cook");
+        }
+
     }
 }

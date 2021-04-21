@@ -24,7 +24,7 @@ namespace Utilities.Caching.Core
                 {
                     return _cache;
                 }
-                return CacheSystem.Instance.GetCacheArea((CacheArea) CacheToType);
+                return Cache.Instance.GetCacheArea((CacheArea) CacheToType);
             }
         }
         public IDataSource DataSource { get { return CacheTo.DataSource; } }
@@ -115,12 +115,12 @@ namespace Utilities.Caching.Core
 
 
 
-        public void ClearCache()
+        public virtual void ClearCache()
         {
             ( BaseDictionaryGet()).Clear();
             //await BaseDictionarySetAsync(null);
         }
-        public async Task ClearCacheAsync()
+        public virtual async Task ClearCacheAsync()
         {
             (await BaseDictionaryGetAsync()).Clear();
             //await BaseDictionarySetAsync(null);
@@ -128,7 +128,7 @@ namespace Utilities.Caching.Core
 
         public tt GetItem<tt>(string name, Func<tt> createMethod = null, double? lifeSpanSeconds = null, string tags = "")
         {
-            CacheSystem.Instance.AddTaggedEntry(Area, tags, name);
+            Cache.Instance.AddTaggedEntry(Area, tags, name);
 
             //using (StringLock.Lock.AcquireLock(Name + "_DataDictionary_Base_" + name.ToUpper()))
             //{
@@ -159,7 +159,7 @@ namespace Utilities.Caching.Core
         }
         public async Task<tt> GetItemAsync<tt>(string name, Func<Task<tt>> createMethod = null, double? lifeSpanSeconds = null, string tags = "")
         {
-            CacheSystem.Instance.AddTaggedEntry(Area, tags, name);
+            Cache.Instance.AddTaggedEntry(Area, tags, name);
 
 
             var dd = await BaseDictionaryGetAsync();
@@ -187,7 +187,7 @@ namespace Utilities.Caching.Core
         }
         public void SetItem<tt>(string name, tt obj, double? lifeSpanSeconds = null, string tags = "")
         {
-            CacheSystem.Instance.AddTaggedEntry(Area, tags, name);
+            Cache.Instance.AddTaggedEntry(Area, tags, name);
             //using (StringLock.Lock.AcquireLock(Name + "_DataDictionary_Base_" + name.ToUpper()))
             //{
 
@@ -236,7 +236,7 @@ namespace Utilities.Caching.Core
         }
         public async Task SetItemAsync<tt>(string name, tt obj, double? lifeSpanSeconds = null, string tags = "")
         {
-            CacheSystem.Instance.AddTaggedEntry(Area, tags, name);
+            Cache.Instance.AddTaggedEntry(Area, tags, name);
 
             var dd = await BaseDictionaryGetAsync();
             CachedEntryBase itm2 = null;

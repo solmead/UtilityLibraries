@@ -1,11 +1,12 @@
 ﻿using SixLabors.ImageSharp;
-using SixLabors.Primitives;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Drawing.Processing;
 
 namespace Utilities.ImageMagic
 {
@@ -232,11 +233,11 @@ namespace Utilities.ImageMagic
                     {
                         if (UseTransparent)
                         {
-                            FT.Mutate(ctx => ctx.Fill(Rgba32.Transparent));
+                            FT.Mutate(ctx => ctx.Fill(Color.Transparent));
                         }
                         else
                         {
-                            FT.Mutate(ctx => ctx.Fill(Rgba32.WhiteSmoke));
+                            FT.Mutate(ctx => ctx.Fill(Color.WhiteSmoke));
                         }
 
                         if (BothSet)
@@ -271,10 +272,10 @@ namespace Utilities.ImageMagic
                                     {
                                         T = (Height ?? 0) - y;
                                     }
-                                    
+
                                     Ti.Mutate((ctx)=> ctx.Resize(new Size(Width ?? 0, y)));
 
-                                    FT.Mutate(ctx => ctx.DrawImage(GraphicsOptions.Default, Ti, new Point(0, T)));
+                                    FT.Mutate(ctx => ctx.DrawImage(Ti, new Point(0, T), 1));
 
                                     //Gr = System.Drawing.Graphics.FromImage(FT);
                                     //Gr.DrawImage(Ti, new Drawing.Rectangle(0, T, Width, y));
@@ -295,7 +296,7 @@ namespace Utilities.ImageMagic
                                     }
                                     Ti.Mutate((ctx) => ctx.Resize(new Size(x, Height ?? 0)));
 
-                                    FT.Mutate(ctx => ctx.DrawImage(GraphicsOptions.Default, Ti, new Point(L, 0)));
+                                    FT.Mutate(ctx => ctx.DrawImage(Ti, new Point(L, 0), 1));
                                     //FT.Mutate(ctx => ctx.DrawImage(Ti, 1, new Size(x, Height ?? 0), new Point(L,  0)));
                                     //Gr = System.Drawing.Graphics.FromImage(FT);
                                     //Gr.DrawImage(Ti, new Drawing.Rectangle(L, 0, x, Height));
@@ -308,7 +309,7 @@ namespace Utilities.ImageMagic
                             {
                                 Ti.Mutate((ctx) => ctx.Resize(new Size(Width ?? 0, Height ?? 0)));
 
-                                FT.Mutate(ctx => ctx.DrawImage(GraphicsOptions.Default, Ti, new Point(0, 0)));
+                                FT.Mutate(ctx => ctx.DrawImage(Ti, new Point(0, 0), 1));
 
                                 //FT.Mutate(ctx => ctx.DrawImage(Ti, 1, new Size(Width ?? 0, Height ?? 0), new Point(0, 0)));
                                 //Gr = System.Drawing.Graphics.FromImage(FT);
@@ -321,7 +322,7 @@ namespace Utilities.ImageMagic
                         {
                             Ti.Mutate((ctx) => ctx.Resize(new Size(Width ?? 0, Height ?? 0)));
 
-                            FT.Mutate(ctx => ctx.DrawImage(GraphicsOptions.Default, Ti, new Point(0, 0)));
+                            FT.Mutate(ctx => ctx.DrawImage(Ti, new Point(0, 0), 1));
                             //FT.Mutate(ctx => ctx.DrawImage(Ti, 1, new Size(Width ?? 0, Height ?? 0), new Point(0, 0)));
                             //Gr = System.Drawing.Graphics.FromImage(FT);
                             //Gr.DrawImage(Ti, new Drawing.Rectangle(0, 0, Width, Height));
@@ -333,35 +334,42 @@ namespace Utilities.ImageMagic
                             ToFile.Delete();
 
 
-                        FT.Save(ToFile.FullName);
-                        //if (Extension.ToUpper() == "JPG" | Extension.ToUpper() == "JPEG")
-                        //{
-                        //    // Encoder parameter for image quality
-                        //    EncoderParameter qualityParam = new EncoderParameter(Encoder.Quality, jpegQuality);
-                        //    // Jpeg image codec 
-                        //    ImageCodecInfo jpegCodec = GetEncoderInfo("image/jpeg");
+                        //FT.Save(ToFile.FullName);
+                        if (Extension.ToUpper() == "JPG" | Extension.ToUpper() == "JPEG")
+                        {
+                            //// Encoder parameter for image quality
+                            //EncoderParameter qualityParam = new EncoderParameter(Encoder.Quality, jpegQuality);
+                            //// Jpeg image codec
+                            //ImageCodecInfo jpegCodec = GetEncoderInfo("image/jpeg");
 
-                        //    EncoderParameters encoderParams = new EncoderParameters(1);
-                        //    encoderParams.Param(0) = qualityParam;
-                        //    FT.Save(ToFile.FullName, jpegCodec, encoderParams);
-                        //    //Ti.Save(ToFile.FullName, Drawing.Imaging.ImageFormat.Jpeg)
-                        //}
-                        //if (Extension.ToUpper() == "PNG")
-                        //{
-                        //    FT.Save(ToFile.FullName, Drawing.Imaging.ImageFormat.Png);
-                        //}
-                        //if (Extension.ToUpper() == "BMP")
-                        //{
-                        //    FT.Save(ToFile.FullName, Drawing.Imaging.ImageFormat.Bmp);
-                        //}
-                        //if (Extension.ToUpper() == "GIF")
-                        //{
-                        //    FT.Save(ToFile.FullName, Drawing.Imaging.ImageFormat.Gif);
-                        //}
-                        //if (Extension.ToUpper() == "TGA")
-                        //{
-                        //    FT.Save(ToFile.FullName, Drawing.Imaging.ImageFormat.Jpeg);
-                        //}
+                            //EncoderParameters encoderParams = new EncoderParameters(1);
+                            //encoderParams.Param(0) = qualityParam;
+
+
+                            var encoder = new JpegEncoder()
+                            {
+                                Quality = jpegQuality
+                            };
+
+                            FT.Save(ToFile.FullName, encoder);
+                            //Ti.Save(ToFile.FullName, Drawing.Imaging.ImageFormat.Jpeg)
+                        }
+                        if (Extension.ToUpper() == "PNG")
+                        {
+                            FT.Save(ToFile.FullName);
+                        }
+                        if (Extension.ToUpper() == "BMP")
+                        {
+                            FT.Save(ToFile.FullName);
+                        }
+                        if (Extension.ToUpper() == "GIF")
+                        {
+                            FT.Save(ToFile.FullName);
+                        }
+                        if (Extension.ToUpper() == "TGA")
+                        {
+                            FT.Save(ToFile.FullName);
+                        }
                     }
                 }
             }
@@ -372,13 +380,13 @@ namespace Utilities.ImageMagic
 
         }
 
-        //// Returns the image codec with the given mime type 
+        //// Returns the image codec with the given mime type
         //private static ImageCodecInfo GetEncoderInfo(string mimeType)
         //{
-        //    // Get image codecs for all image formats 
+        //    // Get image codecs for all image formats
         //    ImageCodecInfo[] codecs = ImageCodecInfo.GetImageEncoders();
 
-        //    // Find the correct image codec 
+        //    // Find the correct image codec
         //    for (int i = 0; i <= codecs.Length - 1; i++)
         //    {
         //        if ((codecs(i).MimeType == mimeType))

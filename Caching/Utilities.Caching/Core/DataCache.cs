@@ -18,11 +18,11 @@ namespace Utilities.Caching.Core
 
         public virtual CacheArea Area { get; protected set; }
         public virtual string Name { get; protected set; }
-        public void ClearCache()
+        public virtual void ClearCache()
         {
              _dataSource.DeleteAll();
         }
-        public async Task ClearCacheAsync()
+        public virtual async Task ClearCacheAsync()
         {
             await _dataSource.DeleteAllAsync();
         }
@@ -30,7 +30,7 @@ namespace Utilities.Caching.Core
         public tt GetItem<tt>(string name, Func<tt> createMethod = null, double? lifeSpanSeconds = null, string tags = "")
         {
 
-            CacheSystem.Instance.AddTaggedEntry(Area, tags, name);
+            Cache.Instance.AddTaggedEntry(Area, tags, name);
 
 
             object empty = default(tt);
@@ -98,7 +98,7 @@ namespace Utilities.Caching.Core
         //}
         public async Task<tt> GetItemAsync<tt>(string name, Func<Task<tt>> createMethod = null, double? lifeSpanSeconds = null, string tags = "")
         {
-            CacheSystem.Instance.AddTaggedEntry(Area, tags, name);
+            Cache.Instance.AddTaggedEntry(Area, tags, name);
 
             object empty = default(tt);
             tt tObj = default(tt);
@@ -224,7 +224,7 @@ namespace Utilities.Caching.Core
         }
         public void SetItem<tt>(string name, tt obj, double? lifeSpanSeconds = null, string tags = "")
         {
-            CacheSystem.Instance.AddTaggedEntry(Area, tags, name);
+            Cache.Instance.AddTaggedEntry(Area, tags, name);
 
             var entry =  LoadItem<tt>(name, lifeSpanSeconds);
             entry.Item = obj;
@@ -238,7 +238,7 @@ namespace Utilities.Caching.Core
         public async Task SetItemAsync<tt>(string name, tt obj, double? lifeSpanSeconds = null, string tags = "")
         {
 
-            CacheSystem.Instance.AddTaggedEntry(Area, tags, name);
+            Cache.Instance.AddTaggedEntry(Area, tags, name);
 
             var entry = await LoadItemAsync<tt>(name, lifeSpanSeconds);
             entry.Item = obj;
@@ -252,7 +252,7 @@ namespace Utilities.Caching.Core
 
         public object GetItemAsync(string name, Type type, Func<Task<object>> createMethod = null, double? lifeSpanSeconds = null, string tags = "")
         {
-            CacheSystem.Instance.AddTaggedEntry(Area, tags, name);
+            Cache.Instance.AddTaggedEntry(Area, tags, name);
 
             return null;
         }

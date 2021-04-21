@@ -1,22 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="ApplicationSignInManager.cs" />
-    <Compile Remove="ApplicationUserManager.cs" />
-    <Compile Remove="EmailService.cs" />
-    <Compile Remove="MyUserStore.cs" />
-  </ItemGroup>
+	<ItemGroup>
+		<Compile Remove="ApplicationSignInManager.cs" />
+		<Compile Remove="ApplicationUserManager.cs" />
+		<Compile Remove="EmailService.cs" />
+		<Compile Remove="MyUserStore.cs" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Remove="PackNuget.bat" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Remove="PackNuget.bat" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
-  </ItemGroup>
+	<ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' " >
+		<PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
+	</ItemGroup>
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net5.0' ">
+		<PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
+	</ItemGroup>
 
 </Project>

@@ -23,7 +23,7 @@ namespace Utilities.Caching.Core.Collections.List
             TempCacheArea = tempCacheArea;
             TempCacheTime = tempCacheTime;
             Name = name;
-            _dataSource = CacheSystem.Instance.GetCacheArea(cache).DataSource;
+            _dataSource = Cache.Instance.GetCacheArea(cache).DataSource;
             //LifeSpanInSeconds = lifeSpanInSeconds;
         }
         public ListOnCache(string name, ICacheArea cache, CacheArea tempCacheArea = CacheArea.Temp, double tempCacheTime = 0)
@@ -43,14 +43,14 @@ namespace Utilities.Caching.Core.Collections.List
             //LifeSpanInSeconds = lifeSpanInSeconds;
         }
 
-        private void WriteLine(string msg)
-        {
-            Cache.LogDebug(msg); 
-        }
+        //private void WriteLine(string msg)
+        //{
+        //    Cache.LogDebug(msg); 
+        //}
 
         private Generic.List<TT> BaseList()
         {
-            WriteLine("Refreshing cache list base list [" + Name + "]");
+            //WriteLine("Refreshing cache list base list [" + Name + "]");
                 return _dataSource.GetList<TT>(Name);
         }
 

@@ -10,9 +10,12 @@ using Utilities.Poco;
 
 namespace Utilities.ExcelLibrary
 {
+
+    [Obsolete("Use Utilities.ExcelLibrary.Excel.Importer instead", true)]
     public class ExcelImporter
     {
 
+        [Obsolete("Use Utilities.ExcelLibrary.Excel.Importer instead", true)]
         public static DataTable ImportToDataTable<tt>(FileInfo fileInfo, Dictionary<string, string> columnMapping = null) where tt : class
         {
             var file = new XLWorkbook(fileInfo.FullName);
@@ -47,6 +50,7 @@ namespace Utilities.ExcelLibrary
         }
 
 
+        [Obsolete("Use Utilities.ExcelLibrary.Excel.Importer instead", true)]
         public static List<tt> ImportFromFile<tt>(FileInfo fileInfo, Dictionary<string, string> columnMapping, Func<tt> getNewObject, Action<tt, DataTable, DataRow, List<string>> afterLoad = null) where tt : class
         {
             var table = ImportToDataTable<tt>(fileInfo, columnMapping);
@@ -56,6 +60,7 @@ namespace Utilities.ExcelLibrary
 
 
 
+        [Obsolete("Use Utilities.ExcelLibrary.Excel.Importer instead", true)]
         public static DataTable ToDataTable(IXLWorksheet sheet, bool hasHeader = true, int headerLine = 0)
         {
             var maxcolumns = (from l in sheet.Rows()

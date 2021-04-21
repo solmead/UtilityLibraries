@@ -585,10 +585,11 @@ namespace Utilities.Poco
                 }
 
                 var lst = (from p in props
-                           where (from dynamic ca in p.GetCustomAttributes(true)
+                           where !p.GetCustomAttributes(typeof(UIHintAttribute), true).Any() && (
+                           (from dynamic ca in p.GetCustomAttributes(true)
                                                   where ca.TypeId.FullName.Contains("ColumnAttribute")                          select ca).Any() || 
                                 p.GetCustomAttributes(typeof(DisplayAttribute), true).Any() || 
-                                p.GetCustomAttributes(typeof(DisplayNameAttribute), true).Any()
+                                p.GetCustomAttributes(typeof(DisplayNameAttribute), true).Any())
                            select p).ToList();
 
                 foreach (var itm in lst)

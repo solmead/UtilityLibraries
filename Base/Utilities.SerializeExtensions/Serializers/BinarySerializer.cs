@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
@@ -7,20 +8,27 @@ namespace Utilities.SerializeExtensions.Serializers
 {
     public class BinarySerializer : ISerializer
     {
+        private readonly ILogger _logger = null;
 
-        public Action<string> LogMessage { get; set; }
+        //public Action<string> LogMessage { get; set; }
         public Encoding BaseEncoding { get; set; } = Encoding.Unicode;
 
-        private void Log(string msg)
+
+        public BinarySerializer()
         {
-            LogMessage?.Invoke(msg);
+
         }
 
-        public byte[] SerializeToArray<T>(T item)
+        public BinarySerializer(ILogger logger)
+        {
+            _logger = logger;
+        }
+
+        public byte[] SerializeToArray<T>(T item) where T : class
         {
             return SerializeToArray(item, typeof(T));
         }
-        public string Serialize<T>(T item)
+        public string Serialize<T>(T item) where T : class
         {
             return Serialize(item, typeof(T)); 
         }
@@ -41,11 +49,11 @@ namespace Utilities.SerializeExtensions.Serializers
             }
         }
 
-        public T Deserialize<T>(string data)
+        public T Deserialize<T>(string data) where T : class
         {
             return (T)Deserialize(data, typeof(T));
         }
-        public T Deserialize<T>(byte[] data)
+        public T Deserialize<T>(byte[] data) where T : class
         {
             return (T)Deserialize(data, typeof(T));
         }
@@ -54,8 +62,17 @@ namespace Utilities.SerializeExtensions.Serializers
             if (string.IsNullOrWhiteSpace(data))
                 return null;
 
-            var obj = Deserialize(Convert.FromBase64String(data), type);
-            return obj;
+
+            try
+            {
+                var obj = Deserialize(Convert.FromBase64String(data), type);
+                return obj;
+
+            }
+            catch
+            {
+                return null;
+            }
         }
 
 

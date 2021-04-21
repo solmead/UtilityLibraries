@@ -30,6 +30,7 @@ namespace Utilities.Caching.AspNetCore
             HttpContext CurrentContext = contextAccessor.HttpContext;
             var system = CacheSystem.Instance;
             system.SetCookieRepository(new CookieRepository(contextAccessor));
+            system.CacheAreas[CacheArea.Session] = new Sessions.SessionCache(contextAccessor);
             system.CacheAreas[CacheArea.Request] = new RequestCache(contextAccessor);
 
 

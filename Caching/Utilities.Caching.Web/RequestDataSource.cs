@@ -65,7 +65,8 @@ namespace Utilities.Caching.Web
             {
                 if (context.Items.Contains(name.ToUpper()))
                 {
-                    var t = (CachedEntry<tt>)context.Items[name.ToUpper()];
+                    //(CachedEntry<tt>)
+                    var t = context.Items[name.ToUpper()] as CachedEntry<tt>;
                     return t;
                 }
             }

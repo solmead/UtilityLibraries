@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AzureRedisCaching.Models;
-using Utilities.Caching;
-using Utilities.Caching.Core;
+﻿using Utilities.Caching.Core;
+using Utilities.Caching.Redis.Models;
 
-namespace HttpObjectCaching.Caches
+namespace Utilities.Caching.Redis
 {
     public class AzureRedisCache : DataCache
     {
@@ -15,7 +9,7 @@ namespace HttpObjectCaching.Caches
         public AzureRedisCache()
             : base(new AzureRedisDataSource())
         {
-            
+
         }
 
         public override CacheArea Area => CacheArea.Distributed;

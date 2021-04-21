@@ -24,13 +24,15 @@ namespace Utilities.Caching.Core.DataSources
         }
 
 
-        public async Task<CachedEntry<tt>> GetItemAsync<tt>(string name)
+        public async Task<CachedEntry<tt>> GetItemAsync<tt>(string name) 
         {
             try
             {
+                var t = await CacheRepo.GetStringAsync(name.ToUpper());
 
-                var t = await CacheRepo.GetAsync(name.ToUpper());
-                return CacheSystem.Serializer.Deserialize<CachedEntry<tt>>(t);
+
+
+                return Cache.Serializer.Deserialize<CachedEntry<tt>>(t);
             }
             catch
             {
@@ -49,7 +51,7 @@ namespace Utilities.Caching.Core.DataSources
             object empty = default(tt);
             if (comp != empty)
             {
-                var s = CacheSystem.Serializer.SerializeToArray(item);
+                var s = Cache.Serializer.Serialize(item);
                 if (item.TimeOut.HasValue)
                 {
                     await CacheRepo.SetAsync(item.Name.ToUpper(), s, item.TimeOut.Value.Subtract(DateTime.Now));
@@ -72,8 +74,8 @@ namespace Utilities.Caching.Core.DataSources
         {
             try
             {
-                var t = await CacheRepo.GetAsync(name.ToUpper());
-                return CacheSystem.Serializer.Deserialize(t, type) as CachedEntry<object>;
+                var t = await CacheRepo.GetStringAsync(name.ToUpper());
+                return Cache.Serializer.Deserialize(t, type) as CachedEntry<object>;
             }
             catch
             {
@@ -92,7 +94,7 @@ namespace Utilities.Caching.Core.DataSources
             object empty = null;
             if (comp != empty)
             {
-                var s = CacheSystem.Serializer.SerializeToArray(item, type);
+                var s = Cache.Serializer.Serialize(item, type);
                 if (item.TimeOut.HasValue)
                 {
                     await CacheRepo.SetAsync(item.Name.ToUpper(), s, item.TimeOut.Value.Subtract(DateTime.Now));
@@ -131,8 +133,8 @@ namespace Utilities.Caching.Core.DataSources
         {
             try
             {
-                var t = CacheRepo.Get(name.ToUpper());
-                return CacheSystem.Serializer.Deserialize<CachedEntry<tt>>(t);
+                var t = CacheRepo.GetString(name.ToUpper());
+                return Cache.Serializer.Deserialize<CachedEntry<tt>>(t);
             }
             catch
             {
@@ -151,7 +153,7 @@ namespace Utilities.Caching.Core.DataSources
             object empty = default(tt);
             if (comp != empty)
             {
-                var s = CacheSystem.Serializer.SerializeToArray(item);
+                var s = Cache.Serializer.Serialize(item);
                 if (item.TimeOut.HasValue)
                 {
                     CacheRepo.Set(item.Name.ToUpper(), s, item.TimeOut.Value.Subtract(DateTime.Now));
@@ -171,8 +173,8 @@ namespace Utilities.Caching.Core.DataSources
         {
             try
             {
-                var t = CacheRepo.Get(name.ToUpper());
-                return CacheSystem.Serializer.Deserialize(t, type) as CachedEntry<object>;
+                var t = CacheRepo.GetString(name.ToUpper());
+                return Cache.Serializer.Deserialize(t, type) as CachedEntry<object>;
             }
             catch
             {
@@ -191,7 +193,7 @@ namespace Utilities.Caching.Core.DataSources
             object empty = null;
             if (comp != empty)
             {
-                var s = CacheSystem.Serializer.SerializeToArray(item, type);
+                var s = Cache.Serializer.Serialize(item, type);
                 if (item.TimeOut.HasValue)
                 {
                     CacheRepo.Set(item.Name.ToUpper(), s, item.TimeOut.Value.Subtract(DateTime.Now));
@@ -243,10 +245,10 @@ namespace Utilities.Caching.Core.DataSources
         //    CacheDatabase.L
         //}
 
-        private void WriteLine(string msg)
-        {
-            Cache.LogDebug(msg);
-        }
+        //private void WriteLine(string msg)
+        //{
+        //    Cache.LogDebug(msg);
+        //}
 
         public List<tt> GetList<tt>(string name)
         {

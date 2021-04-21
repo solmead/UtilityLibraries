@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -9,19 +10,25 @@ namespace Utilities.SerializeExtensions.Serializers
     public class XmlSerializer : ISerializer
     {
 
-        public Action<string> LogMessage { get; set; }
+        public Encoding BaseEncoding { get; set; } = Encoding.Unicode;
 
-        private void Log(string msg)
+
+
+        private readonly ILogger _logger = null;
+        public XmlSerializer()
         {
-            LogMessage?.Invoke(msg);
+            
         }
-        public Encoding BaseEncoding { get; set; } = Encoding.UTF7;
+        public XmlSerializer(ILogger logger)
+        {
+            _logger = logger;
+        }
 
-        public T Deserialize<T>(string data)
+        public T Deserialize<T>(string data) where T : class
         {
             return (T) Deserialize(data, typeof(T));
         }
-        public T Deserialize<T>(byte[] data)
+        public T Deserialize<T>(byte[] data) where T : class
         {
             return (T)Deserialize(data, typeof(T));
         }
@@ -30,52 +37,52 @@ namespace Utilities.SerializeExtensions.Serializers
             if (string.IsNullOrWhiteSpace(data))
             {
 
-                Log("Deserialize: null data");
+                _logger?.LogDebug("Deserialize: null data");
                 return null;
             }
 
             object obj = null;
             //baseEncoding
-            Log("Deserialize - BaseEncoding:" + BaseEncoding.EncodingName);
+            _logger?.LogDebug("Deserialize - BaseEncoding:" + BaseEncoding.EncodingName);
             var encoding = BaseEncoding;
             var s = encoding.GetBytes(data);
             obj = Deserialize(s, type);
 
-            //if (obj == null)
-            //{
-            //    encoding = Encoding.Unicode;
-            //    Log("Deserialize - Encoding:" + encoding.EncodingName);
-            //    s = encoding.GetBytes(data);
-            //    obj = Deserialize(s, type);
-            //}
-            //if (obj == null)
-            //{
-            //    Log("Deserialize - Encoding:" + encoding.EncodingName);
-            //    encoding = Encoding.UTF32;
-            //    s = encoding.GetBytes(data);
-            //    obj = Deserialize(s, type);
-            //}
-            //if (obj == null)
-            //{
-            //    Log("Deserialize - Encoding:" + encoding.EncodingName);
-            //    encoding = Encoding.ASCII;
-            //    s = encoding.GetBytes(data);
-            //    obj = Deserialize(s, type);
-            //}
-            //if (obj == null)
-            //{
-            //    Log("Deserialize - Encoding:" + encoding.EncodingName);
-            //    encoding = Encoding.UTF8;
-            //    s = encoding.GetBytes(data);
-            //    obj = Deserialize(s, type);
-            //}
-            //if (obj == null)
-            //{
-            //    Log("Deserialize - Encoding:" + encoding.EncodingName);
-            //    encoding = Encoding.UTF7;
-            //    s = encoding.GetBytes(data);
-            //    obj = Deserialize(s, type);
-            //}
+            if (obj == null)
+            {
+                encoding = Encoding.Unicode;
+                _logger?.LogDebug("Deserialize - Encoding:" + encoding.EncodingName);
+                s = encoding.GetBytes(data);
+                obj = Deserialize(s, type);
+            }
+            if (obj == null)
+            {
+                _logger?.LogDebug("Deserialize - Encoding:" + encoding.EncodingName);
+                encoding = Encoding.UTF32;
+                s = encoding.GetBytes(data);
+                obj = Deserialize(s, type);
+            }
+            if (obj == null)
+            {
+                _logger?.LogDebug("Deserialize - Encoding:" + encoding.EncodingName);
+                encoding = Encoding.ASCII;
+                s = encoding.GetBytes(data);
+                obj = Deserialize(s, type);
+            }
+            if (obj == null)
+            {
+                _logger?.LogDebug("Deserialize - Encoding:" + encoding.EncodingName);
+                encoding = Encoding.UTF8;
+                s = encoding.GetBytes(data);
+                obj = Deserialize(s, type);
+            }
+            if (obj == null)
+            {
+                _logger?.LogDebug("Deserialize - Encoding:" + encoding.EncodingName);
+                encoding = Encoding.UTF7;
+                s = encoding.GetBytes(data);
+                obj = Deserialize(s, type);
+            }
 
 
             return obj;
@@ -83,7 +90,7 @@ namespace Utilities.SerializeExtensions.Serializers
 
         public object Deserialize(byte[] data, Type type)
         {
-            Log("Deserialize - data[]:" + (data?.Length ?? 0));
+            _logger?.LogDebug("Deserialize - data[]:" + (data?.Length ?? 0));
 
 
             if ((data?.Length ?? 0) == 0)
@@ -93,7 +100,7 @@ namespace Utilities.SerializeExtensions.Serializers
             {
                 using (var memStream = new MemoryStream(data))
                 {
-                    Log("Deserialize - memStream:" + memStream.Length);
+                    _logger?.LogDebug("Deserialize - memStream:" + memStream.Length);
                     var serializer = new System.Xml.Serialization.XmlSerializer(type);
                     return serializer.Deserialize(memStream);
                 }
@@ -101,7 +108,7 @@ namespace Utilities.SerializeExtensions.Serializers
             catch (Exception ex)
             {
 
-                Log("Deserialize - Exception:" + ex.ToString());
+                _logger?.LogError(ex, "Deserialize - Exception:" + ex.ToString());
                 return null;
             }
         }
@@ -109,7 +116,7 @@ namespace Utilities.SerializeExtensions.Serializers
 
 
 
-        public string Serialize<T>(T item)
+        public string Serialize<T>(T item) where T : class
         {
             return Serialize(item, typeof(T));
         }
@@ -119,7 +126,7 @@ namespace Utilities.SerializeExtensions.Serializers
             return BaseEncoding.GetString(SerializeToArray(item, type));
         }
 
-        public byte[] SerializeToArray<T>(T item)
+        public byte[] SerializeToArray<T>(T item) where T : class
         {
             return SerializeToArray(item, typeof(T));
         }

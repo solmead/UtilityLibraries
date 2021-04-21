@@ -12,23 +12,23 @@ using Utilities.Caching.Redis;
 using Utilities.SerializeExtensions.Serializers;
 using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
-namespace AzureRedisCaching.Models
+namespace Utilities.Caching.Redis.Models
 {
     public class AzureRedisDataSource : IDataSource
     {
 
-        private static ISerializer Serializer => CacheSystem.Serializer;
+        private static ISerializer Serializer => Cache.Serializer;
 
 
 
         public BaseCacheArea Area => BaseCacheArea.Distributed;
-        
+
         private static Lazy<ConnectionMultiplexer> lazyConnection = new Lazy<ConnectionMultiplexer>(() => ConnectionMultiplexer.Connect(connectionString));
 
-        private static string connectionString => Core.HostName +
+        private static string connectionString => Configuration.Configurator.HostName +
                                                   ",abortConnect=false,ssl=" +
-                                                  !Core.AllowNonSSL + ",password=" +
-                                                  Core.CacheKey;
+                                                  !Configuration.Configurator.AllowNonSSL + ",password=" +
+                                                  Configuration.Configurator.CacheKey;
 
         private static ConnectionMultiplexer Connection => lazyConnection.Value;
         private static IDatabase CacheDatabase => Connection.GetDatabase();
@@ -37,7 +37,7 @@ namespace AzureRedisCaching.Models
         {
             try
             {
-                
+
                 string t = await CacheDatabase.StringGetAsync(name.ToUpper());
                 //var t = Cache.GetItem<string>(CacheArea.Global,"TestDistributedCache_" + name, (string) null);
                 if (!string.IsNullOrWhiteSpace(t))
@@ -49,7 +49,7 @@ namespace AzureRedisCaching.Models
             {
                 //throw;
             }
-            return default(CachedEntry<tt>);
+            return default;
         }
 
         public async Task SetItemAsync<tt>(CachedEntry<tt> item)
@@ -72,7 +72,7 @@ namespace AzureRedisCaching.Models
                 else
                 {
                     await CacheDatabase.StringSetAsync(item.Name.ToUpper(), s,
-                        new TimeSpan(0, Core.DefaultTimeoutMinutes, 0));
+                        new TimeSpan(0, Configuration.Configurator.DefaultTimeoutMinutes, 0));
                     //Cache.SetItem<string>(CacheArea.Global, "TestDistributedCache_" + item.Name, s);
                 }
             }
@@ -88,7 +88,7 @@ namespace AzureRedisCaching.Models
             {
                 var t = (await CacheDatabase.StringGetAsync(name.ToUpper())).ToString();
                 //var t = Cache.GetItem<string>(CacheArea.Global,"TestDistributedCache_" + name, (string) null);
-                
+
                 if (!string.IsNullOrWhiteSpace(t))
                 {
                     return Serializer.Deserialize(t, type) as CachedEntry<object>;
@@ -121,7 +121,7 @@ namespace AzureRedisCaching.Models
                 else
                 {
                     await CacheDatabase.StringSetAsync(item.Name.ToUpper(), s,
-                        new TimeSpan(0, Core.DefaultTimeoutMinutes, 0));
+                        new TimeSpan(0, Configuration.Configurator.DefaultTimeoutMinutes, 0));
                     //Cache.SetItem<string>(CacheArea.Global, "TestDistributedCache_" + item.Name, s);
                 }
             }
@@ -141,7 +141,7 @@ namespace AzureRedisCaching.Models
         {
             foreach (var ep in Connection.GetEndPoints())
             {
-                var server =  Connection.GetServer(ep);
+                var server = Connection.GetServer(ep);
                 var keys = server.Keys().ToList();
                 foreach (var key in keys)
                 {
@@ -154,12 +154,12 @@ namespace AzureRedisCaching.Models
 
 
 
-        
+
         public CachedEntry<tt> GetItem<tt>(string name)
         {
             try
             {
-                string t =  CacheDatabase.StringGet(name.ToUpper());
+                string t = CacheDatabase.StringGet(name.ToUpper());
                 //var t = Cache.GetItem<string>(CacheArea.Global,"TestDistributedCache_" + name, (string) null);
                 if (!string.IsNullOrWhiteSpace(t))
                 {
@@ -170,7 +170,7 @@ namespace AzureRedisCaching.Models
             {
                 //throw;
             }
-            return default(CachedEntry<tt>);
+            return default;
         }
 
         public void SetItem<tt>(CachedEntry<tt> item)
@@ -186,20 +186,20 @@ namespace AzureRedisCaching.Models
                 var s = Serializer.Serialize(item);
                 if (item.TimeOut.HasValue)
                 {
-                     CacheDatabase.StringSet(item.Name.ToUpper(), s, item.TimeOut.Value.Subtract(DateTime.Now));
+                    CacheDatabase.StringSet(item.Name.ToUpper(), s, item.TimeOut.Value.Subtract(DateTime.Now));
                     //Cache.SetItem<string>(CacheArea.Global, "TestDistributedCache_" + item.Name, s,
                     //    item.TimeOut.Value.Subtract(DateTime.Now).TotalSeconds);
                 }
                 else
                 {
-                     CacheDatabase.StringSet(item.Name.ToUpper(), s,
-                        new TimeSpan(0, Core.DefaultTimeoutMinutes, 0));
+                    CacheDatabase.StringSet(item.Name.ToUpper(), s,
+                       new TimeSpan(0, Configuration.Configurator.DefaultTimeoutMinutes, 0));
                     //Cache.SetItem<string>(CacheArea.Global, "TestDistributedCache_" + item.Name, s);
                 }
             }
             else
             {
-                 DeleteItem(item.Name);
+                DeleteItem(item.Name);
             }
         }
 
@@ -207,7 +207,7 @@ namespace AzureRedisCaching.Models
         {
             try
             {
-                string t =  CacheDatabase.StringGet(name.ToUpper());
+                string t = CacheDatabase.StringGet(name.ToUpper());
                 //var t = Cache.GetItem<string>(CacheArea.Global,"TestDistributedCache_" + name, (string) null);
                 if (!string.IsNullOrWhiteSpace(t))
                 {
@@ -234,26 +234,26 @@ namespace AzureRedisCaching.Models
                 var s = Serializer.Serialize(item, type);
                 if (item.TimeOut.HasValue)
                 {
-                     CacheDatabase.StringSet(item.Name.ToUpper(), s, item.TimeOut.Value.Subtract(DateTime.Now));
+                    CacheDatabase.StringSet(item.Name.ToUpper(), s, item.TimeOut.Value.Subtract(DateTime.Now));
                     //Cache.SetItem<string>(CacheArea.Global, "TestDistributedCache_" + item.Name, s,
                     //    item.TimeOut.Value.Subtract(DateTime.Now).TotalSeconds);
                 }
                 else
                 {
-                     CacheDatabase.StringSet(item.Name.ToUpper(), s,
-                        new TimeSpan(0, Core.DefaultTimeoutMinutes, 0));
+                    CacheDatabase.StringSet(item.Name.ToUpper(), s,
+                       new TimeSpan(0, Configuration.Configurator.DefaultTimeoutMinutes, 0));
                     //Cache.SetItem<string>(CacheArea.Global, "TestDistributedCache_" + item.Name, s);
                 }
             }
             else
             {
-                 DeleteItem(item.Name);
+                DeleteItem(item.Name);
             }
         }
 
         public void DeleteItem(string name)
         {
-             CacheDatabase.KeyDelete(name.ToUpper());
+            CacheDatabase.KeyDelete(name.ToUpper());
             //Cache.SetItem<string>(CacheArea.Global, "TestDistributedCache_" + name, null);
         }
 
@@ -261,23 +261,25 @@ namespace AzureRedisCaching.Models
         {
             foreach (var ep in Connection.GetEndPoints())
             {
-                var server =  Connection.GetServer(ep);
+                var server = Connection.GetServer(ep);
                 var keys = server.Keys();
                 foreach (var key in keys)
                 {
                     Console.WriteLine("Removing Key {0} from cache", key.ToString());
-                     CacheDatabase.KeyDelete(key);
+                    CacheDatabase.KeyDelete(key);
                 }
             }
         }
 
         private string GetStringOfItem<tt>(tt item)
         {
-            return Serializer.Serialize(item);
+            Type t = typeof(tt);
+            return Serializer.Serialize(item, t);
         }
         private tt GetItemOfString<tt>(string val)
         {
-            return Serializer.Deserialize<tt>(val);
+            Type t = typeof(tt);
+            return (tt)Serializer.Deserialize(val, t);
         }
 
         //private bool IsInList<tt>(tt item)
@@ -288,7 +290,7 @@ namespace AzureRedisCaching.Models
 
         private void WriteLine(string msg)
         {
-            Cache.LogDebug(msg);
+            Cache.Instance.LogDebug(msg);
         }
         public List<tt> GetList<tt>(string name)
         {
@@ -301,21 +303,21 @@ namespace AzureRedisCaching.Models
         public void AddToList<tt>(string name, tt item)
         {
             WriteLine("AzureRedis AddToList:" + name + " [" + item.ToString() + "]");
-            string v = GetStringOfItem<tt>(item);
+            string v = GetStringOfItem(item);
             CacheDatabase.ListRightPush(name, v);
         }
 
         public void ClearList<tt>(string name)
         {
             WriteLine("AzureRedis ClearList:" + name);
-            CacheDatabase.ListTrim(name,0,0);
+            CacheDatabase.ListTrim(name, 0, 0);
             CacheDatabase.ListLeftPop(name);
         }
 
         public void RemoveFromList<tt>(string name, tt item)
         {
             WriteLine("AzureRedis RemoveFromList:" + name + " [" + item.ToString() + "]");
-            string v = GetStringOfItem<tt>(item);
+            string v = GetStringOfItem(item);
             CacheDatabase.ListRemove(name, v);
         }
 
@@ -330,14 +332,14 @@ namespace AzureRedisCaching.Models
         {
             WriteLine("AzureRedis Insert into List:" + name + " - " + index + " [" + item.ToString() + "]");
             var vPivot = CacheDatabase.ListGetByIndex(name, index);
-            string v = GetStringOfItem<tt>(item);
+            string v = GetStringOfItem(item);
             CacheDatabase.ListInsertAfter(name, vPivot, v);
         }
 
         public void SetInList<tt>(string name, int index, tt item)
         {
             WriteLine("AzureRedis SetInList:" + name + " - " + index + " [" + item.ToString() + "]");
-            string v = GetStringOfItem<tt>(item);
+            string v = GetStringOfItem(item);
             CacheDatabase.ListSetByIndex(name, index, v);
         }
 
@@ -352,7 +354,7 @@ namespace AzureRedisCaching.Models
         public async Task AddToListAsync<tt>(string name, tt item)
         {
             WriteLine("AzureRedis AddToList:" + name + " [" + item.ToString() + "]");
-            string v = GetStringOfItem<tt>(item);
+            string v = GetStringOfItem(item);
             await CacheDatabase.ListRightPushAsync(name, v);
         }
 
@@ -366,7 +368,7 @@ namespace AzureRedisCaching.Models
         public async Task RemoveFromListAsync<tt>(string name, tt item)
         {
             WriteLine("AzureRedis RemoveFromList:" + name + " [" + item.ToString() + "]");
-            string v = GetStringOfItem<tt>(item);
+            string v = GetStringOfItem(item);
             await CacheDatabase.ListRemoveAsync(name, v);
         }
 
@@ -381,14 +383,14 @@ namespace AzureRedisCaching.Models
         {
             WriteLine("AzureRedis Insert into List:" + name + " - " + index + " [" + item.ToString() + "]");
             var vPivot = await CacheDatabase.ListGetByIndexAsync(name, index);
-            string v = GetStringOfItem<tt>(item);
+            string v = GetStringOfItem(item);
             await CacheDatabase.ListInsertAfterAsync(name, vPivot, v);
         }
 
         public async Task SetInListAsync<tt>(string name, int index, tt item)
         {
             WriteLine("AzureRedis SetInList:" + name + " - " + index + " [" + item.ToString() + "]");
-            string v = GetStringOfItem<tt>(item);
+            string v = GetStringOfItem(item);
             await CacheDatabase.ListSetByIndexAsync(name, index, v);
         }
 

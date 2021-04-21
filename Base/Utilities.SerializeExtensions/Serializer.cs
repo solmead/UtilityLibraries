@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Text;
 using Utilities.SerializeExtensions.Serializers;
 
@@ -6,44 +7,135 @@ namespace Utilities.SerializeExtensions
 {
     public class Serializer : ISerializer
     {
+        private readonly ILogger _logger;
         private readonly ISerializer serializer;
+        [Obsolete("Just pass in ILogger in constructor", true)]
+        public Action<string> LogMessage { get; set; }
 
-        public Action<string> LogMessage {
-            get => serializer.LogMessage;
-            set => serializer.LogMessage = value;
-        }
+
         public Encoding BaseEncoding
         {
             get => serializer.BaseEncoding;
             set => serializer.BaseEncoding = value;
         }
-
-        public Serializer(ISerializer baseSerializer)
+        //[Obsolete("Use new Serializer(iLogger) or ISerializer", false)]
+        public Serializer()
         {
+            //_logger = logger;
+            serializer = new JsonSerializer(_logger);
+        }
+        public Serializer(ILogger logger)
+        {
+            _logger = logger;
+            serializer = new JsonSerializer(_logger);
+        }
+        public Serializer(ISerializer baseSerializer, ILogger logger)
+        {
+            _logger = logger;
             serializer = baseSerializer;
         }
 
-        public T Deserialize<T>(string data)
+        public T Deserialize<T>(string data) where T : class
         {
-            return serializer.Deserialize<T>(data);
+            if (string.IsNullOrWhiteSpace(data))
+            {
+                return null;
+            }
+            var it = serializer.Deserialize<T>(data);
+
+            if (it == null)
+            {
+                ISerializer ser = new JsonSerializer(_logger);
+                it = ser.Deserialize<T>(data);
+            }
+            if (it == null)
+            {
+                ISerializer ser = new XmlSerializer(_logger);
+                it = ser.Deserialize<T>(data);
+            }
+            if (it == null)
+            {
+                ISerializer ser = new BinarySerializer(_logger);
+                it = ser.Deserialize<T>(data);
+            }
+
+
+            return it;
         }
 
         public object Deserialize(string data, Type type)
         {
-            return serializer.Deserialize(data, type);
+            var it = serializer.Deserialize(data, type);
+
+            if (it == null)
+            {
+                ISerializer ser = new JsonSerializer(_logger);
+                it = ser.Deserialize(data, type);
+            }
+            if (it == null)
+            {
+                ISerializer ser = new XmlSerializer(_logger);
+                it = ser.Deserialize(data, type);
+            }
+            if (it == null)
+            {
+                ISerializer ser = new BinarySerializer(_logger);
+                it = ser.Deserialize(data, type);
+            }
+
+
+            return it;
         }
 
-        public T Deserialize<T>(byte[] data)
+        public T Deserialize<T>(byte[] data) where T : class
         {
-            return serializer.Deserialize<T>(data);
+            var it =  serializer.Deserialize<T>(data);
+
+            if (it == null)
+            {
+                ISerializer ser = new JsonSerializer(_logger);
+                it = ser.Deserialize<T>(data);
+            }
+            if (it == null)
+            {
+                ISerializer ser = new XmlSerializer(_logger);
+                it = ser.Deserialize<T>(data);
+            }
+            if (it == null)
+            {
+                ISerializer ser = new BinarySerializer(_logger);
+                it = ser.Deserialize<T>(data);
+            }
+
+
+            return it;
         }
 
         public object Deserialize(byte[] data, Type type)
         {
-            return serializer.Deserialize(data, type);
+            var it =  serializer.Deserialize(data, type);
+
+            if (it == null)
+            {
+                ISerializer ser = new JsonSerializer(_logger);
+                it = ser.Deserialize(data, type);
+            }
+            if (it == null)
+            {
+                ISerializer ser = new XmlSerializer(_logger);
+                it = ser.Deserialize(data, type);
+            }
+            if (it == null)
+            {
+                ISerializer ser = new BinarySerializer(_logger);
+                it = ser.Deserialize(data, type);
+            }
+
+
+            return it;
         }
 
-        public string Serialize<T>(T item)
+        public string Serialize<T>(T item) where T : class
         {
             return serializer.Serialize(item);
         }
@@ -53,7 +145,7 @@ namespace Utilities.SerializeExtensions
             return serializer.Serialize(item, type);
         }
 
-        public byte[] SerializeToArray<T>(T item)
+        public byte[] SerializeToArray<T>(T item) where T : class
         {
             return serializer.SerializeToArray(item);
         }

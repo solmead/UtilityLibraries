@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>6.3.5</Version>
+    <Version>6.6.0</Version>
     <PackageId>Utilities.Caching.AspNetCore</PackageId>
     <Authors>Solmead Productions</Authors>
     <Company>Solmead Productions</Company>
@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="CacheStartup.cs" />
     <Compile Remove="CacheSystem.cs" />
   </ItemGroup>
 
@@ -20,8 +21,10 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="3.0.1" />
-    <PackageReference Include="Utilities.Caching" Version="6.7.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Extensions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0" />
+    <PackageReference Include="Utilities.Caching" Version="7.0.0" />
+    <PackageReference Include="Utilities.SerializeExtensions" Version="6.6.4" />
   </ItemGroup>
 
 </Project>
