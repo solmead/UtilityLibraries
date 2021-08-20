@@ -20,11 +20,25 @@ namespace Utilities.Caching.Core
         public virtual string Name { get; protected set; }
         public virtual void ClearCache()
         {
+            try { 
              _dataSource.DeleteAll();
+
+            }
+            catch
+            {
+
+            }
         }
         public virtual async Task ClearCacheAsync()
         {
+            try { 
             await _dataSource.DeleteAllAsync();
+
+            }
+            catch
+            {
+
+            }
         }
         
         public tt GetItem<tt>(string name, Func<tt> createMethod = null, double? lifeSpanSeconds = null, string tags = "")

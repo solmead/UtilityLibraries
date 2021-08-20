@@ -58,6 +58,11 @@ namespace Utilities.Caching
         public static CacheSystem Instance => Configurator.Instance;
         public static ISerializer Serializer => Configurator.Serializer;
 
+        public static ICacheCookie CacheCookie => Configurator.CacheCookie;
+
+
+
+
 
         /// <summary>
         /// Pull an item from the cache

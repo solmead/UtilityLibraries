@@ -6,7 +6,7 @@ namespace Utilities.TimedTasks.TimeCheck.Checks
 {
     internal class DailyCheck : ICheck
     {
-        public CallRateEnum CallRate => CallRateEnum.Hourly;
+        public CallRateEnum CallRate => CallRateEnum.Daily;
 
 
         public bool IsTime(ITask task, DateTime lastCheckDate)

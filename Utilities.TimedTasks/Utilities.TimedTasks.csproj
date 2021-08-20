@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
+	  <TargetFrameworks>netstandard2.0;net462;net472;net48</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-	  <Version>2.2.0</Version>
+	  <Version>2.3.1</Version>
     <Authors>Solmead Productions</Authors>
 	  <Company>Solmead Productions</Company>
     <Description>For supporting timed tasks occurring</Description>
@@ -11,6 +11,8 @@
 	  <RepositoryUrl>https://github.com/solmead/UtilityLibraries</RepositoryUrl>
 	  <PackageProjectUrl>https://github.com/solmead/UtilityLibraries</PackageProjectUrl>
 	  <PackageLicenseUrl>https://github.com/solmead/UtilityLibraries</PackageLicenseUrl>
+	  <LangVersion>8.0</LangVersion>
+	  <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,7 +20,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
     <PackageReference Include="Utilities.EnumExtensions" Version="6.3.0" />

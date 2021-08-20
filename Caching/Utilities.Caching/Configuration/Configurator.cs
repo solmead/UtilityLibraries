@@ -3,6 +3,8 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Utilities.Caching.Core;
+using Utilities.Caching.Helpers;
 using Utilities.SerializeExtensions;
 using Utilities.SerializeExtensions.Serializers;
 
@@ -16,6 +18,9 @@ namespace Utilities.Caching.Configuration
         private static object CacheSystemCreateLock = new object();
 
         private static IServiceProvider _serviceProvider { get; set; }
+
+
+        public static ICacheCookie CacheCookie { get; set; }
 
         private static ILogger _logger { get; set; }
 
@@ -81,6 +86,10 @@ namespace Utilities.Caching.Configuration
             services.AddSingleton<CacheSystem>();
         }
 
+        public static void SetCookieRepository(ICookieRepository cookieRepository)
+        {
+            CacheCookie = new CacheCookies(cookieRepository);
+        }
 
         public static void InitCache(ILogger logger)
         {

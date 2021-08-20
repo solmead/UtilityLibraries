@@ -77,6 +77,10 @@ namespace Utilities.Sql
         private static DbType AsDbType(this Type type)
         {
 
+            if (!TypeMap.ContainsKey(type))
+            {
+                throw new Exception("Type: [" + type.ToString() + "] not supported yet by Utilities.Sql");
+            }
             var tp = TypeMap[type];
             return tp;
         }
@@ -161,7 +165,13 @@ namespace Utilities.Sql
                 var st = DateTime.Now;
                 Log("-- Executing at " + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
                 var conn = db;
-                await conn.OpenAsync();
+                //await conn.OpenAsync(); 
+                var closed = (conn.State == ConnectionState.Closed || conn.State == ConnectionState.Broken);
+                if (closed)
+                {
+                    Log("Opening Connection");
+                    await conn.OpenAsync();
+                }
                 var cmd = conn.CreateCommand();
                 if (!sql.ToUpper().Contains("EXEC "))
                 {
@@ -191,7 +201,10 @@ namespace Utilities.Sql
                 }
 
                 var ret = await cmd.ExecuteScalarAsync();
-                conn.Close();
+                if (closed)
+                {
+                    conn.Close();
+                }
                 Log("-- Loaded in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
                 return (TT)ret;
             }
@@ -219,8 +232,12 @@ namespace Utilities.Sql
                 var st = DateTime.Now;
                 Log("-- Executing at " + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
                 var conn = db;
-
-                conn.Open();
+                var closed = (conn.State == ConnectionState.Closed || conn.State == ConnectionState.Broken);
+                if (closed)
+                {
+                    Log("Opening Connection");
+                    conn.Open();
+                }
                 var cmd = conn.CreateCommand();
                 if (!sql.ToUpper().Contains("EXEC "))
                 {
@@ -249,7 +266,10 @@ namespace Utilities.Sql
                 }
 
                 var ret = cmd.ExecuteScalar();
-                conn.Close();
+                if (closed)
+                {
+                    conn.Close();
+                }
                 Log("-- Loaded in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
                 return (TT)ret;
             }
@@ -634,7 +654,12 @@ namespace Utilities.Sql
                 var st = DateTime.Now;
                 Log("-- Executing at " + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
                 var conn = db;
-                await conn.OpenAsync();
+                var closed = (conn.State == ConnectionState.Closed || conn.State == ConnectionState.Broken);
+                if (closed)
+                {
+                    Log("Opening Connection");
+                    await conn.OpenAsync();
+                }
                 var cmd = conn.CreateCommand();
                 if (!sql.ToUpper().Contains("EXEC "))
                 {
@@ -665,7 +690,10 @@ namespace Utilities.Sql
 
                 //var ret = await cmd.ExecuteNonQueryAsync();
                 var ret = cmd.ExecuteNonQuery();
-                conn.Close();
+                if (closed)
+                {
+                    conn.Close();
+                }
                 Log("-- Loaded in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
                 //return (TT)ret;
             }
@@ -694,7 +722,12 @@ namespace Utilities.Sql
                 Log("-- Executing at " + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
                 var conn = db;
 
-                conn.Open();
+                var closed = (conn.State == ConnectionState.Closed || conn.State == ConnectionState.Broken);
+                if (closed)
+                {
+                    Log("Opening Connection");
+                     conn.Open();
+                }
                 var cmd = conn.CreateCommand();
                 if (!sql.ToUpper().Contains("EXEC "))
                 {
@@ -723,7 +756,10 @@ namespace Utilities.Sql
                 }
 
                 cmd.ExecuteNonQuery();
-                conn.Close();
+                if (closed)
+                {
+                    conn.Close();
+                }
                 Log("-- Loaded in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
                 //return (TT)ret;
             }

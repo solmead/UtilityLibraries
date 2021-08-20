@@ -40,6 +40,44 @@ namespace Utilities.SerializeExtensions.Serializers
             var s = encoding.GetString(data);
             obj = Deserialize(s, type);
             //var s = System.Text.Encoding.UTF8.GetString(data);
+
+            if (obj == null)
+            {
+                encoding = Encoding.Unicode;
+                _logger?.LogDebug("Deserialize - Encoding:" + encoding.EncodingName);
+                s = encoding.GetString(data);
+                obj = Deserialize(s, type);
+            }
+            if (obj == null)
+            {
+                _logger?.LogDebug("Deserialize - Encoding:" + encoding.EncodingName);
+                encoding = Encoding.UTF32;
+                s = encoding.GetString(data);
+                obj = Deserialize(s, type);
+            }
+            if (obj == null)
+            {
+                _logger?.LogDebug("Deserialize - Encoding:" + encoding.EncodingName);
+                encoding = Encoding.ASCII;
+                s = encoding.GetString(data);
+                obj = Deserialize(s, type);
+            }
+            if (obj == null)
+            {
+                _logger?.LogDebug("Deserialize - Encoding:" + encoding.EncodingName);
+                encoding = Encoding.UTF8;
+                s = encoding.GetString(data);
+                obj = Deserialize(s, type);
+            }
+            if (obj == null)
+            {
+                _logger?.LogDebug("Deserialize - Encoding:" + encoding.EncodingName);
+                encoding = Encoding.UTF7;
+                s = encoding.GetString(data);
+                obj = Deserialize(s, type);
+            }
+
+
             return obj;
         }
 
