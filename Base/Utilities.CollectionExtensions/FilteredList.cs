@@ -47,29 +47,62 @@ namespace System.Collections.Extensions
     public class FilteredList<tt> where tt:class
     {
 
-        public IQueryable<tt> BaseData { get; set; }
+        private IQueryable<tt> BaseData { get; set; }
+
+
+        public delegate IQueryable<tt> QueryableFunction(int? page, int? pageSize, string sortColumn, FilteredInfo.OrderDirectionEnum? orderDirection);
+
+        private QueryableFunction getFilteredData = null;
+
+
+        private Func<int> getItemCount = null;
+
+
+
         public FilteredInfo Info { get; set; }
 
-        public int TotalItems => BaseData.Count();
-        public int TotalPages => (int)Math.Ceiling(((double)BaseData.Count())/((double)(Info.PageSize ?? 20)));
+        public int TotalItems => getItemCount();
+        public int TotalPages => (int)Math.Ceiling(((double)TotalItems) /((double)(Info.PageSize ?? 20)));
 
+        public FilteredList(FilteredInfo info, QueryableFunction queryableFunction, Func<int> getTotalItemCount)
+        {
+            Info = info;
+            getFilteredData = queryableFunction;
+            getItemCount = getTotalItemCount;
+        }
         public FilteredList(IQueryable<tt> baseData, FilteredInfo info)
         {
             Info = info;
             BaseData = baseData;
             //Info.PageSize = 25;
             //Info.Page = 1;
-        }
 
+
+            getFilteredData = (int? page, int? pageSize, string sortColumn, FilteredInfo.OrderDirectionEnum? orderDirection) =>
+            {
+                return GetFilteredDataFromBase(page, pageSize, sortColumn, orderDirection);
+            };
+            getItemCount = () =>
+            {
+                return BaseData.Count();
+            };
+
+        }
         public IQueryable<tt> GetFilteredData()
         {
-            if (Info.Page > TotalPages)
+            return getFilteredData(Info.Page, Info.PageSize, Info.SortColumn, Info.OrderDirection);
+        }
+
+
+        private IQueryable<tt> GetFilteredDataFromBase(int? page, int? pageSize, string sortColumn, FilteredInfo.OrderDirectionEnum? orderDirection)
+        {
+            if (page > TotalPages)
             {
-                Info.Page = TotalPages;
+                page = TotalPages;
             }
-            if (Info.Page < 1)
+            if (page < 1)
             {
-                Info.Page = 1;
+                page = 1;
             }
             if (TotalItems == 0)
             {
@@ -79,7 +112,7 @@ namespace System.Collections.Extensions
 
             try
             {
-                startPosition = checked(((Info.Page ?? 1) - 1) * (Info.PageSize ?? 20));
+                startPosition = checked(((page ?? 1) - 1) * (pageSize ?? 20));
             }
             catch (OverflowException)
             {
@@ -94,7 +127,7 @@ namespace System.Collections.Extensions
                 startPosition = 0;
             }
 
-            int stopPosition = startPosition + (Info.PageSize ?? 20);
+            int stopPosition = startPosition + (pageSize ?? 20);
             if (stopPosition > TotalItems)
             {
                 stopPosition = TotalItems;
@@ -102,11 +135,11 @@ namespace System.Collections.Extensions
 
             IQueryable<tt> pList = BaseData;
 
-            if (!string.IsNullOrWhiteSpace(Info.SortColumn))
+            if (!string.IsNullOrWhiteSpace(sortColumn))
             {
                 try
                 {
-                    pList = BaseData.OrderBy(Info.SortColumn + " " + Info.OrderDirection?.ToString());
+                    pList = BaseData.OrderBy(sortColumn + " " + orderDirection?.ToString());
                 }
                 catch
                 {

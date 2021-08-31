@@ -3,7 +3,7 @@
   <PropertyGroup>
 	  <TargetFrameworks>netstandard2.0;net462;net472;net48</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-	  <Version>2.3.1</Version>
+	  <Version>2.3.2</Version>
     <Authors>Solmead Productions</Authors>
 	  <Company>Solmead Productions</Company>
     <Description>For supporting timed tasks occurring</Description>
@@ -23,7 +23,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
     <PackageReference Include="Utilities.EnumExtensions" Version="6.3.0" />
-    <PackageReference Include="Utilities.SerializeExtensions" Version="6.6.4" />
+    <PackageReference Include="Utilities.SerializeExtensions" Version="6.6.5" />
   </ItemGroup>
 
 	<PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">

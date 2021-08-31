@@ -364,6 +364,14 @@ namespace Utilities.Poco
         {
             oldItem.CopyInto(item);
         }
+        public static void ConvertTo<TItem1, TItem2>(this TItem1 item)
+        {
+            var newItem = Create<TItem2>();
+            foreach (var p in item.GetPropertyNames(onlyBaseTypes: true, onlyWritable: true))
+            {
+                newItem.SetValue(p, item.GetValue(p));
+            }
+        }
         public static void CopyInto<TItem1, TItem2>(this TItem1 item, TItem2 newItem)
         {
             if (newItem==null)
