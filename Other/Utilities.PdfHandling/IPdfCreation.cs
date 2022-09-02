@@ -20,8 +20,16 @@ namespace Utilities.PdfHandling
         byte[] GetPdfFromUrl(string url, PageOrientation orientation = PageOrientation.Portrait);
         Task<byte[]> GetPdfFromUrlAsync(string url, PageOrientation orientation = PageOrientation.Portrait);
 
+        [Obsolete("Use CombineFiles(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)")]
         void CombineFiles(List<FileInfo> fileList, FileInfo toFile);
 
+        [Obsolete("Use CombineFilesAsync(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)")]
         Task CombineFilesAsync(List<FileInfo> fileList, FileInfo toFile);
+
+        Task<FileInfo> CombineFilesAsync(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName);
+        FileInfo CombineFiles(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName);
+
+
+
     }
 }

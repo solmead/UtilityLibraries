@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Logging;
+﻿
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -88,57 +87,9 @@ namespace Utilities.TimedTasks
             return taskList;
         }
         //private static TaskServices _instance;
-        public static TaskServices Instance
-        {
-            get
-            {
-                if (Configurator.serviceProvider == null)
-                {
-                    throw new Exception("Must Initialize Timed Tasks before use. Call Utilities.TimedTasks.Core.InitTimeTasks");
-                }
-
-                var _instance = Configurator.serviceProvider.GetRequiredService<TaskServices>();
-                if (_instance==null)
-                {
-                    throw new Exception("Must Configure Timed Tasks before use. Call Utilities.TimedTasks.Core.ConfigureTimeTasks");
-                }
-                return _instance;
-            }
-        }
-
-        //public static void Initilize(ITimedTaskRepository timedTaskRepository, ILogger logger)
-        //{
-        //    logger.LogInformation("Initilizing Timed Tasks Services");
-        //    _instance = new TaskServices(timedTaskRepository, logger);
-        //}
-
+        // public static CacheSystem Instance => Configurator.Instance;
+        public static TaskServices Instance => Configurator.Instance;
         
-
-
-        ///// <summary>
-        ///// Initialize Timed Task System
-        ///// </summary>
-        ///// <param name="timedTaskRepository"></param>
-        ///// <param name="logger"></param>
-        ///// <param name="createTaskFromType">Pass in "DependencyResolver.Current.GetService" if you want to have DI support</param>
-        //public static void Initilize(ITimedTaskRepository timedTaskRepository, ILogger logger, Func<Type, ITask> createTaskFromType = null)
-        //{
-        //    TaskServices.Initilize(timedTaskRepository, logger);
-
-
-        //    foreach(var t in GetTasks(createTaskFromType))
-        //    {
-        //        AddTask(t);
-        //    }
-
-        //}
-
-
-
-
-
-
-
         public static void AddTask(ITask task)
         {
             Instance.AddTask(task);

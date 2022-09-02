@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,7 +13,7 @@ namespace Utilities.Caching.Web.Sessions
     public class SessionDataSource : IDataSource
     {
 
-        public static Dictionary<string, string> Names = new Dictionary<string, string>();
+        public static IDictionary<string, string> Names = new ConcurrentDictionary<string, string>();
 
 
         public BaseCacheArea Area { get { return BaseCacheArea.Global; } }

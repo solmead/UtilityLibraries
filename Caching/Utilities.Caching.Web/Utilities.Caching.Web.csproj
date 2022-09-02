@@ -2,7 +2,7 @@
 	<PropertyGroup>
 		<!--<TargetFramework>netstandard2.0</TargetFramework>-->
 		<TargetFrameworks>net462;net472;net48</TargetFrameworks>
-		<Version>6.6.0</Version>
+		<Version>6.6.3</Version>
 		<RuntimeIdentifiers>win10-x64</RuntimeIdentifiers>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>Solmead Productions</Authors>
@@ -70,8 +70,8 @@
 
 
 	<ItemGroup>
-	  <PackageReference Include="Utilities.Caching" Version="7.0.0" />
-	  <PackageReference Include="Utilities.Logging" Version="6.5.5" />
+	  <PackageReference Include="Utilities.Caching" Version="7.2.0" />
+	  <PackageReference Include="Utilities.Logging" Version="6.5.7" />
 	  <PackageReference Include="WebActivatorEx" Version="2.2.0" />
 	</ItemGroup>
 

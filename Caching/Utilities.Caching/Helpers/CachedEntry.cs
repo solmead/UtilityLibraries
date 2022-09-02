@@ -6,7 +6,7 @@ namespace Utilities.Caching.Helpers
 {
     public interface ICacheEntry
     {
-        string GetDataString();
+        //string GetDataString();
         object ItemObject { get; }
     }
     [Serializable]
@@ -17,7 +17,7 @@ namespace Utilities.Caching.Helpers
         //    return null;
         //}
         public string Name { get; set; }
-        public string Data { get { return GetMe()?.GetDataString(); } }
+        //public string Data { get { return GetMe()?.GetDataString(); } }
         public DateTime Created { get; set; }
         public DateTime Changed { get; set; }
         public DateTime? TimeOut { get; set; }
@@ -36,13 +36,14 @@ namespace Utilities.Caching.Helpers
             return this;
         }
 
-        public string GetDataString()
-        {
-            Type myType = typeof(tt);
-            return Cache.Serializer.Serialize(Item, myType);
-        }
+        //public string GetDataString()
+        //{
+        //    Type myType = typeof(tt);
+        //    return Cache.Serializer.Serialize(Item, myType);
+        //}
 
         [XmlIgnore]
+        [JsonIgnore]
         public object ItemObject { get { return Item; } }
     }
 }

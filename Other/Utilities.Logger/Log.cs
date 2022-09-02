@@ -203,7 +203,11 @@ namespace Utilities.Logging
                 var logEventInfo = new LogEventInfo { TimeStamp = DateTime.Now };
                 var fileName = fileTarget.FileName.Render(logEventInfo);
 
-                if (fileName.Contains(":\\") || fileName.StartsWith("\\\\"))
+
+                var pathBegin = "" + Path.PathSeparator + Path.DirectorySeparatorChar;
+                var netBegin = "" + Path.DirectorySeparatorChar + Path.DirectorySeparatorChar;
+
+                if (fileName.Contains(pathBegin) || fileName.StartsWith(netBegin))
                 {
                     file = new FileInfo(fileName);
                 } else

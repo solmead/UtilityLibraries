@@ -16,7 +16,6 @@ namespace Utilities.Caching
 {
     public class CacheSystem
     {
-        public ICookieRepository CookieRepository;
         private readonly ILogger _logger;
 
         public Dictionary<CacheArea, ICacheArea> CacheAreas { get; private set; }
@@ -80,10 +79,6 @@ namespace Utilities.Caching
 
 
 
-        public void SetCookieRepository(ICookieRepository cookieRepository)
-        {
-            CookieRepository = cookieRepository;
-        }
 
         public void AddTaggedEntry(CacheArea cacheArea, string tags, string entryName)
         {
@@ -119,7 +114,7 @@ namespace Utilities.Caching
 
 
             var tarr = (tags.ToUpper() + "," + te.Tags.ToUpper()).Split(',').ToList();
-            tarr = (from t in tarr where !string.IsNullOrWhiteSpace(t) select t).Distinct().ToList();
+            tarr = (from t in tarr where !string.IsNullOrWhiteSpace(t) select t.Trim()).Distinct().ToList();
             tarr.Insert(0, "");
             tarr.Add("");
             te.Tags = String.Join(",", tarr);
@@ -127,12 +122,12 @@ namespace Utilities.Caching
         }
 
 
-        public CacheSystem(ILogger logger, ICookieRepository cookieRepository) : this()
-        {
-            CookieRepository = cookieRepository;
+        //public CacheSystem(ILogger logger, ICookieRepository cookieRepository) : this()
+        //{
+        //    CookieRepository = cookieRepository;
 
-            _logger = logger;
-        }
+        //    _logger = logger;
+        //}
 
         public CacheSystem(ILogger logger) : this()
         {
@@ -143,8 +138,7 @@ namespace Utilities.Caching
         {
             CacheEnabled = true;
 
-            CookieRepository = null;
-
+            //
             CacheAreas = new Dictionary<CacheArea, ICacheArea>();
             //CacheAreas.Add(CacheArea.Request, new RequestCache(_httpContextAccessor));
             CacheAreas.Add(CacheArea.Request, new NoCache());
@@ -182,6 +176,7 @@ namespace Utilities.Caching
         }
         public async Task ClearAllCacheAreasAsync()
         {
+          
             foreach (var area in CacheAreas.Keys)
             {
                 try
@@ -206,13 +201,25 @@ namespace Utilities.Caching
             var tList = GetTaggedCacheEntries(tag);
             foreach (var t in tList)
             {
-                await Cache.SetItemAsync<object>(t.CacheArea, t.EntryName, null);
+                try { 
+                    await Cache.SetItemAsync<object>(t.CacheArea, t.EntryName, null);
+                }
+                catch
+                {
+
+                }
             }
         }
 
         public async Task ClearCacheAsync(CacheArea area)
         {
-            await GetCacheArea(area).ClearCacheAsync();
+            try
+            {
+                await GetCacheArea(area).ClearCacheAsync();
+            } catch
+            {
+
+            }
         }
 
         public async Task<IDictionary<string, object>> GetDataDictionaryAsync(CacheArea area)
@@ -241,18 +248,38 @@ namespace Utilities.Caching
 
         public void ClearTaggedCache(string tag)
         {
-            var tList = (from t in TaggedEntries
+            try
+            {
+                var tList = (from t in TaggedEntries
                          where t.Tags.ToUpper().Contains("," + tag.ToUpper() + ",")
                          select t).ToList();
-            foreach (var t in tList)
+                foreach (var t in tList)
+                {
+                    try
+                    {
+                        Cache.SetItem<string>(t.CacheArea, t.EntryName, null);
+                    }
+                    catch
+                    {
+
+                    }
+                }
+            }
+            catch
             {
-                Cache.SetItem<string>(t.CacheArea, t.EntryName, null);
+
             }
         }
 
         public void ClearCache(CacheArea area)
         {
-            GetCacheArea(area).ClearCache();
+            try { 
+                GetCacheArea(area).ClearCache();
+            }
+            catch
+            {
+
+            }
         }
 
         public IDictionary<string, object> GetDataDictionary(CacheArea area)
@@ -269,80 +296,6 @@ namespace Utilities.Caching
 
 
 
-
-        private  Tuple<bool, string> IsValidCookie(string cookie)
-        {
-            try
-            {
-                var baseData = cookie;
-
-                //var cdata = MachineKey.Unprotect(Convert.FromBase64String(baseData), context.Request.UserHostAddress);
-                var cdata = Convert.FromBase64String(baseData);
-                if (cdata != null)
-                {
-                    var _cookieId = Encoding.UTF8.GetString(cdata);
-                    return new Tuple<bool, string>(true, _cookieId);
-                }
-            }
-            catch
-            {
-
-            }
-            return new Tuple<bool, string>(false, null);
-        }
-        private  void ResetCookie(string name)
-        {
-            Cache.SetItem<string>(CacheArea.Request, "Cookie_" + name + "_Id", null);
-
-            CookieRepository.clearCookie("_" + name + "_Caching");
-
-        }
-        private  string GetCookieValue(string name, bool isPerminate)
-        {
-            return Cache.GetItem<string>(CacheArea.Request, "Cookie_" + name + "_Id", () =>
-            {
-                if (CookieRepository == null)
-                {
-                    throw new Exception("CookieRepository not initialized");
-                }
-                //try
-                //{
-                string cookie = CookieRepository.getCookieValue("_" + name + "_Caching");
-                if (string.IsNullOrWhiteSpace(cookie))
-                {
-                    cookie = Guid.NewGuid().ToString();
-                    CookieRepository.addCookie("_" + name + "_Caching", cookie, (isPerminate ? DateTime.Now.AddYears(3) : (DateTime?)null), isPerminate);
-
-                }
-
-                //}
-                //catch (Exception)
-                //{
-
-                //}
-                return cookie;
-            });
-
-
-        }
-
-
-        public  async Task<string> CookieIdAsync()
-        {
-            return GetCookieValue("my_cook", true);
-        }
-        //public static async Task CookieIdSetAsync(string value)
-        //{
-        //    SetCookieValue("my_cook", value);
-        //}
-        public  string CookieId()
-        {
-            return GetCookieValue("my_cook", true);
-        }
-        public  void ResetCookieId()
-        {
-            ResetCookie("my_cook");
-        }
 
     }
 }

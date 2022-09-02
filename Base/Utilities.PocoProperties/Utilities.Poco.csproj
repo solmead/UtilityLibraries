@@ -2,16 +2,21 @@
 
   <PropertyGroup>
     <!--<TargetFramework>netstandard2.0</TargetFramework>-->
-	  <TargetFrameworks>netstandard2.0;net462;net472;net48</TargetFrameworks>
+	  <TargetFrameworks>net5.0;netstandard2.0;net462;net472;net48</TargetFrameworks>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>2.4.0</Version>
+	  <VersionSuffix Condition="'$(DesignTimeBuild)' != 'true'">2.6.$([System.DateTime]::UtcNow.Date.Subtract($([System.DateTime]::Parse("2000-01-01"))).TotalDays).$([System.Math]::Floor($([MSBuild]::Divide($([System.DateTime]::UtcNow.TimeOfDay.TotalSeconds), 1.32))))</VersionSuffix>
+	  <VersionSuffix Condition="'$(DesignTimeBuild)' == 'true'">2.6.0.0</VersionSuffix>
+	  <AssemblyVersion Condition=" '$(VersionSuffix)' == '' ">0.0.0.1</AssemblyVersion>
+	  <AssemblyVersion Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</AssemblyVersion>
+	  <Version Condition=" '$(VersionSuffix)' == '' ">0.0.1.0</Version>
+	  <Version Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</Version>
     <RuntimeIdentifiers>win10-x64;osx.10.11-x64;ubuntu.16.04-x64</RuntimeIdentifiers>
     <Company>Solmead Productions</Company>
     <PackageLicenseUrl>https://github.com/solmead/PocoPropertyData</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/solmead/PocoPropertyData</PackageProjectUrl>
     <PackageIconUrl />
     <RepositoryUrl>https://github.com/solmead/PocoPropertyData</RepositoryUrl>
-    <Copyright>Copyright ©2018 </Copyright>
+    <Copyright>Copyright ©2021 </Copyright>
     <Description>Poco Property Extender</Description>
     <Product>Utilities.Poco</Product>
     <AssemblyVersion>2.3.7.0</AssemblyVersion>

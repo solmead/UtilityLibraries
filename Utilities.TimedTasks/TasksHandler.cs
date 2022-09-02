@@ -60,7 +60,7 @@ namespace Utilities.TimedTasks
                 When = DateTime.Now
             };
 
-            var ser = new Serializer();
+            var ser = new Serializer(_logger);
 
 
             _timedTaskRepository.SetSettingValue("Global_TimedTasks_" + task.Name + "_ConcurrencyCheck", ser.Serialize(data));
@@ -68,12 +68,13 @@ namespace Utilities.TimedTasks
             //Since at this point each instance has written a lastcheckdate, which isTime uses to determine if it is time to run, only those that hit within a very short amount of time could run at the same time. This is to trap the instances where istime returned true before the lastcheckdate got changed.
             await Task.Delay(2000);
 
-            var dt = _timedTaskRepository.GetSettingValue("Global_TimedTasks_" + task.Name + "_ConcurrencyCheck");
+            var dt = _timedTaskRepository.GetSettingValue("Global_TimedTasks_" + task.Name + "_ConcurrencyCheck", "");
 
             var data2 = ser.Deserialize<ConcurrencyCheck>(dt);
 
             if (data2.InstanceId == Core.Instance.InstanceId)
             {
+                _logger.LogInformation("Instance check success on Instance [" + Core.Instance.InstanceId + "] -> Instance Retrieved [" + data2.InstanceId + "]");
                 return true;
             }
 
@@ -82,8 +83,7 @@ namespace Utilities.TimedTasks
 
             //}
 
-
-
+            _logger.LogInformation("Instance check failed on Instance [" + Core.Instance.InstanceId + "] -> Instance Retrieved [" + data2.InstanceId + "]");
             return false;
         }
 

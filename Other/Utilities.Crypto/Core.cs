@@ -11,7 +11,8 @@ namespace Utilities.Crypto
     {
         const int Pbkdf2Count = 1000;
         const int Pbkdf2SubkeyLength = (256 / 8);
-        const int SaltSize = (128 / 8);
+        const int SaltSize = (256 / 8);
+        const int IvSize = (128 / 8);
         const int Keysize = 256;
         const int DerivationIterations = 1000;
 
@@ -20,14 +21,14 @@ namespace Utilities.Crypto
             //  Salt and IV is randomly generated each time, but is preprended to encrypted cipher text
             //  so that the same Salt and IV values can be used when decrypting.  
             var saltStringBytes = Generate256BitsOfRandomEntropy();
-            var ivStringBytes = Generate256BitsOfRandomEntropy();
+            var ivStringBytes = Generate128BitsOfRandomEntropy();
             var plainTextBytes = Encoding.UTF8.GetBytes(plainText);
             using (var password = new Rfc2898DeriveBytes(passPhrase, saltStringBytes, DerivationIterations))
             {
                 var keyBytes = password.GetBytes((Keysize / 8));
                 using (var symmetricKey = new RijndaelManaged())
                 {
-                    symmetricKey.BlockSize = 256;
+                    symmetricKey.BlockSize = 128;
                     symmetricKey.Mode = CipherMode.CBC;
                     symmetricKey.Padding = PaddingMode.PKCS7;
                     using (var encryptor = symmetricKey.CreateEncryptor(keyBytes, ivStringBytes))
@@ -58,20 +59,18 @@ namespace Utilities.Crypto
             //  [32 bytes of Salt] + [32 bytes of IV] + [n bytes of CipherText]
             var cipherTextBytesWithSaltAndIv = Convert.FromBase64String(cipherText);
             //  Get the saltbytes by extracting the first 32 bytes from the supplied cipherText bytes.
-            var saltStringBytes = cipherTextBytesWithSaltAndIv.Take((Keysize / 8)).ToArray();
+            var saltStringBytes = cipherTextBytesWithSaltAndIv.Take(SaltSize).ToArray();
             //  Get the IV bytes by extracting the next 32 bytes from the supplied cipherText bytes.
-            var ivStringBytes = cipherTextBytesWithSaltAndIv.Skip((Keysize / 8)).Take((Keysize / 8)).ToArray();
+            var ivStringBytes = cipherTextBytesWithSaltAndIv.Skip(SaltSize).Take(IvSize).ToArray();
             //  Get the actual cipher text bytes by removing the first 64 bytes from the cipherText string.
-            var cipherTextBytes = cipherTextBytesWithSaltAndIv.Skip(((Keysize / 8)
-                            * 2)).Take((cipherTextBytesWithSaltAndIv.Length
-                            - ((Keysize / 8)
-                            * 2))).ToArray();
+            var cipherTextBytes = cipherTextBytesWithSaltAndIv.Skip(SaltSize + IvSize).Take(
+                (cipherTextBytesWithSaltAndIv.Length - (SaltSize + IvSize))).ToArray();
             using (var password = new Rfc2898DeriveBytes(passPhrase, saltStringBytes, DerivationIterations))
             {
                 var keyBytes = password.GetBytes((Keysize / 8));
                 using (var symmetricKey = new RijndaelManaged())
                 {
-                    symmetricKey.BlockSize = 256;
+                    symmetricKey.BlockSize = 128;
                     symmetricKey.Mode = CipherMode.CBC;
                     symmetricKey.Padding = PaddingMode.PKCS7;
                     using (var decryptor = symmetricKey.CreateDecryptor(keyBytes, ivStringBytes))
@@ -92,6 +91,16 @@ namespace Utilities.Crypto
             }
         }
 
+        private static byte[] Generate128BitsOfRandomEntropy()
+        {
+            var randomBytes = new byte[16];
+            using (var rngCsp = new RNGCryptoServiceProvider())
+            {
+                //  Fill the array with cryptographically secure random bytes.
+                rngCsp.GetBytes(randomBytes);
+            }
+            return randomBytes;
+        }
         private static byte[] Generate256BitsOfRandomEntropy()
         {
             var randomBytes = new byte[32];

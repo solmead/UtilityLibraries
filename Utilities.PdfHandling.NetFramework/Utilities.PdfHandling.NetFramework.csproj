@@ -2,7 +2,7 @@
 	<PropertyGroup>
 		<!--<TargetFramework>netstandard2.0</TargetFramework>-->
 		<TargetFrameworks>net462;net472;net48</TargetFrameworks>
-		<Version>3.2.1</Version>
+		<Version>3.3.2</Version>
 		<RuntimeIdentifiers>win10-x64</RuntimeIdentifiers>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>Solmead Productions</Authors>
@@ -71,7 +71,7 @@
 
 	<ItemGroup>
 	  <PackageReference Include="hiqpdf" Version="10.17.0" />
-	  <PackageReference Include="Utilities.PdfHandling" Version="3.2.0" />
+	  <PackageReference Include="Utilities.PdfHandling" Version="3.3.1" />
 	</ItemGroup>
 	<PropertyGroup Condition=" '$(TargetFramework)' == 'net48'">
 		<DefineConstants>NET45;NETFULL</DefineConstants>

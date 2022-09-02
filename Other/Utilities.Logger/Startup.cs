@@ -22,6 +22,7 @@ namespace Utilities.Logging
         public static void Init(ILogUserRepository userRepo = null)
         {
             var mf = Log.GetConfiguredMainLogFile();
+
             mf = mf.Replace("/", "\\");
             if (!mf.StartsWith("\\") && !mf.Contains(":\\") && !mf.StartsWith("~"))
             {
@@ -32,6 +33,7 @@ namespace Utilities.Logging
 
             var dir = mf.Substring(0, pos+1);
             var fname = mf.Substring(pos + 1);
+
 
             Init(dir, userRepo, fname);
         }
@@ -59,7 +61,20 @@ namespace Utilities.Logging
                 //            return System.Web.Hosting.HostingEnvironment.MapPath(basePath);
 
                 //var di = new DirectoryInfo(HostingEnvironment.MapPath("/Documents/Logs/"));
-                fi = new FileInfo(userRepo.MapPath(logPath + "/" + fileName));
+
+
+
+
+                if (Path.DirectorySeparatorChar != '/')
+                {
+                    logPath = logPath.Replace('/', Path.DirectorySeparatorChar);
+                }
+
+
+
+
+
+                    fi = new FileInfo(userRepo.MapPath(logPath + Path.DirectorySeparatorChar + fileName));
                 logLocation = fi;
                 if (!fi.Directory.Exists)
                 {

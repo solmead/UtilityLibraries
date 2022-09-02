@@ -18,11 +18,27 @@ namespace Utilities.Sql
         public static Action<string> LogMessage { get; set; }
 
         private static Dictionary<Type, DbType> _typeMap;
+        private static Dictionary<Type, SqlDbType> _typeMap2;
 
         public static void Log(string msg)
         {
             //Debug.WriteLine(msg);
             LogMessage?.Invoke(msg);
+        }
+
+        private static Dictionary<Type, SqlDbType> TypeMap2
+        {
+            get
+            {
+                if (_typeMap2 == null)
+                {
+                    var typeMap2 = new Dictionary<Type, SqlDbType>();
+                    typeMap2[typeof(DataTable)] = SqlDbType.Structured;
+                    //typeMap[typeof(System.Data.Linq.Binary)] = DbType.Binary;
+                    _typeMap2 = typeMap2;
+                }
+                return _typeMap2;
+            }
         }
 
         private static Dictionary<Type, DbType> TypeMap
@@ -73,10 +89,23 @@ namespace Utilities.Sql
             }
         }
 
-
-        private static DbType AsDbType(this Type type)
+        private static SqlDbType? AsSqlDbType(this Type type)
         {
 
+            if (!TypeMap2.ContainsKey(type))
+            {
+                return null;
+            }
+            var tp = TypeMap2[type];
+            return tp;
+        }
+
+        private static DbType? AsDbType(this Type type)
+        {
+            if (!TypeMap.ContainsKey(type))
+            {
+                return null;
+            }
             var tp = TypeMap[type];
             return tp;
         }
@@ -87,26 +116,53 @@ namespace Utilities.Sql
         //    return tp;
         //}
 
+        public static DbParameter CreateParam(this DbCommand cmd, string name, object value)
+        {
+            var param = Param(name, value);
+            return cmd.CreateParamFrom(param);
+        }
 
-        private static DbParameter CreateParamFrom(this DbCommand cmd, DbParameter param)
+        public static DbParameter CreateParamFrom(this DbCommand cmd, DbParameter param)
         {
             var p = cmd.CreateParameter();
             param.CopyInto(p);
             //p.CloneFrom(param);
+            var bp = param as Parameter;
+            if (bp?.SqlDbTypeEx != null)
+            {
+                p.SetValue("SqlDbType", bp.SqlDbTypeEx);
+
+            }
+            if (!string.IsNullOrEmpty(bp?.TypeNameEx))
+            {
+                p.SetValue("TypeName", bp.TypeNameEx);
+            } else if (param.Value is DataTable)
+            {
+                var dt = (DataTable)param.Value;
+                p.SetValue("TypeName", dt.TableName);
+            }
 
             return p;
         }
 
-        public static DbParameter Param(string name, object value)
+        public static DbParameter Param(string name, object value, string typeName = null)
         {
 
             var v = (object)value?.ToString();
             v = value;
-
             var p = new Parameter(name, (v ?? DBNull.Value));
             if (v != null)
             {
-                p.DbType = value.GetType().AsDbType();
+                var dbtype = value.GetType().AsDbType();
+                var sqldbtype = value.GetType().AsSqlDbType();
+                if (dbtype!=null)
+                {
+                    p.DbType = dbtype ?? DbType.String;
+                } else if (sqldbtype != null)
+                {
+                    p.SqlDbTypeEx = sqldbtype;
+                }
+                p.TypeNameEx = typeName;
             }
 
             return p;
@@ -140,6 +196,24 @@ namespace Utilities.Sql
             }
         }
 
+        private static List<DbParameter> GetParameters(this Object param)
+        {
+            var parameters = new List<DbParameter>();
+            if (param != null)
+            {
+                foreach (var p in param.GetPropertyNames(onlyWritable: false))
+                {
+                    var pi = param.GetProperty(p);
+                    var attr = pi.GetCustomAttributes(typeof(TableValueParameterAttribute), false);
+                    var att = attr.FirstOrDefault() as TableValueParameterAttribute;
+
+
+                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p), att?.TypeName));
+                }
+            }
+            return parameters;
+        }
+
 
 
 
@@ -161,7 +235,13 @@ namespace Utilities.Sql
                 var st = DateTime.Now;
                 Log("-- Executing at " + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
                 var conn = db;
-                await conn.OpenAsync();
+                //await conn.OpenAsync(); 
+                var closed = (conn.State == ConnectionState.Closed || conn.State == ConnectionState.Broken);
+                if (closed)
+                {
+                    Log("Opening Connection");
+                    await conn.OpenAsync();
+                }
                 var cmd = conn.CreateCommand();
                 if (!sql.ToUpper().Contains("EXEC "))
                 {
@@ -191,7 +271,10 @@ namespace Utilities.Sql
                 }
 
                 var ret = await cmd.ExecuteScalarAsync();
-                conn.Close();
+                if (closed)
+                {
+                    conn.Close();
+                }
                 Log("-- Loaded in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
                 return (TT)ret;
             }
@@ -219,8 +302,12 @@ namespace Utilities.Sql
                 var st = DateTime.Now;
                 Log("-- Executing at " + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
                 var conn = db;
-
-                conn.Open();
+                var closed = (conn.State == ConnectionState.Closed || conn.State == ConnectionState.Broken);
+                if (closed)
+                {
+                    Log("Opening Connection");
+                    conn.Open();
+                }
                 var cmd = conn.CreateCommand();
                 if (!sql.ToUpper().Contains("EXEC "))
                 {
@@ -249,7 +336,10 @@ namespace Utilities.Sql
                 }
 
                 var ret = cmd.ExecuteScalar();
-                conn.Close();
+                if (closed)
+                {
+                    conn.Close();
+                }
                 Log("-- Loaded in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
                 return (TT)ret;
             }
@@ -264,30 +354,12 @@ namespace Utilities.Sql
 
         public static Task<TT> SqlQueryScalerAsync<TT>(this DbConnection db, string sql, object param = null)
         {
-            var parameters = new List<DbParameter>();
-            if (param != null)
-            {
-                foreach (var p in param.GetPropertyNames(onlyWritable: false))
-                {
-                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
-                }
-            }
-
-            return db.SqlQueryScalerAsync<TT>(sql, parameters);
+            return db.SqlQueryScalerAsync<TT>(sql, param?.GetParameters());
         }
 
         public static TT SqlQueryScaler<TT>(this DbConnection db, string sql, object param = null)
         {
-            var parameters = new List<DbParameter>();
-            if (param != null)
-            {
-                foreach (var p in param.GetPropertyNames(onlyWritable: false))
-                {
-                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
-                }
-            }
-
-            return db.SqlQueryScaler<TT>(sql, parameters);
+            return db.SqlQueryScaler<TT>(sql, param?.GetParameters());
         }
         #region ScalerArea
 
@@ -485,28 +557,11 @@ namespace Utilities.Sql
 
         public static Task<DataSet> SqlQueryDataSetAsync(this DbConnection db, string sql, object param = null)
         {
-            var parameters = new List<DbParameter>();
-            if (param != null)
-            {
-                foreach (var p in param.GetPropertyNames(onlyWritable: false))
-                {
-                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
-                }
-            }
-
-            return db.SqlQueryDataSetAsync(sql, parameters);
+            return db.SqlQueryDataSetAsync(sql, param?.GetParameters());
         }
         public static DataSet SqlQueryDataSet(this DbConnection db, string sql, object param = null)
         {
-            var parameters = new List<DbParameter>();
-            if (param != null)
-            {
-                foreach (var p in param.GetPropertyNames(onlyWritable: false))
-                {
-                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
-                }
-            }
-            return db.SqlQueryDataSet(sql, parameters);
+            return db.SqlQueryDataSet(sql, param?.GetParameters());
         }
 
 
@@ -634,7 +689,12 @@ namespace Utilities.Sql
                 var st = DateTime.Now;
                 Log("-- Executing at " + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
                 var conn = db;
-                await conn.OpenAsync();
+                var closed = (conn.State == ConnectionState.Closed || conn.State == ConnectionState.Broken);
+                if (closed)
+                {
+                    Log("Opening Connection");
+                    await conn.OpenAsync();
+                }
                 var cmd = conn.CreateCommand();
                 if (!sql.ToUpper().Contains("EXEC "))
                 {
@@ -665,7 +725,10 @@ namespace Utilities.Sql
 
                 //var ret = await cmd.ExecuteNonQueryAsync();
                 var ret = cmd.ExecuteNonQuery();
-                conn.Close();
+                if (closed)
+                {
+                    conn.Close();
+                }
                 Log("-- Loaded in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
                 //return (TT)ret;
             }
@@ -694,7 +757,12 @@ namespace Utilities.Sql
                 Log("-- Executing at " + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString());
                 var conn = db;
 
-                conn.Open();
+                var closed = (conn.State == ConnectionState.Closed || conn.State == ConnectionState.Broken);
+                if (closed)
+                {
+                    Log("Opening Connection");
+                     conn.Open();
+                }
                 var cmd = conn.CreateCommand();
                 if (!sql.ToUpper().Contains("EXEC "))
                 {
@@ -723,7 +791,10 @@ namespace Utilities.Sql
                 }
 
                 cmd.ExecuteNonQuery();
-                conn.Close();
+                if (closed)
+                {
+                    conn.Close();
+                }
                 Log("-- Loaded in " + DateTime.Now.Subtract(st).TotalMilliseconds + " ms");
                 //return (TT)ret;
             }
@@ -738,30 +809,12 @@ namespace Utilities.Sql
 
         public static Task ExecuteSqlCommandAsync(this DbConnection db, string sql, object param = null)
         {
-            var parameters = new List<DbParameter>();
-            if (param != null)
-            {
-                foreach (var p in param.GetPropertyNames(onlyWritable: false))
-                {
-                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
-                }
-            }
-
-            return db.ExecuteSqlCommandAsync(sql, parameters);
+            return db.ExecuteSqlCommandAsync(sql, param?.GetParameters());
         }
 
         public static void ExecuteSqlCommand(this DbConnection db, string sql, object param = null)
         {
-            var parameters = new List<DbParameter>();
-            if (param != null)
-            {
-                foreach (var p in param.GetPropertyNames(onlyWritable: false))
-                {
-                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
-                }
-            }
-
-            db.ExecuteSqlCommand(sql, parameters);
+            db.ExecuteSqlCommand(sql, param?.GetParameters());
         }
 
 
@@ -889,18 +942,13 @@ namespace Utilities.Sql
         }
 
 
-
         #endregion
 
 
-
-
-
         public static async Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbConnection db, string sql,
-            List<DbParameter> parameters, Dictionary<string, string> mappings = null) where TTt : class
+            List<DbParameter> parameters) where TTt : class
         {
-
-            mappings = (mappings?.Any() ?? false) ? mappings : Mapper.GetMapping<TTt>();
+            var mappings =  Mapper.GetMapping<TTt>();
             var st = DateTime.Now;
             var tbl = await db.SqlQueryTableAsync(sql, parameters);
             var st2 = DateTime.Now;
@@ -911,10 +959,10 @@ namespace Utilities.Sql
         }
 
         public static IQueryable<TTt> SqlQuery<TTt>(this DbConnection db, string sql,
-            List<DbParameter> parameters, Dictionary<string, string> mappings = null) where TTt : class
+            List<DbParameter> parameters) where TTt : class
         {
 
-            mappings = (mappings?.Any() ?? false) ? mappings : Mapper.GetMapping<TTt>();
+            var mappings = Mapper.GetMapping<TTt>();
             var st = DateTime.Now;
             var tbl = db.SqlQueryTable(sql, parameters);
             var st2 = DateTime.Now;
@@ -925,12 +973,12 @@ namespace Utilities.Sql
         }
 
         public static async Task<Tuple<IQueryable<TT1>, IQueryable<TT2>>> SqlQueryAsync<TT1, TT2>(this DbConnection db,
-            string sql, List<DbParameter> parameters, Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
+            string sql, List<DbParameter> parameters)
             where TT1 : class
             where TT2 : class
         {
-            mappings1 = (mappings1?.Any() ?? false) ? mappings1 : Mapper.GetMapping<TT1>();
-            mappings2 = (mappings2?.Any() ?? false) ? mappings2 : Mapper.GetMapping<TT2>();
+            var mappings1 = Mapper.GetMapping<TT1>();
+            var mappings2 = Mapper.GetMapping<TT2>();
 
             var st = DateTime.Now;
             var ds = await db.SqlQueryDataSetAsync(sql, parameters);
@@ -952,12 +1000,12 @@ namespace Utilities.Sql
         }
 
         public static Tuple<IQueryable<TT1>, IQueryable<TT2>> SqlQuery<TT1, TT2>(this DbConnection db,
-            string sql, List<DbParameter> parameters, Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
+            string sql, List<DbParameter> parameters)
             where TT1 : class
             where TT2 : class
         {
-            mappings1 = (mappings1?.Any() ?? false) ? mappings1 : Mapper.GetMapping<TT1>();
-            mappings2 = (mappings2?.Any() ?? false) ? mappings2 : Mapper.GetMapping<TT2>();
+            var mappings1 = Mapper.GetMapping<TT1>();
+            var mappings2 = Mapper.GetMapping<TT2>();
             var st = DateTime.Now;
             var ds = db.SqlQueryDataSet(sql, parameters);
             var st2 = DateTime.Now;
@@ -977,14 +1025,14 @@ namespace Utilities.Sql
             return q;
         }
 
-        public static async Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(this DbConnection db, string sql, List<DbParameter> parameters, Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null, Dictionary<string, string> mappings3 = null)
+        public static async Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(this DbConnection db, string sql, List<DbParameter> parameters)
             where TT1 : class
             where TT2 : class
             where TT3 : class
         {
-            mappings1 = (mappings1?.Any() ?? false) ? mappings1 : Mapper.GetMapping<TT1>();
-            mappings2 = (mappings2?.Any() ?? false) ? mappings2 : Mapper.GetMapping<TT2>();
-            mappings3 = (mappings3?.Any() ?? false) ? mappings3 : Mapper.GetMapping<TT3>();
+            var mappings1 = Mapper.GetMapping<TT1>();
+            var mappings2 = Mapper.GetMapping<TT2>();
+            var mappings3 = Mapper.GetMapping<TT3>();
             var st = DateTime.Now;
             var ds = await db.SqlQueryDataSetAsync(sql, parameters);
             var st2 = DateTime.Now;
@@ -1011,14 +1059,14 @@ namespace Utilities.Sql
 
 
 
-        public static Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>> SqlQuery<TT1, TT2, TT3>(this DbConnection db, string sql, List<DbParameter> parameters, Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null, Dictionary<string, string> mappings3 = null)
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>> SqlQuery<TT1, TT2, TT3>(this DbConnection db, string sql, List<DbParameter> parameters)
             where TT1 : class
             where TT2 : class
             where TT3 : class
         {
-            mappings1 = (mappings1?.Any() ?? false) ? mappings1 : Mapper.GetMapping<TT1>();
-            mappings2 = (mappings2?.Any() ?? false) ? mappings2 : Mapper.GetMapping<TT2>();
-            mappings3 = (mappings3?.Any() ?? false) ? mappings3 : Mapper.GetMapping<TT3>();
+            var mappings1 = Mapper.GetMapping<TT1>();
+            var mappings2 = Mapper.GetMapping<TT2>();
+            var mappings3 = Mapper.GetMapping<TT3>();
             var st = DateTime.Now;
             var ds = db.SqlQueryDataSet(sql, parameters);
             var st2 = DateTime.Now;
@@ -1047,124 +1095,311 @@ namespace Utilities.Sql
 
 
 
-        public static Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbConnection db, string sql, object param = null, Dictionary<string, string> mappings = null) where TTt : class
+        public static Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbConnection db, string sql, object param = null) where TTt : class
         {
-                var parameters = new List<DbParameter>();
-            if (param != null)
-            {
-                foreach (var p in param.GetPropertyNames(onlyWritable: false))
-                {
-                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
-                }
-            }
-                return db.SqlQueryAsync<TTt>(sql, parameters, mappings);
+                return db.SqlQueryAsync<TTt>(sql, param?.GetParameters());
         }
 
-        public static IQueryable<TTt> SqlQuery<TTt>(this DbConnection db, string sql, object param = null, Dictionary<string, string> mappings = null) where TTt : class
+
+
+
+
+        public static IQueryable<TTt> SqlQuery<TTt>(this DbConnection db, string sql, object param = null) where TTt : class
         {
-            var parameters = new List<DbParameter>();
-            if (param != null)
-            {
-                foreach (var p in param.GetPropertyNames(onlyWritable: false))
-                {
-                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
-                }
-            }
-            return db.SqlQuery<TTt>(sql, parameters, mappings);
+            return db.SqlQuery<TTt>(sql, param?.GetParameters());
 
         }
         public static Task<Tuple<IQueryable<TT1>, IQueryable<TT2>>> SqlQueryAsync<TT1, TT2>(this DbConnection db,
-            string sql, object param = null, Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
+            string sql, object param = null)
             where TT1 : class
             where TT2 : class
         {
 
-            var parameters = new List<DbParameter>();
-            if (param != null)
-            {
-                foreach (var p in param.GetPropertyNames(onlyWritable: false))
-                {
-                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
-                }
-            }
-            return db.SqlQueryAsync<TT1, TT2>(sql, parameters, mappings1, mappings2);
+            return db.SqlQueryAsync<TT1, TT2>(sql, param?.GetParameters());
         }
 
         public static Tuple<IQueryable<TT1>, IQueryable<TT2>> SqlQuery<TT1, TT2>(this DbConnection db,
-            string sql, object param = null, Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
+            string sql, object param = null)
             where TT1 : class
             where TT2 : class
         {
 
-            var parameters = new List<DbParameter>();
-            if (param != null)
-            {
-                foreach (var p in param.GetPropertyNames(onlyWritable: false))
-                {
-                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
-                }
-            }
-            return db.SqlQuery<TT1, TT2>(sql, parameters, mappings1, mappings2);
+            return db.SqlQuery<TT1, TT2>(sql, param?.GetParameters());
         }
 
-        public static  Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(this DbConnection db, string sql, object param = null, Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null, Dictionary<string, string> mappings3 = null)
+        public static  Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(this DbConnection db, string sql, object param = null)
             where TT1 : class
             where TT2 : class
             where TT3 : class
         {
 
-
-            var parameters = new List<DbParameter>();
-            if (param != null)
-            {
-                foreach (var p in param.GetPropertyNames(onlyWritable: false))
-                {
-                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
-                }
-            }
-            return db.SqlQueryAsync<TT1, TT2, TT3>(sql, parameters, mappings1, mappings2, mappings3);
+            return db.SqlQueryAsync<TT1, TT2, TT3>(sql, param?.GetParameters());
         }
 
 
 
-        public static Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>> SqlQuery<TT1, TT2, TT3>(this DbConnection db, string sql, object param = null, Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null, Dictionary<string, string> mappings3 = null)
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>> SqlQuery<TT1, TT2, TT3>(this DbConnection db, string sql, object param = null)
             where TT1 : class
             where TT2 : class
             where TT3 : class
         {
 
-            var parameters = new List<DbParameter>();
-            if (param != null)
-            {
-                foreach (var p in param.GetPropertyNames(onlyWritable: false))
-                {
-                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
-                }
-            }
-            return db.SqlQuery<TT1, TT2, TT3>(sql, parameters, mappings1, mappings2, mappings3);
+            return db.SqlQuery<TT1, TT2, TT3>(sql, param?.GetParameters());
         }
-
-
-
-
 
 
         #region SqlQueryArea
 
         public static Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbContext db, string sql,
+            object param = null) where TTt : class
+        {
+            return db.Database.GetDbConnection().SqlQueryAsync<TTt>(sql, param);
+        }
+        public static Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DatabaseFacade db, string sql, object param = null)
+            where TTt : class
+        {
+            return db.GetDbConnection().SqlQueryAsync<TTt>(sql, param);
+        }
+        public static IQueryable<TTt> SqlQuery<TTt>(this DbContext db, string sql, object param = null) where TTt : class
+        {
+            return db.Database.GetDbConnection().SqlQuery<TTt>(sql, param);
+        }
+        public static IQueryable<TTt> SqlQuery<TTt>(this DatabaseFacade db, string sql, object param = null)
+            where TTt : class
+        {
+            return db.GetDbConnection().SqlQuery<TTt>(sql, param);
+        }
+
+
+        public static Task<Tuple<IQueryable<TT1>, IQueryable<TT2>>> SqlQueryAsync<TT1, TT2>(
+            this DbContext db, string sql, object param = null)
+            where TT1 : class
+            where TT2 : class
+        {
+            return db.Database.GetDbConnection().SqlQueryAsync<TT1, TT2>(sql, param);
+        }
+        public static Task<Tuple<IQueryable<TT1>, IQueryable<TT2>>> SqlQueryAsync<TT1, TT2>(
+            this DatabaseFacade db, string sql, object param = null)
+            where TT1 : class
+            where TT2 : class
+        {
+            return db.GetDbConnection().SqlQueryAsync<TT1, TT2>(sql, param);
+        }
+
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>> SqlQuery<TT1, TT2>(
+            this DbContext db, string sql, object param = null)
+            where TT1 : class
+            where TT2 : class
+        {
+            return db.Database.GetDbConnection().SqlQuery<TT1, TT2>(sql, param);
+        }
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>> SqlQuery<TT1, TT2>(
+            this DatabaseFacade db, string sql, object param = null)
+            where TT1 : class
+            where TT2 : class
+        {
+            return db.GetDbConnection().SqlQuery<TT1, TT2>(sql, param);
+        }
+
+
+
+
+
+
+        public static Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(
+            this DbContext db, string sql, object param = null)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+        {
+            return db.Database.GetDbConnection().SqlQueryAsync<TT1, TT2, TT3>(sql, param);
+        }
+        public static Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(
+            this DatabaseFacade db, string sql, object param = null)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+        {
+            return db.GetDbConnection().SqlQueryAsync<TT1, TT2, TT3>(sql, param);
+        }
+
+
+
+
+
+
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>> SqlQuery<TT1, TT2, TT3>(
+            this DbContext db, string sql, object param = null)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+        {
+            return db.Database.GetDbConnection().SqlQuery<TT1, TT2, TT3>(sql, param);
+        }
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>> SqlQuery<TT1, TT2, TT3>(
+            this DatabaseFacade db, string sql, object param = null)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+        {
+            return db.GetDbConnection().SqlQuery<TT1, TT2, TT3>(sql, param);
+        }
+
+        public static  Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbContext db, string sql,
+            List<DbParameter> parameters) where TTt : class
+        {
+            return  db.Database.GetDbConnection().SqlQueryAsync<TTt>(sql, parameters);
+        }
+        public static  Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DatabaseFacade db, string sql, List<DbParameter> parameters)
+            where TTt : class
+        {
+            return  db.GetDbConnection().SqlQueryAsync<TTt>(sql, parameters);
+        }
+        public static IQueryable<TTt> SqlQuery<TTt>(this DbContext db, string sql,
+            List<DbParameter> parameters) where TTt : class
+        {
+            return db.Database.GetDbConnection().SqlQuery<TTt>(sql, parameters);
+        }
+        public static IQueryable<TTt> SqlQuery<TTt>(this DatabaseFacade db, string sql, List<DbParameter> parameters)
+            where TTt : class
+        {
+            return db.GetDbConnection().SqlQuery<TTt>(sql, parameters);
+        }
+
+
+        public static  Task<Tuple<IQueryable<TT1>, IQueryable<TT2>>> SqlQueryAsync<TT1, TT2>(
+            this DbContext db, string sql, List<DbParameter> parameters)
+            where TT1 : class
+            where TT2 : class
+        {
+            return db.Database.GetDbConnection().SqlQueryAsync<TT1, TT2>(sql, parameters);
+        }
+        public static  Task<Tuple<IQueryable<TT1>, IQueryable<TT2>>> SqlQueryAsync<TT1, TT2>(
+            this DatabaseFacade db, string sql, List<DbParameter> parameters)
+            where TT1 : class
+            where TT2 : class
+        {
+            return db.GetDbConnection().SqlQueryAsync<TT1, TT2>(sql, parameters);
+        }
+
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>> SqlQuery<TT1, TT2>(
+            this DbContext db, string sql, List<DbParameter> parameters)
+            where TT1 : class
+            where TT2 : class
+        {
+            return db.Database.GetDbConnection().SqlQuery<TT1, TT2>(sql, parameters);
+        }
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>> SqlQuery<TT1, TT2>(
+            this DatabaseFacade db, string sql, List<DbParameter> parameters)
+            where TT1 : class
+            where TT2 : class
+        {
+            return db.GetDbConnection().SqlQuery<TT1, TT2>(sql, parameters);
+        }
+
+
+
+
+
+
+        public static  Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(
+            this DbContext db, string sql, List<DbParameter> parameters)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+        {
+            return  db.Database.GetDbConnection().SqlQueryAsync<TT1, TT2, TT3>(sql, parameters);
+        }
+        public static  Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(
+            this DatabaseFacade db, string sql, List<DbParameter> parameters)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+        {
+            return  db.GetDbConnection().SqlQueryAsync<TT1, TT2, TT3>(sql, parameters);
+        }
+
+
+
+
+
+
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>> SqlQuery<TT1, TT2, TT3>(
+            this DbContext db, string sql, List<DbParameter> parameters)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+        {
+            return db.Database.GetDbConnection().SqlQuery<TT1, TT2, TT3>(sql, parameters);
+        }
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>> SqlQuery<TT1, TT2, TT3>(
+            this DatabaseFacade db, string sql, List<DbParameter> parameters)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+        {
+            return db.GetDbConnection().SqlQuery<TT1, TT2, TT3>(sql, parameters);
+        }
+
+
+
+        #endregion
+
+        #region SqlQueryParamsArea
+        public static IQueryable<TTt> SqlQuery<TTt>(this DbConnection db, string sql, params DbParameter[] parameters) where TTt : class
+        {
+            var map = new Dictionary<string, string>();
+            return db.SqlQuery<TTt>(sql, (from p in parameters select p).ToList());
+        }
+        public static IQueryable<TTt> SqlQuery<TTt>(this DbContext db, string sql,
+            params DbParameter[] parameters) where TTt : class
+        {
+            return db.Database.GetDbConnection().SqlQuery<TTt>(sql, parameters);
+        }
+        public static IQueryable<TTt> SqlQuery<TTt>(this DatabaseFacade db, string sql, params DbParameter[] parameters) where TTt : class
+        {
+            return db.GetDbConnection().SqlQuery<TTt>(sql, parameters);
+        }
+
+
+        public static async Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbConnection db, string sql, params DbParameter[] parameters) where TTt : class
+        {
+            var map = new Dictionary<string, string>();
+            return await db.SqlQueryAsync<TTt>(sql, (from p in parameters select p).ToList());
+        }
+        public static async Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbContext db, string sql,
+            params DbParameter[] parameters) where TTt : class
+        {
+            return await db.Database.GetDbConnection().SqlQueryAsync<TTt>(sql, parameters);
+        }
+        public static async Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DatabaseFacade db, string sql, params DbParameter[] parameters) where TTt : class
+        {
+            return await db.GetDbConnection().SqlQueryAsync<TTt>(sql, parameters);
+        }
+
+
+        #endregion
+
+        #region ObsoleteItems
+
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
+        public static Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbContext db, string sql,
             object param = null, Dictionary<string, string> mappings = null) where TTt : class
         {
             return db.Database.GetDbConnection().SqlQueryAsync<TTt>(sql, param, mappings);
         }
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
         public static Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DatabaseFacade db, string sql, object param = null, Dictionary<string, string> mappings = null)
             where TTt : class
         {
             return db.GetDbConnection().SqlQueryAsync<TTt>(sql, param, mappings);
         }
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
         public static IQueryable<TTt> SqlQuery<TTt>(this DbContext db, string sql, object param = null, Dictionary<string, string> mappings = null) where TTt : class
         {
             return db.Database.GetDbConnection().SqlQuery<TTt>(sql, param, mappings);
         }
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
         public static IQueryable<TTt> SqlQuery<TTt>(this DatabaseFacade db, string sql, object param = null, Dictionary<string, string> mappings = null)
             where TTt : class
         {
@@ -1172,6 +1407,7 @@ namespace Utilities.Sql
         }
 
 
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
         public static Task<Tuple<IQueryable<TT1>, IQueryable<TT2>>> SqlQueryAsync<TT1, TT2>(
             this DbContext db, string sql, object param = null,
             Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
@@ -1180,6 +1416,7 @@ namespace Utilities.Sql
         {
             return db.Database.GetDbConnection().SqlQueryAsync<TT1, TT2>(sql, param, mappings1, mappings2);
         }
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
         public static Task<Tuple<IQueryable<TT1>, IQueryable<TT2>>> SqlQueryAsync<TT1, TT2>(
             this DatabaseFacade db, string sql, object param = null,
             Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
@@ -1189,6 +1426,7 @@ namespace Utilities.Sql
             return db.GetDbConnection().SqlQueryAsync<TT1, TT2>(sql, param, mappings1, mappings2);
         }
 
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
         public static Tuple<IQueryable<TT1>, IQueryable<TT2>> SqlQuery<TT1, TT2>(
             this DbContext db, string sql, object param = null,
             Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
@@ -1197,6 +1435,7 @@ namespace Utilities.Sql
         {
             return db.Database.GetDbConnection().SqlQuery<TT1, TT2>(sql, param, mappings1, mappings2);
         }
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
         public static Tuple<IQueryable<TT1>, IQueryable<TT2>> SqlQuery<TT1, TT2>(
             this DatabaseFacade db, string sql, object param = null,
             Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
@@ -1211,6 +1450,7 @@ namespace Utilities.Sql
 
 
 
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
         public static Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(
             this DbContext db, string sql, object param = null,
             Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null,
@@ -1221,6 +1461,7 @@ namespace Utilities.Sql
         {
             return db.Database.GetDbConnection().SqlQueryAsync<TT1, TT2, TT3>(sql, param, mappings1, mappings2, mappings3);
         }
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
         public static Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(
             this DatabaseFacade db, string sql, object param = null,
             Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null,
@@ -1237,6 +1478,7 @@ namespace Utilities.Sql
 
 
 
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
         public static Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>> SqlQuery<TT1, TT2, TT3>(
             this DbContext db, string sql, object param = null,
             Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null,
@@ -1247,6 +1489,7 @@ namespace Utilities.Sql
         {
             return db.Database.GetDbConnection().SqlQuery<TT1, TT2, TT3>(sql, param, mappings1, mappings2, mappings3);
         }
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
         public static Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>> SqlQuery<TT1, TT2, TT3>(
             this DatabaseFacade db, string sql, object param = null,
             Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null,
@@ -1258,50 +1501,25 @@ namespace Utilities.Sql
             return db.GetDbConnection().SqlQuery<TT1, TT2, TT3>(sql, param, mappings1, mappings2, mappings3);
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        public static  Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbContext db, string sql,
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
+        public static Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbContext db, string sql,
             List<DbParameter> parameters, Dictionary<string, string> mappings = null) where TTt : class
         {
-            return  db.Database.GetDbConnection().SqlQueryAsync<TTt>(sql, parameters, mappings);
+            return db.Database.GetDbConnection().SqlQueryAsync<TTt>(sql, parameters, mappings);
         }
-        public static  Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DatabaseFacade db, string sql, List<DbParameter> parameters, Dictionary<string, string> mappings = null)
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
+        public static Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DatabaseFacade db, string sql, List<DbParameter> parameters, Dictionary<string, string> mappings = null)
             where TTt : class
         {
-            return  db.GetDbConnection().SqlQueryAsync<TTt>(sql, parameters, mappings);
+            return db.GetDbConnection().SqlQueryAsync<TTt>(sql, parameters, mappings);
         }
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
         public static IQueryable<TTt> SqlQuery<TTt>(this DbContext db, string sql,
             List<DbParameter> parameters, Dictionary<string, string> mappings = null) where TTt : class
         {
             return db.Database.GetDbConnection().SqlQuery<TTt>(sql, parameters, mappings);
         }
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
         public static IQueryable<TTt> SqlQuery<TTt>(this DatabaseFacade db, string sql, List<DbParameter> parameters, Dictionary<string, string> mappings = null)
             where TTt : class
         {
@@ -1309,7 +1527,8 @@ namespace Utilities.Sql
         }
 
 
-        public static  Task<Tuple<IQueryable<TT1>, IQueryable<TT2>>> SqlQueryAsync<TT1, TT2>(
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
+        public static Task<Tuple<IQueryable<TT1>, IQueryable<TT2>>> SqlQueryAsync<TT1, TT2>(
             this DbContext db, string sql, List<DbParameter> parameters,
             Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
             where TT1 : class
@@ -1317,7 +1536,8 @@ namespace Utilities.Sql
         {
             return db.Database.GetDbConnection().SqlQueryAsync<TT1, TT2>(sql, parameters, mappings1, mappings2);
         }
-        public static  Task<Tuple<IQueryable<TT1>, IQueryable<TT2>>> SqlQueryAsync<TT1, TT2>(
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
+        public static Task<Tuple<IQueryable<TT1>, IQueryable<TT2>>> SqlQueryAsync<TT1, TT2>(
             this DatabaseFacade db, string sql, List<DbParameter> parameters,
             Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
             where TT1 : class
@@ -1326,6 +1546,7 @@ namespace Utilities.Sql
             return db.GetDbConnection().SqlQueryAsync<TT1, TT2>(sql, parameters, mappings1, mappings2);
         }
 
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
         public static Tuple<IQueryable<TT1>, IQueryable<TT2>> SqlQuery<TT1, TT2>(
             this DbContext db, string sql, List<DbParameter> parameters,
             Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
@@ -1334,6 +1555,7 @@ namespace Utilities.Sql
         {
             return db.Database.GetDbConnection().SqlQuery<TT1, TT2>(sql, parameters, mappings1, mappings2);
         }
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
         public static Tuple<IQueryable<TT1>, IQueryable<TT2>> SqlQuery<TT1, TT2>(
             this DatabaseFacade db, string sql, List<DbParameter> parameters,
             Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
@@ -1348,7 +1570,8 @@ namespace Utilities.Sql
 
 
 
-        public static  Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
+        public static Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(
             this DbContext db, string sql, List<DbParameter> parameters,
             Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null,
             Dictionary<string, string> mappings3 = null)
@@ -1356,9 +1579,10 @@ namespace Utilities.Sql
             where TT2 : class
             where TT3 : class
         {
-            return  db.Database.GetDbConnection().SqlQueryAsync<TT1, TT2, TT3>(sql, parameters, mappings1, mappings2, mappings3);
+            return db.Database.GetDbConnection().SqlQueryAsync<TT1, TT2, TT3>(sql, parameters, mappings1, mappings2, mappings3);
         }
-        public static  Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
+        public static Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(
             this DatabaseFacade db, string sql, List<DbParameter> parameters,
             Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null,
             Dictionary<string, string> mappings3 = null)
@@ -1366,7 +1590,7 @@ namespace Utilities.Sql
             where TT2 : class
             where TT3 : class
         {
-            return  db.GetDbConnection().SqlQueryAsync<TT1, TT2, TT3>(sql, parameters, mappings1, mappings2, mappings3);
+            return db.GetDbConnection().SqlQueryAsync<TT1, TT2, TT3>(sql, parameters, mappings1, mappings2, mappings3);
         }
 
 
@@ -1374,6 +1598,7 @@ namespace Utilities.Sql
 
 
 
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
         public static Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>> SqlQuery<TT1, TT2, TT3>(
             this DbContext db, string sql, List<DbParameter> parameters,
             Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null,
@@ -1384,6 +1609,7 @@ namespace Utilities.Sql
         {
             return db.Database.GetDbConnection().SqlQuery<TT1, TT2, TT3>(sql, parameters, mappings1, mappings2, mappings3);
         }
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
         public static Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>> SqlQuery<TT1, TT2, TT3>(
             this DatabaseFacade db, string sql, List<DbParameter> parameters,
             Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null,
@@ -1397,47 +1623,108 @@ namespace Utilities.Sql
 
 
 
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
+        public static IQueryable<TTt> SqlQuery<TTt>(this DbConnection db, string sql, object param = null, Dictionary<string, string> mappings = null) where TTt : class
+        {
+            return null;
+        }
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
+        public static Task<Tuple<IQueryable<TT1>, IQueryable<TT2>>> SqlQueryAsync<TT1, TT2>(this DbConnection db,
+            string sql, object param = null, Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
+            where TT1 : class
+            where TT2 : class
+        {
+            return null;
+        }
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>> SqlQuery<TT1, TT2>(this DbConnection db,
+            string sql, object param = null, Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null)
+            where TT1 : class
+            where TT2 : class
+        {
+            return null;
+        }
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
+        public static Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(this DbConnection db, string sql, object param = null, Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null, Dictionary<string, string> mappings3 = null)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+        {
+            return null;
+        }
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>> SqlQuery<TT1, TT2, TT3>(this DbConnection db, string sql, object param = null, Dictionary<string, string> mappings1 = null, Dictionary<string, string> mappings2 = null, Dictionary<string, string> mappings3 = null)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+        {
+            return null;
+        }
+
+
+
+
+
+
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
+        public static Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbConnection db, string sql,
+            List<DbParameter> parameters, Dictionary<string, string> mappings) where TTt : class
+        {
+            return null;
+        }
+
+        [Obsolete("Use version without mapping parameter. And use Mapper.AddMapping", true)]
+        public static IQueryable<TTt> SqlQuery<TTt>(this DbConnection db, string sql,
+            List<DbParameter> parameters, Dictionary<string, string> mappings) where TTt : class
+        {
+            return null;
+        }
+        [Obsolete("Use version without mapping parameters. And use Mapper.AddMapping", true)]
+        public static Task<Tuple<IQueryable<TT1>, IQueryable<TT2>>> SqlQueryAsync<TT1, TT2>(this DbConnection db,
+            string sql, List<DbParameter> parameters, Dictionary<string, string> mappings1, Dictionary<string, string> mappings2 = null)
+            where TT1 : class
+            where TT2 : class
+        {
+            return null;
+        }
+
+        [Obsolete("Use version without mapping parameters. And use Mapper.AddMapping", true)]
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>> SqlQuery<TT1, TT2>(this DbConnection db,
+            string sql, List<DbParameter> parameters, Dictionary<string, string> mappings1, Dictionary<string, string> mappings2 = null)
+            where TT1 : class
+            where TT2 : class
+        {
+            return null;
+        }
+
+        [Obsolete("Use version without mapping parameters. And use Mapper.AddMapping", true)]
+        public static Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(this DbConnection db, string sql, List<DbParameter> parameters, Dictionary<string, string> mappings1, Dictionary<string, string> mappings2 = null, Dictionary<string, string> mappings3 = null)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+        {
+            return null;
+        }
+
+
+        [Obsolete("Use version without mapping parameters. And use Mapper.AddMapping", true)]
+        public static Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>> SqlQuery<TT1, TT2, TT3>(this DbConnection db, string sql, List<DbParameter> parameters, Dictionary<string, string> mappings1, Dictionary<string, string> mappings2 = null, Dictionary<string, string> mappings3 = null)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+        {
+            return null;
+        }
+
+
+        [Obsolete("Use version without mapping parameters. And use Mapper.AddMapping", true)]
+        public static Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbConnection db, string sql, object param = null, Dictionary<string, string> mappings = null) where TTt : class
+        {
+            return null;
+        }
+
+
         #endregion
-
-
-
-        #region SqlQueryParamsArea
-        public static IQueryable<TTt> SqlQuery<TTt>(this DbConnection db, string sql, params DbParameter[] parameters) where TTt : class
-        {
-            var map = new Dictionary<string, string>();
-            return db.SqlQuery<TTt>(sql, (from p in parameters select p).ToList(), map);
-        }
-        public static IQueryable<TTt> SqlQuery<TTt>(this DbContext db, string sql,
-            params DbParameter[] parameters) where TTt : class
-        {
-            return db.Database.GetDbConnection().SqlQuery<TTt>(sql, parameters);
-        }
-        public static IQueryable<TTt> SqlQuery<TTt>(this DatabaseFacade db, string sql, params DbParameter[] parameters) where TTt : class
-        {
-            return db.GetDbConnection().SqlQuery<TTt>(sql, parameters);
-        }
-
-
-        public static async Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbConnection db, string sql, params DbParameter[] parameters) where TTt : class
-        {
-            var map = new Dictionary<string, string>();
-            return await db.SqlQueryAsync<TTt>(sql, (from p in parameters select p).ToList(), map);
-        }
-        public static async Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbContext db, string sql,
-            params DbParameter[] parameters) where TTt : class
-        {
-            return await db.Database.GetDbConnection().SqlQueryAsync<TTt>(sql, parameters);
-        }
-        public static async Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DatabaseFacade db, string sql, params DbParameter[] parameters) where TTt : class
-        {
-            return await db.GetDbConnection().SqlQueryAsync<TTt>(sql, parameters);
-        }
-
-
-        #endregion
-
-
-
 
     }
 }

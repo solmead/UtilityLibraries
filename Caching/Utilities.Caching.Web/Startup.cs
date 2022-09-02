@@ -28,8 +28,8 @@ namespace Utilities.Caching.Web
         {
 
             Utilities.Caching.Configuration.Configurator.InitCache(new GenericLogger());
+            Utilities.Caching.Configuration.Configurator.SetCookieRepository(new CookieRepository());
             var system = Cache.Instance;
-            system.SetCookieRepository(new CookieRepository());
             system.CacheAreas[CacheArea.Session] = new SessionCache();
             system.CacheAreas[CacheArea.Request] = new RequestCache();
         }
