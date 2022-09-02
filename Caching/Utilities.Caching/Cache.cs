@@ -39,21 +39,21 @@ namespace Utilities.Caching
 
         //public static void LogDebug(string msg)
         //{
-        //    CacheSystem.Instance.LogDebugMessage?.Invoke(msg);
+        //    Cache.Instance.LogDebugMessage?.Invoke(msg);
         //}
         //public static void LogError(string msg)
         //{
-        //    CacheSystem.Instance.LogErrorMessage?.Invoke(msg);
+        //    Cache.Instance.LogErrorMessage?.Invoke(msg);
         //}
 
 
         //public static void SetLogDebugFunction(Action<string> logCall)
         //{
-        //    CacheSystem.Instance.LogDebugMessage = logCall;
+        //    Cache.Instance.LogDebugMessage = logCall;
         //}
         //public static void SetLogErrorFunction(Action<string> logCall)
         //{
-        //    CacheSystem.Instance.LogErrorMessage = logCall;
+        //    Cache.Instance.LogErrorMessage = logCall;
         //}
         public static CacheSystem Instance => Configurator.Instance;
         public static ISerializer Serializer => Configurator.Serializer;

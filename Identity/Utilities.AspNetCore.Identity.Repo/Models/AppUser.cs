@@ -18,7 +18,7 @@ namespace Utilities.AspNetCore.Identity.Repo.Models
     {
         public AppUser()
         {
-            Roles = new List<string>();
+            Roles = new List<AppRole<TKey>>();
             Claims = new List<IdentityUserClaim<TKey>>();
             TwoFactorTokens = new List<TwoFactorToken<TKey>>();
             SocialLogins = new List<IdentityUserLogin<TKey>>();
@@ -33,12 +33,12 @@ namespace Utilities.AspNetCore.Identity.Repo.Models
 
         //public string Id { get; internal set; }
         //public string UserName { get; internal set; }
-        
+
         //public string Email { get; set; }
         //public string SocialId { get; set; }
 
         [NotMapped]
-        public IList<string> Roles { get; set; }
+        public IList<AppRole<TKey>> Roles { get; set; }
 
 
         [NotMapped]

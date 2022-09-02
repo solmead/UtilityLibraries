@@ -18,6 +18,7 @@ namespace Utilities.Sql
         public override void ResetDbType()
         {
             //throw new NotImplementedException();
+           
         }
         public override DbType DbType { get; set; }
         public override ParameterDirection Direction { get; set; }
@@ -27,5 +28,10 @@ namespace Utilities.Sql
         public override object Value { get; set; }
         public override bool SourceColumnNullMapping { get; set; }
         public override int Size { get; set; }
+
+        
+
+        public SqlDbType? SqlDbTypeEx { get; set; } = null;
+        public string TypeNameEx { get; set; } = null;
     }
 }

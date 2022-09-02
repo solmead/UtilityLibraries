@@ -246,10 +246,10 @@ namespace Utilities.ImageMagic
                             var NHeight = Height;
 
 
-                            var dx = Width / Ti.Width;
-                            var dy = Height / Ti.Height;
+                            var dx = (double)Width / (double)Ti.Width;
+                            var dy = (double)Height / (double)Ti.Height;
                             bool Comp = (dx < dy);
-                            var Ratio = Ti.Width / Ti.Height;
+                            var Ratio = (double)Ti.Width / (double)Ti.Height;
                             //If Ratio > 1 Then Ratio = 1 / Ratio
 
 

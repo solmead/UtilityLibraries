@@ -16,6 +16,10 @@ namespace Utilities.FileExtensions
 
         static readonly string[] SizeSuffixes =
                    { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
+
+
+
+
         public static string SizeSuffix(this int value, int decimalPlaces = 1)
         {
             return ((long)value).SizeSuffix(decimalPlaces);

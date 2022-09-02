@@ -78,5 +78,12 @@ namespace Utilities.AspNetCore.Identity.Repo.Abstract
         Task<TRole> FindRoleByNameAsync(string name);
 
 
+        Task AddToRoleAsync(TUser user, TRole role);
+        Task RemoveFromRoleAsync(TUser user, TRole role);
+
+
+        Task<IList<TUser>> GetUsersInRole(TRole role);
+
+
     }
 }

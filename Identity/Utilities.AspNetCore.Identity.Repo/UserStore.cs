@@ -425,27 +425,27 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <param name="normalizedRoleName">The role to add.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public override Task AddToRoleAsync(TUser user, string normalizedRoleName, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task AddToRoleAsync(TUser user, string normalizedRoleName, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
 
-            throw new NotImplementedException();
-            //if (user == null)
-            //{
-            //    throw new ArgumentNullException(nameof(user));
-            //}
-            //if (string.IsNullOrWhiteSpace(normalizedRoleName))
-            //{
-            //    throw new ArgumentException(Resources.ValueCannotBeNullOrEmpty, nameof(normalizedRoleName));
-            //}
-            //var roleEntity = await FindRoleAsync(normalizedRoleName, cancellationToken);
-            //if (roleEntity == null)
-            //{
-            //    throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Resources.RoleNotFound, normalizedRoleName));
-            //}
+            //throw new NotImplementedException();
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+            if (string.IsNullOrWhiteSpace(normalizedRoleName))
+            {
+                throw new ArgumentException(Resources.ValueCannotBeNullOrEmpty, nameof(normalizedRoleName));
+            }
+            var roleEntity = await FindRoleAsync(normalizedRoleName, cancellationToken);
+            if (roleEntity == null)
+            {
+                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Resources.RoleNotFound, normalizedRoleName));
+            }
 
-
+            await _identityRepository.AddToRoleAsync(user, roleEntity);
 
             //UserRoles.Add(CreateUserRole(user, roleEntity));
         }
@@ -457,32 +457,34 @@ namespace Utilities.AspNetCore.Identity.Repo
         /// <param name="normalizedRoleName">The role to remove.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public override Task RemoveFromRoleAsync(TUser user, string normalizedRoleName, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task RemoveFromRoleAsync(TUser user, string normalizedRoleName, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
-            throw new NotImplementedException();
-            //if (user == null)
-            //{
-            //    throw new ArgumentNullException(nameof(user));
-            //}
-            //if (string.IsNullOrWhiteSpace(normalizedRoleName))
-            //{
-            //    throw new ArgumentException(Resources.ValueCannotBeNullOrEmpty, nameof(normalizedRoleName));
-            //}
-            //var roleEntity = await FindRoleAsync(normalizedRoleName, cancellationToken);
-            //if (roleEntity != null)
-            //{
-            //    var userRole = await FindUserRoleAsync(user.Id, roleEntity.Id, cancellationToken);
-            //    if (userRole != null)
-            //    {
-            //        UserRoles.Remove(userRole);
-            //    }
-            //}
+            //throw new NotImplementedException();
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+            if (string.IsNullOrWhiteSpace(normalizedRoleName))
+            {
+                throw new ArgumentException(Resources.ValueCannotBeNullOrEmpty, nameof(normalizedRoleName));
+            }
+            var roleEntity = await FindRoleAsync(normalizedRoleName, cancellationToken);
+            if (roleEntity != null)
+            {
+                //
+                await _identityRepository.RemoveFromRoleAsync(user, roleEntity);
+                //var userRole = await FindUserRoleAsync(user.Id, roleEntity.Id, cancellationToken);
+                //if (userRole != null)
+                //{
+                //    UserRoles.Remove(userRole);
+                //}
+            }
         }
 
 
-        private async Task<IList<TRole>> GetRoleListAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
+        private  Task<IList<AppRole<TKey>>> GetRoleListAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
@@ -490,15 +492,15 @@ namespace Utilities.AspNetCore.Identity.Repo
             {
                 throw new ArgumentNullException(nameof(user));
             }
+           
+            //var list = new List<TRole>();// =(from r in user.Roles select Context.FindRoleByNameAsync(r))
+            //foreach (var r in user.Roles)
+            //{
+            //    var role = await _identityRepository.FindRoleByNameAsync(r);
+            //    list.Add(role);
+            //}
             
-            var list = new List<TRole>();// =(from r in user.Roles select Context.FindRoleByNameAsync(r))
-            foreach (var r in user.Roles)
-            {
-                var role = await _identityRepository.FindRoleByNameAsync(r);
-                list.Add(role);
-            }
-            
-            return list;
+            return Task.FromResult(user.Roles);
         }
 
         /// <summary>
@@ -515,12 +517,12 @@ namespace Utilities.AspNetCore.Identity.Repo
             {
                 throw new ArgumentNullException(nameof(user));
             }
-            //var roles = await GetRoleListAsync(user, cancellationToken);
+            var roles = await GetRoleListAsync(user, cancellationToken);
 
-            
-            //var query = from userRole in roles
-            //            select userRole.Name;
-            return user.Roles.ToList();
+
+            var query = from userRole in roles
+                        select userRole.Name;
+            return query.ToList();
         }
 
         /// <summary>
@@ -864,10 +866,10 @@ namespace Utilities.AspNetCore.Identity.Repo
 
             if (role != null)
             {
-
-                var list = (from u in Users
-                    where u.Roles.Contains(role.Name)
-                    select u).ToList();
+                var list = await _identityRepository.GetUsersInRole(role);
+                //var list = (from u in Users
+                //    where (from r in u.Roles where r.Id.Equals(role.Id) select r).Any()
+                //    select u).ToList();
 
 
 

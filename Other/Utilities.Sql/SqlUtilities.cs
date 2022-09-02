@@ -18,11 +18,27 @@ namespace Utilities.Sql
         public static Action<string> LogMessage { get; set; }
 
         private static Dictionary<Type, DbType> _typeMap;
+        private static Dictionary<Type, SqlDbType> _typeMap2;
 
         public static void Log(string msg)
         {
             //Debug.WriteLine(msg);
             LogMessage?.Invoke(msg);
+        }
+
+        private static Dictionary<Type, SqlDbType> TypeMap2
+        {
+            get
+            {
+                if (_typeMap2 == null)
+                {
+                    var typeMap2 = new Dictionary<Type, SqlDbType>();
+                    typeMap2[typeof(DataTable)] = SqlDbType.Structured;
+                    //typeMap[typeof(System.Data.Linq.Binary)] = DbType.Binary;
+                    _typeMap2 = typeMap2;
+                }
+                return _typeMap2;
+            }
         }
 
         private static Dictionary<Type, DbType> TypeMap
@@ -73,13 +89,22 @@ namespace Utilities.Sql
             }
         }
 
-
-        private static DbType AsDbType(this Type type)
+        private static SqlDbType? AsSqlDbType(this Type type)
         {
 
+            if (!TypeMap2.ContainsKey(type))
+            {
+                return null;
+            }
+            var tp = TypeMap2[type];
+            return tp;
+        }
+
+        private static DbType? AsDbType(this Type type)
+        {
             if (!TypeMap.ContainsKey(type))
             {
-                throw new Exception("Type: [" + type.ToString() + "] not supported yet by Utilities.Sql");
+                return null;
             }
             var tp = TypeMap[type];
             return tp;
@@ -91,26 +116,53 @@ namespace Utilities.Sql
         //    return tp;
         //}
 
+        public static DbParameter CreateParam(this DbCommand cmd, string name, object value)
+        {
+            var param = Param(name, value);
+            return cmd.CreateParamFrom(param);
+        }
 
-        private static DbParameter CreateParamFrom(this DbCommand cmd, DbParameter param)
+        public static DbParameter CreateParamFrom(this DbCommand cmd, DbParameter param)
         {
             var p = cmd.CreateParameter();
             param.CopyInto(p);
             //p.CloneFrom(param);
+            var bp = param as Parameter;
+            if (bp?.SqlDbTypeEx != null)
+            {
+                p.SetValue("SqlDbType", bp.SqlDbTypeEx);
+
+            }
+            if (!string.IsNullOrEmpty(bp?.TypeNameEx))
+            {
+                p.SetValue("TypeName", bp.TypeNameEx);
+            } else if (param.Value is DataTable)
+            {
+                var dt = (DataTable)param.Value;
+                p.SetValue("TypeName", dt.TableName);
+            }
 
             return p;
         }
 
-        public static DbParameter Param(string name, object value)
+        public static DbParameter Param(string name, object value, string typeName = null)
         {
 
             var v = (object)value?.ToString();
             v = value;
-
             var p = new Parameter(name, (v ?? DBNull.Value));
             if (v != null)
             {
-                p.DbType = value.GetType().AsDbType();
+                var dbtype = value.GetType().AsDbType();
+                var sqldbtype = value.GetType().AsSqlDbType();
+                if (dbtype!=null)
+                {
+                    p.DbType = dbtype ?? DbType.String;
+                } else if (sqldbtype != null)
+                {
+                    p.SqlDbTypeEx = sqldbtype;
+                }
+                p.TypeNameEx = typeName;
             }
 
             return p;
@@ -142,6 +194,24 @@ namespace Utilities.Sql
             {
                 return false;
             }
+        }
+
+        private static List<DbParameter> GetParameters(this Object param)
+        {
+            var parameters = new List<DbParameter>();
+            if (param != null)
+            {
+                foreach (var p in param.GetPropertyNames(onlyWritable: false))
+                {
+                    var pi = param.GetProperty(p);
+                    var attr = pi.GetCustomAttributes(typeof(TableValueParameterAttribute), false);
+                    var att = attr.FirstOrDefault() as TableValueParameterAttribute;
+
+
+                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p), att?.TypeName));
+                }
+            }
+            return parameters;
         }
 
 
@@ -284,30 +354,12 @@ namespace Utilities.Sql
 
         public static Task<TT> SqlQueryScalerAsync<TT>(this DbConnection db, string sql, object param = null)
         {
-            var parameters = new List<DbParameter>();
-            if (param != null)
-            {
-                foreach (var p in param.GetPropertyNames(onlyWritable: false))
-                {
-                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
-                }
-            }
-
-            return db.SqlQueryScalerAsync<TT>(sql, parameters);
+            return db.SqlQueryScalerAsync<TT>(sql, param?.GetParameters());
         }
 
         public static TT SqlQueryScaler<TT>(this DbConnection db, string sql, object param = null)
         {
-            var parameters = new List<DbParameter>();
-            if (param != null)
-            {
-                foreach (var p in param.GetPropertyNames(onlyWritable: false))
-                {
-                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
-                }
-            }
-
-            return db.SqlQueryScaler<TT>(sql, parameters);
+            return db.SqlQueryScaler<TT>(sql, param?.GetParameters());
         }
         #region ScalerArea
 
@@ -505,28 +557,11 @@ namespace Utilities.Sql
 
         public static Task<DataSet> SqlQueryDataSetAsync(this DbConnection db, string sql, object param = null)
         {
-            var parameters = new List<DbParameter>();
-            if (param != null)
-            {
-                foreach (var p in param.GetPropertyNames(onlyWritable: false))
-                {
-                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
-                }
-            }
-
-            return db.SqlQueryDataSetAsync(sql, parameters);
+            return db.SqlQueryDataSetAsync(sql, param?.GetParameters());
         }
         public static DataSet SqlQueryDataSet(this DbConnection db, string sql, object param = null)
         {
-            var parameters = new List<DbParameter>();
-            if (param != null)
-            {
-                foreach (var p in param.GetPropertyNames(onlyWritable: false))
-                {
-                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
-                }
-            }
-            return db.SqlQueryDataSet(sql, parameters);
+            return db.SqlQueryDataSet(sql, param?.GetParameters());
         }
 
 
@@ -774,30 +809,12 @@ namespace Utilities.Sql
 
         public static Task ExecuteSqlCommandAsync(this DbConnection db, string sql, object param = null)
         {
-            var parameters = new List<DbParameter>();
-            if (param != null)
-            {
-                foreach (var p in param.GetPropertyNames(onlyWritable: false))
-                {
-                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
-                }
-            }
-
-            return db.ExecuteSqlCommandAsync(sql, parameters);
+            return db.ExecuteSqlCommandAsync(sql, param?.GetParameters());
         }
 
         public static void ExecuteSqlCommand(this DbConnection db, string sql, object param = null)
         {
-            var parameters = new List<DbParameter>();
-            if (param != null)
-            {
-                foreach (var p in param.GetPropertyNames(onlyWritable: false))
-                {
-                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
-                }
-            }
-
-            db.ExecuteSqlCommand(sql, parameters);
+            db.ExecuteSqlCommand(sql, param?.GetParameters());
         }
 
 
@@ -1080,15 +1097,7 @@ namespace Utilities.Sql
 
         public static Task<IQueryable<TTt>> SqlQueryAsync<TTt>(this DbConnection db, string sql, object param = null) where TTt : class
         {
-                var parameters = new List<DbParameter>();
-            if (param != null)
-            {
-                foreach (var p in param.GetPropertyNames(onlyWritable: false))
-                {
-                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
-                }
-            }
-                return db.SqlQueryAsync<TTt>(sql, parameters);
+                return db.SqlQueryAsync<TTt>(sql, param?.GetParameters());
         }
 
 
@@ -1097,15 +1106,7 @@ namespace Utilities.Sql
 
         public static IQueryable<TTt> SqlQuery<TTt>(this DbConnection db, string sql, object param = null) where TTt : class
         {
-            var parameters = new List<DbParameter>();
-            if (param != null)
-            {
-                foreach (var p in param.GetPropertyNames(onlyWritable: false))
-                {
-                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
-                }
-            }
-            return db.SqlQuery<TTt>(sql, parameters);
+            return db.SqlQuery<TTt>(sql, param?.GetParameters());
 
         }
         public static Task<Tuple<IQueryable<TT1>, IQueryable<TT2>>> SqlQueryAsync<TT1, TT2>(this DbConnection db,
@@ -1114,15 +1115,7 @@ namespace Utilities.Sql
             where TT2 : class
         {
 
-            var parameters = new List<DbParameter>();
-            if (param != null)
-            {
-                foreach (var p in param.GetPropertyNames(onlyWritable: false))
-                {
-                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
-                }
-            }
-            return db.SqlQueryAsync<TT1, TT2>(sql, parameters);
+            return db.SqlQueryAsync<TT1, TT2>(sql, param?.GetParameters());
         }
 
         public static Tuple<IQueryable<TT1>, IQueryable<TT2>> SqlQuery<TT1, TT2>(this DbConnection db,
@@ -1131,15 +1124,7 @@ namespace Utilities.Sql
             where TT2 : class
         {
 
-            var parameters = new List<DbParameter>();
-            if (param != null)
-            {
-                foreach (var p in param.GetPropertyNames(onlyWritable: false))
-                {
-                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
-                }
-            }
-            return db.SqlQuery<TT1, TT2>(sql, parameters);
+            return db.SqlQuery<TT1, TT2>(sql, param?.GetParameters());
         }
 
         public static  Task<Tuple<IQueryable<TT1>, IQueryable<TT2>, IQueryable<TT3>>> SqlQueryAsync<TT1, TT2, TT3>(this DbConnection db, string sql, object param = null)
@@ -1148,16 +1133,7 @@ namespace Utilities.Sql
             where TT3 : class
         {
 
-
-            var parameters = new List<DbParameter>();
-            if (param != null)
-            {
-                foreach (var p in param.GetPropertyNames(onlyWritable: false))
-                {
-                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
-                }
-            }
-            return db.SqlQueryAsync<TT1, TT2, TT3>(sql, parameters);
+            return db.SqlQueryAsync<TT1, TT2, TT3>(sql, param?.GetParameters());
         }
 
 
@@ -1168,15 +1144,7 @@ namespace Utilities.Sql
             where TT3 : class
         {
 
-            var parameters = new List<DbParameter>();
-            if (param != null)
-            {
-                foreach (var p in param.GetPropertyNames(onlyWritable: false))
-                {
-                    parameters.Add(SqlUtilities.Param(p, param.GetValue(p)));
-                }
-            }
-            return db.SqlQuery<TT1, TT2, TT3>(sql, parameters);
+            return db.SqlQuery<TT1, TT2, TT3>(sql, param?.GetParameters());
         }
 
 

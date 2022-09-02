@@ -38,7 +38,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Utilities.Caching" Version="7.1.3" />
+    <PackageReference Include="Utilities.Caching" Version="7.2.0" />
     <PackageReference Include="Utilities.SerializeExtensions" Version="6.6.5" />
   </ItemGroup>
 

@@ -79,7 +79,7 @@ namespace Utilities.TimedTasks.Configuration
         /// <param name="timedTaskRepository"></param>
         /// <param name="logger"></param>
         /// <param name="createTaskFromType">Pass in "DependencyResolver.Current.GetService" if you want to have DI support</param>
-        public static void InitTimeTasks(ITimedTaskRepository timedTaskRepository, ILogger logger, Func<Type, ITask> createTaskFromType = null)
+        public static void InitTimeTasks(ITimedTaskRepository timedTaskRepository, ILogger logger, Func<Type, ITask>? createTaskFromType = null)
         {
             _timedTaskRepository = timedTaskRepository;
             _logger = logger;

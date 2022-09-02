@@ -364,13 +364,15 @@ namespace Utilities.Poco
         {
             oldItem.CopyInto(item);
         }
-        public static void ConvertTo<TItem1, TItem2>(this TItem1 item)
+        public static TItem ConvertTo<TItem>(this object item)
         {
-            var newItem = Create<TItem2>();
+            var newItem = Create<TItem>();
             foreach (var p in item.GetPropertyNames(onlyBaseTypes: true, onlyWritable: true))
             {
                 newItem.SetValue(p, item.GetValue(p));
             }
+
+            return newItem;
         }
         public static void CopyInto<TItem1, TItem2>(this TItem1 item, TItem2 newItem)
         {
@@ -442,10 +444,16 @@ namespace Utilities.Poco
 
         public static void SetValue<TItem>(this TItem item, string propertyName, object value, Dictionary<string, string> mappings = null)
         {
-            var prop = item.GetProperty(propertyName, mappings);
-            if (prop?.CanWrite ?? false)
+            try
             {
-                prop.SetValue(item, value);
+                var prop = item.GetProperty(propertyName, mappings);
+                if (prop?.CanWrite ?? false)
+                {
+                    prop.SetValue(item, value);
+                }
+            } catch (Exception ex)
+            {
+
             }
         }
 
