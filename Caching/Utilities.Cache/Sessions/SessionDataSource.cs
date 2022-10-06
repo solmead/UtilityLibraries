@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.AspNetCore.Http;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,7 +13,7 @@ namespace Utilities.Caching.AspNetCore.Sessions
     public class SessionDataSource : IDataSource
     {
 
-        public static Dictionary<string, string> Names = new Dictionary<string, string>();
+        public static ConcurrentDictionary<string, string> Names = new ConcurrentDictionary<string, string>();
         private readonly IHttpContextAccessor _httpContextAccessor;
         public HttpContext Current => _httpContextAccessor.HttpContext;
 
@@ -59,10 +60,7 @@ namespace Utilities.Caching.AspNetCore.Sessions
 
         public CachedEntry<tt> GetItem<tt>(string name)
         {
-            if (!Names.ContainsKey(name.ToUpper()))
-            {
-                Names.Add(name.ToUpper(), "");
-            }
+            Names.TryAdd(name.ToUpper(), "");
             try
             {
                 var ser = new Serializer();
@@ -84,10 +82,7 @@ namespace Utilities.Caching.AspNetCore.Sessions
             {
                 throw new ArgumentNullException();
             }
-            if (!Names.ContainsKey(item.Name.ToUpper()))
-            {
-                Names.Add(item.Name.ToUpper(), "");
-            }
+            Names.TryAdd(item.Name.ToUpper(), "");
             object comp = item.Item;
             object empty = default(tt);
             if (comp != empty)
@@ -175,10 +170,7 @@ namespace Utilities.Caching.AspNetCore.Sessions
 
         public CachedEntry<object> GetItem(string name, Type type)
         {
-            if (!Names.ContainsKey(name.ToUpper()))
-            {
-                Names.Add(name.ToUpper(), "");
-            }
+            Names.TryAdd(name.ToUpper(), "");
             try
             {
                 var ser = new Serializer();
@@ -207,10 +199,7 @@ namespace Utilities.Caching.AspNetCore.Sessions
             {
                 throw new ArgumentNullException();
             }
-            if (!Names.ContainsKey(item.Name.ToUpper()))
-            {
-                Names.Add(item.Name.ToUpper(), "");
-            }
+            Names.TryAdd(item.Name.ToUpper(), "");
             object comp = item.Item;
             object empty = null;
             if (comp != empty)
@@ -284,10 +273,7 @@ namespace Utilities.Caching.AspNetCore.Sessions
 
         public void DeleteItem(string name)
         {
-            if (Names.ContainsKey(name.ToUpper()))
-            {
-                Names.Remove(name.ToUpper());
-            }
+            Names.TryRemove(name.ToUpper(), out string i);
             try
             {
                 Current.Session.Remove(name.ToUpper());
@@ -306,7 +292,7 @@ namespace Utilities.Caching.AspNetCore.Sessions
         public void DeleteAll()
         {
             var keys = Names.Keys.ToList();
-            Names = new Dictionary<string, string>();
+            Names = new ConcurrentDictionary<string, string>();
             foreach (var name in keys)
             {
                 DeleteItem(name.ToUpper());

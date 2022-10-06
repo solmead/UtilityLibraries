@@ -4,7 +4,13 @@
     <!--<TargetFramework>netstandard2.0</TargetFramework>-->
 	  <TargetFrameworks>netstandard2.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>7.0.6</Version>
+
+	  <VersionSuffix Condition="'$(DesignTimeBuild)' != 'true'">7.1.$([System.DateTime]::UtcNow.Date.Subtract($([System.DateTime]::Parse("2000-01-01"))).TotalDays).$([System.Math]::Floor($([MSBuild]::Divide($([System.DateTime]::UtcNow.TimeOfDay.TotalSeconds), 1.32))))</VersionSuffix>
+	  <VersionSuffix Condition="'$(DesignTimeBuild)' == 'true'">7.1.0.0</VersionSuffix>
+	  <AssemblyVersion Condition=" '$(VersionSuffix)' == '' ">0.0.0.1</AssemblyVersion>
+	  <AssemblyVersion Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</AssemblyVersion>
+	  <Version Condition=" '$(VersionSuffix)' == '' ">0.0.1.0</Version>
+	  <Version Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</Version>
     <!--<RuntimeIdentifiers>win10-x64;osx.10.11-x64;ubuntu.16.04-x64</RuntimeIdentifiers>-->
     <Company>University of Cincinnati</Company>
     <Copyright>Copyright ©2021 University of Cincinnati</Copyright>
@@ -25,7 +31,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.8" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="Utilities.LinqDynamic" Version="2.3.0" />
-    <PackageReference Include="Utilities.Poco" Version="2.5.0" />
+    <PackageReference Include="Utilities.Poco" Version="2.7.8314.39874" />
   </ItemGroup>
 
 

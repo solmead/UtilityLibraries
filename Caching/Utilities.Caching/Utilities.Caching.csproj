@@ -4,7 +4,14 @@
     <!--<TargetFramework>netstandard2.0</TargetFramework>-->
 	  <TargetFrameworks>netstandard2.0;net462;net472;net48</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>7.2.0</Version>
+
+	  <VersionSuffix Condition="'$(DesignTimeBuild)' != 'true'">7.2.$([System.DateTime]::UtcNow.Date.Subtract($([System.DateTime]::Parse("2000-01-01"))).TotalDays).$([System.Math]::Floor($([MSBuild]::Divide($([System.DateTime]::UtcNow.TimeOfDay.TotalSeconds), 1.32))))</VersionSuffix>
+	  <VersionSuffix Condition="'$(DesignTimeBuild)' == 'true'">7.2.0.0</VersionSuffix>
+	  <AssemblyVersion Condition=" '$(VersionSuffix)' == '' ">0.0.0.1</AssemblyVersion>
+	  <AssemblyVersion Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</AssemblyVersion>
+	  <Version Condition=" '$(VersionSuffix)' == '' ">0.0.1.0</Version>
+	  <Version Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</Version>
+	  
     <Description>Caching System</Description>
     <Company>Solmead Productions</Company>
     <Authors>Solmead Productions</Authors>
@@ -25,7 +32,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
-    <PackageReference Include="Utilities.CollectionExtensions" Version="2.7.1" />
+    <PackageReference Include="Utilities.CollectionExtensions" Version="2.7.8314.42221" />
     <PackageReference Include="Utilities.SerializeExtensions" Version="6.6.5" />
   </ItemGroup>
 

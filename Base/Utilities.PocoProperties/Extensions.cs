@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
@@ -14,7 +15,7 @@ namespace Utilities.Poco
     public static class Extensions
     {
 
-        private static Dictionary<string, Dictionary<String, String>> mappings = new Dictionary<string, Dictionary<String, String>>();
+        private static ConcurrentDictionary<string, Dictionary<String, String>> mappings = new ConcurrentDictionary<string, Dictionary<String, String>>();
 
 
 
@@ -525,7 +526,7 @@ namespace Utilities.Poco
         public static string GetPropertyAlternateName<TItem>(this TItem item, string propertyName, Dictionary<string, string> mappings = null) where TItem : class
         {
             var itm = item.GetProperty(propertyName, mappings);
-            IEnumerable<object> attrs = (from dynamic ca in itm.GetCustomAttributes(true) where ca.TypeId.FullName.Contains("ColumnAttribute") select ca).ToList();
+            IEnumerable<object> attrs = (from ca in itm.GetCustomAttributes(true) where ca.GetType().FullName.Contains("ColumnAttribute") select ca).ToList();
             
 
             DisplayAttribute attr2 = itm.GetCustomAttributes(typeof(DisplayAttribute), true).FirstOrDefault() as DisplayAttribute;
@@ -545,13 +546,19 @@ namespace Utilities.Poco
                 return attr4.Description;
             }
 
-            foreach (dynamic attr in attrs)
+            foreach (var attr in attrs)
             {
                 try
                 {
-                    if ((attr != null) && !string.IsNullOrWhiteSpace(attr.Name))
+                    if ((attr != null))
                     {
-                        return attr.Name;
+
+                        var tp = attr.GetType();
+                        var prop = tp.GetProperty("Name");
+                        var val = prop.GetValue(attr);
+
+
+                        return val?.ToString();
                     }
 
                 }
@@ -586,10 +593,8 @@ namespace Utilities.Poco
             if (dic == null)
             {
                 dic = new Dictionary<String, String>();
-                if (!mappings.ContainsKey(name.ToUpper()))
-                {
-                    mappings.Add(name.ToUpper(), dic);
-                }
+                
+                mappings.TryAdd(name.ToUpper(), dic);
 
                 
 
@@ -602,8 +607,9 @@ namespace Utilities.Poco
 
                 var lst = (from p in props
                            where !p.GetCustomAttributes(typeof(UIHintAttribute), true).Any() && (
-                           (from dynamic ca in p.GetCustomAttributes(true)
-                                                  where ca.TypeId.FullName.Contains("ColumnAttribute")                          select ca).Any() || 
+                           (from  ca in p.GetCustomAttributes(true)
+                                                  where ca.GetType().FullName.Contains("ColumnAttribute")
+                                                select ca).Any() || 
                                 p.GetCustomAttributes(typeof(DisplayAttribute), true).Any() || 
                                 p.GetCustomAttributes(typeof(DisplayNameAttribute), true).Any())
                            select p).ToList();
@@ -611,7 +617,7 @@ namespace Utilities.Poco
                 foreach (var itm in lst)
                 {
                     var attrs = (from ca in itm.GetCustomAttributes(true) where ca.GetType().FullName.Contains("ColumnAttribute") select ca).ToList();
-                    foreach (dynamic attr in attrs)
+                    foreach (var attr in attrs)
                     {
                         try
                         {
@@ -619,9 +625,19 @@ namespace Utilities.Poco
                             //var property = attr.GetType().GetProperty("Name");
                             //var name = (string)property.GetValue(attr, null);
 
-                            if ((attr != null) && !String.IsNullOrWhiteSpace(attr.Name))
+                            if (attr != null)
                             {
-                                dic.Add(attr.Name, itm.Name);
+
+                                var tpe = attr.GetType();
+                                var prop = tpe.GetProperty("Name");
+                                var val = prop.GetValue(attr);
+
+
+                                var nm = val?.ToString();
+                                if (!String.IsNullOrWhiteSpace(nm))
+                                {
+                                    dic.Add(nm, itm.Name);
+                                }
                             }
                         }
                         catch (Exception ex)
