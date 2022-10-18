@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,7 +11,7 @@ namespace Utilities.Caching.AspNetCore
 {
     public class RequestDataSource : IDataSource
     {
-        private static List<string> requestCaches = new List<string>();
+        private static ConcurrentDictionary<string, string> Names = new ConcurrentDictionary<string, string>();
         private readonly IHttpContextAccessor _httpContextAccessor;
         public HttpContext Current => _httpContextAccessor.HttpContext;
         public BaseCacheArea Area { get { return BaseCacheArea.Request; } }
@@ -57,10 +58,8 @@ namespace Utilities.Caching.AspNetCore
 
         public CachedEntry<tt> GetItem<tt>(string name)
         {
-            if (!requestCaches.Contains(name.ToUpper()))
-            {
-                requestCaches.Add(name.ToUpper());
-            }
+
+            Names.TryAdd(name.ToUpper(), "");
             var context = Current;
             if (context != null)
             {
@@ -83,10 +82,7 @@ namespace Utilities.Caching.AspNetCore
             var context = Current;
             if (context != null)
             {
-                if (!requestCaches.Contains(item.Name.ToUpper()))
-                {
-                    requestCaches.Add(item.Name.ToUpper());
-                }
+                Names.TryAdd(item.Name.ToUpper(), "");
                 //lock (requestSetLock)
                 {
                     if (context.Items.ContainsKey(item.Name.ToUpper()))
@@ -145,10 +141,7 @@ namespace Utilities.Caching.AspNetCore
             var context = Current;
             if (context != null)
             {
-                if (requestCaches.Contains(name.ToUpper()))
-                {
-                    requestCaches.Remove(name.ToUpper());
-                }
+                Names.TryRemove(name.ToUpper(), out string i);
                 //lock (requestSetLock)
                 {
                     if (context.Items.ContainsKey(name.ToUpper()))
@@ -161,7 +154,9 @@ namespace Utilities.Caching.AspNetCore
 
         public void DeleteAll()
         {
-            foreach (var name in requestCaches.ToList())
+            var keys = Names.Keys.ToList();
+            Names = new ConcurrentDictionary<string, string>();
+            foreach (var name in keys)
             {
                 DeleteItem(name);
             }

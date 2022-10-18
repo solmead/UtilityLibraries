@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -17,8 +18,8 @@ namespace Utilities.Sql
 
         public static Action<string> LogMessage { get; set; }
 
-        private static Dictionary<Type, DbType> _typeMap;
-        private static Dictionary<Type, SqlDbType> _typeMap2;
+        private static ConcurrentDictionary<Type, DbType> _typeMap;
+        private static ConcurrentDictionary<Type, SqlDbType> _typeMap2;
 
         public static void Log(string msg)
         {
@@ -26,13 +27,13 @@ namespace Utilities.Sql
             LogMessage?.Invoke(msg);
         }
 
-        private static Dictionary<Type, SqlDbType> TypeMap2
+        private static ConcurrentDictionary<Type, SqlDbType> TypeMap2
         {
             get
             {
                 if (_typeMap2 == null)
                 {
-                    var typeMap2 = new Dictionary<Type, SqlDbType>();
+                    var typeMap2 = new ConcurrentDictionary<Type, SqlDbType>();
                     typeMap2[typeof(DataTable)] = SqlDbType.Structured;
                     //typeMap[typeof(System.Data.Linq.Binary)] = DbType.Binary;
                     _typeMap2 = typeMap2;
@@ -41,13 +42,13 @@ namespace Utilities.Sql
             }
         }
 
-        private static Dictionary<Type, DbType> TypeMap
+        private static ConcurrentDictionary<Type, DbType> TypeMap
         {
             get
             {
                 if (_typeMap == null)
                 {
-                    var typeMap = new Dictionary<Type, DbType>();
+                    var typeMap = new ConcurrentDictionary<Type, DbType>();
                     typeMap[typeof(byte)] = DbType.Byte;
                     typeMap[typeof(sbyte)] = DbType.SByte;
                     typeMap[typeof(short)] = DbType.Int16;

@@ -11,7 +11,9 @@
 	  <RepositoryUrl>https://github.com/solmead/UtilityLibraries</RepositoryUrl>
 	  <PackageProjectUrl>https://github.com/solmead/UtilityLibraries</PackageProjectUrl>
 	  <PackageLicenseUrl>https://github.com/solmead/UtilityLibraries</PackageLicenseUrl>
-	  <VersionSuffix>3.3.$([System.DateTime]::UtcNow.Date.Subtract($([System.DateTime]::Parse("2000-01-01"))).TotalDays).$([System.Math]::Floor($([MSBuild]::Divide($([System.DateTime]::UtcNow.TimeOfDay.TotalSeconds), 1.32))))</VersionSuffix>
+
+	  <VersionSuffix Condition="'$(DesignTimeBuild)' != 'true'">3.3.$([System.DateTime]::UtcNow.Date.Subtract($([System.DateTime]::Parse("2000-01-01"))).TotalDays).$([System.Math]::Floor($([MSBuild]::Divide($([System.DateTime]::UtcNow.TimeOfDay.TotalSeconds), 1.32))))</VersionSuffix>
+	  <VersionSuffix Condition="'$(DesignTimeBuild)' == 'true'">3.3.0.0</VersionSuffix>
 	  <AssemblyVersion Condition=" '$(VersionSuffix)' == '' ">0.0.0.1</AssemblyVersion>
 	  <AssemblyVersion Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</AssemblyVersion>
 	  <Version Condition=" '$(VersionSuffix)' == '' ">0.0.1.0</Version>
@@ -75,7 +77,7 @@
 
 
 	<ItemGroup>
-	  <PackageReference Include="Azure.Storage.Blobs" Version="12.13.0" />
+	  <PackageReference Include="Azure.Storage.Blobs" Version="12.13.1" />
 	  <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
 	  <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
 	  <PackageReference Include="System.Linq.Async" Version="5.0.0" />

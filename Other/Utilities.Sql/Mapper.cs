@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
@@ -8,7 +9,7 @@ namespace Utilities.Sql
 {
     public static class Mapper
     {
-        private static Dictionary<string, (Type type, Dictionary<string, string> mapping)> masterMapping = new Dictionary<string, (Type type, Dictionary<string, string> mapping)>();
+        private static ConcurrentDictionary<string, (Type type, Dictionary<string, string> mapping)> masterMapping = new ConcurrentDictionary<string, (Type type, Dictionary<string, string> mapping)>();
 
 
 
@@ -37,7 +38,7 @@ namespace Utilities.Sql
             //nm = nm.ToUpper().Trim();
             if (!masterMapping.ContainsKey(nm))
             {
-                masterMapping.Add(nm, (type, mapping));
+                masterMapping.TryAdd(nm, (type, mapping));
             }
             else
             {
@@ -117,7 +118,7 @@ namespace Utilities.Sql
 
             if (!masterMapping.ContainsKey(nm))
             {
-                masterMapping.Add(nm, (type, new Dictionary<string, string>()));
+                masterMapping.TryAdd(nm, (type, new Dictionary<string, string>()));
             }
 
             return masterMapping[nm].mapping;

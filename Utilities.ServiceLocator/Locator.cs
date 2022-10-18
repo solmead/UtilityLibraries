@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -19,7 +21,7 @@ namespace Utilities.ServiceLocator
         }
         private static object _locker = new object();
         private static List<Type> _assemblyTypes = null;
-        private static Dictionary<string, object> _entries = new Dictionary<string, object>();
+        private static ConcurrentDictionary<string, object> _entries = new ConcurrentDictionary<string, object>();
         private readonly IServiceProvider _provider;
         private static List<string> GetSolutionAssemblies()
         {
@@ -141,6 +143,7 @@ namespace Utilities.ServiceLocator
 
                     _logger.LogDebug("Total Types [" + _assemblyTypes.Count() + "]");
                 }
+                _logger.LogDebug("AssemblyTypes returning");
                 return _assemblyTypes;
             }
         }
@@ -162,8 +165,17 @@ namespace Utilities.ServiceLocator
         
         public TT GetServiceInstance<TT>(Type type) where TT : class
         {
-            var i = (TT)ActivatorUtilities.GetServiceOrCreateInstance(_provider, type);
-            return i;
+            try
+            {
+                var i = (TT)ActivatorUtilities.GetServiceOrCreateInstance(_provider, type);
+                return i;
+            } catch (Exception ex)
+            {
+                var ttype = typeof(TT);
+                _logger.LogDebug("Error GetServiceInstance Type=[" + type.ToString() + "] <TT>=[" + ttype.ToString() + "]");
+                _logger.LogError(ex, "Error GetServiceInstance Type=[" + type.ToString() + "] <TT>=[" + ttype.ToString() + "]");
+                return default(TT);
+            }
         }
 
         public List<TT> GetServices<TT>() where TT : class
@@ -176,7 +188,13 @@ namespace Utilities.ServiceLocator
 
                 if (!_entries.ContainsKey(nm))
                 {
-                    var tpList = (from t in AssemblyTypes
+
+                    _logger.LogDebug("GetServices - Loading Assembly Types <TT>=[" + type.ToString() + "]");
+                    var assTypes = AssemblyTypes;
+
+                    _logger.LogDebug("GetServices - Getting types where <TT>=[" + type.ToString() + "] count=" + assTypes.Count);
+
+                    var tpList = (from t in assTypes
                                   where t.GetInterfaces().Contains(type)
                                   select t).ToList();
 
@@ -186,6 +204,7 @@ namespace Utilities.ServiceLocator
                     //    _logger.LogDebug("Type [" + tp.FullName + "]");
                     //}
 
+                    _logger.LogDebug("GetServices - Make sure not interface and not abstract <TT>=[" + type.ToString() + "] count=" + tpList.Count);
                     var tpListFin = (from t in tpList where !t.IsInterface && !t.IsAbstract select t).ToList();
                     //_logger.LogDebug("All Creatable Types for interface [" + type.FullName + "]");
                     //foreach (var tp in tpList)
@@ -193,9 +212,11 @@ namespace Utilities.ServiceLocator
                     //    _logger.LogDebug("Type [" + tp.FullName + "]");
                     //}
 
+                    _logger.LogDebug("GetServices - Getting Service Instance <TT>=[" + type.ToString() + "] count=" + tpListFin.Count);
                     var cList = (from t in tpListFin select GetServiceInstance<TT>(t)).ToList();
 
-                    _entries.Add(nm, cList);
+                    _logger.LogDebug("GetServices - Adding to Dictionary <TT>=[" + type.ToString() + "] count=" + cList.Count);
+                    _entries.TryAdd(nm, cList);
                 }
 
                 List<TT> list = _entries[nm] as List<TT>;
