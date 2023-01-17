@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.ServiceModel;
 using System.Text;
 using System.Threading.Tasks;
 using Utilities.FileExtensions;
@@ -11,9 +12,21 @@ namespace Utilities.PdfHandling
 {
     public static class Core
     {
+
+        public static PdfConfig config = null;
+
         public static FileInfo CombineFiles(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)
         {
-            var ps = new PdfService.PdfConvertClient();
+
+            if (Core.config == null)
+            {
+                throw new Exception("Please call services.InitilizePdfHandling()");
+            }
+            BasicHttpBinding basicHttpBinding = new BasicHttpBinding();
+            EndpointAddress endpointAddress = new EndpointAddress(Core.config.ConnectionString);
+            var ps = new PdfService.PdfConvertClient(basicHttpBinding, endpointAddress);
+
+            //var ps = new PdfService.PdfConvertClient(new PdfService.PdfConvertClient.EndpointConfiguration(), Core.config.ConnectionString);
 
             var fileData = new List<PdfService.FileItem>();
 
@@ -59,7 +72,7 @@ namespace Utilities.PdfHandling
             return toFile;
         }
 
-        [Obsolete("Use CombineFiles(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)")]
+        [Obsolete("Use CombineFiles(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)", true)]
         public static void CombineFiles(List<FileInfo> fileList, FileInfo toFile)
         {
             try
@@ -92,6 +105,11 @@ namespace Utilities.PdfHandling
         }
         public static async Task<FileInfo> CombineFilesAsync(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)
         {
+            if (Core.config == null)
+            {
+                throw new Exception("Please call services.InitilizePdfHandling()");
+            }
+
             var ps = new PdfService.PdfConvertClient();
 
             var fileData = new List<PdfService.FileItem>();
@@ -137,7 +155,7 @@ namespace Utilities.PdfHandling
 
             return toFile;
         }
-        [Obsolete("Use CombineFilesAsync(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)")]
+        [Obsolete("Use CombineFilesAsync(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)", true)]
         public static async Task CombineFilesAsync(List<FileInfo> fileList, FileInfo toFile)
         {
             try

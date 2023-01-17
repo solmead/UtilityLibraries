@@ -220,13 +220,13 @@ namespace Utilities.PdfHandling.NetFramework
 
 
 
-        [Obsolete("Use CombineFiles(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)")]
+        [Obsolete("Use CombineFiles(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)", true)]
         public void CombineFiles(List<FileInfo> fileList, FileInfo toFile)
         {
             Core.CombineFiles(fileList, toFile);
         }
 
-        [Obsolete("Use CombineFilesAsync(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)")]
+        [Obsolete("Use CombineFilesAsync(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)", true)]
         public Task CombineFilesAsync(List<FileInfo> fileList, FileInfo toFile)
         {
             return Core.CombineFilesAsync(fileList, toFile);

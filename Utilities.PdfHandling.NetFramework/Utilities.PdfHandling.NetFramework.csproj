@@ -2,7 +2,18 @@
 	<PropertyGroup>
 		<!--<TargetFramework>netstandard2.0</TargetFramework>-->
 		<TargetFrameworks>net462;net472;net48</TargetFrameworks>
-		<Version>3.3.2</Version>
+		
+	  <VersionSuffix Condition="'$(DesignTimeBuild)' != 'true'">3.5.$([System.DateTime]::UtcNow.Date.Subtract($([System.DateTime]::Parse("2000-01-01"))).TotalDays).$([System.Math]::Floor($([MSBuild]::Divide($([System.DateTime]::UtcNow.TimeOfDay.TotalSeconds), 1.32))))</VersionSuffix>
+	  <VersionSuffix Condition="'$(DesignTimeBuild)' == 'true'">3.5.0.0</VersionSuffix>
+	  <AssemblyVersion Condition=" '$(VersionSuffix)' == '' ">0.0.0.1</AssemblyVersion>
+	  <AssemblyVersion Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</AssemblyVersion>
+	  <Version Condition=" '$(VersionSuffix)' == '' ">0.0.1.0</Version>
+	  <Version Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</Version>
+		<VersionSuffix Condition="'$(DesignTimeBuild)' != 'true'">3.5.$([System.DateTime]::UtcNow.Date.Subtract($([System.DateTime]::Parse("2000-01-01"))).TotalDays).$([System.Math]::Floor($([MSBuild]::Divide($([System.DateTime]::UtcNow.TimeOfDay.TotalSeconds), 1.32))))</VersionSuffix>
+		<VersionSuffix Condition="'$(DesignTimeBuild)' == 'true'">3.5.0.0</VersionSuffix>
+		<AssemblyVersion Condition=" '$(VersionSuffix)' == '' ">0.0.0.1</AssemblyVersion>
+		<AssemblyVersion Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</AssemblyVersion>
+		<Version Condition=" '$(VersionSuffix)' == '' ">0.0.1.0</Version>
 		<RuntimeIdentifiers>win10-x64</RuntimeIdentifiers>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>Solmead Productions</Authors>
@@ -71,7 +82,7 @@
 
 	<ItemGroup>
 	  <PackageReference Include="hiqpdf" Version="10.17.0" />
-	  <PackageReference Include="Utilities.PdfHandling" Version="3.3.1" />
+	  <PackageReference Include="Utilities.PdfHandling" Version="3.5.8417.8782" />
 	</ItemGroup>
 	<PropertyGroup Condition=" '$(TargetFramework)' == 'net48'">
 		<DefineConstants>NET45;NETFULL</DefineConstants>

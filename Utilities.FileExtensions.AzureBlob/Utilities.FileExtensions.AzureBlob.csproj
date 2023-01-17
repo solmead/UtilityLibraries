@@ -77,7 +77,7 @@
 
 
 	<ItemGroup>
-	  <PackageReference Include="Azure.Storage.Blobs" Version="12.13.1" />
+	  <PackageReference Include="Azure.Storage.Blobs" Version="12.14.1" />
 	  <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
 	  <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
 	  <PackageReference Include="System.Linq.Async" Version="5.0.0" />

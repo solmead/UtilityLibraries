@@ -1,9 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>3.4.1</Version>
+
+	  <VersionSuffix Condition="'$(DesignTimeBuild)' != 'true'">3.5.$([System.DateTime]::UtcNow.Date.Subtract($([System.DateTime]::Parse("2000-01-01"))).TotalDays).$([System.Math]::Floor($([MSBuild]::Divide($([System.DateTime]::UtcNow.TimeOfDay.TotalSeconds), 1.32))))</VersionSuffix>
+	  <VersionSuffix Condition="'$(DesignTimeBuild)' == 'true'">3.5.0.0</VersionSuffix>
+	  <AssemblyVersion Condition=" '$(VersionSuffix)' == '' ">0.0.0.1</AssemblyVersion>
+	  <AssemblyVersion Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</AssemblyVersion>
+	  <Version Condition=" '$(VersionSuffix)' == '' ">0.0.1.0</Version>
+	  <Version Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</Version>
     <Authors>Chris Powell</Authors>
     <Company>Solmead Productions</Company>
     <Description>PdfCreation for Dot Net core</Description>
@@ -19,7 +25,7 @@
 
   <ItemGroup>
     <PackageReference Include="HiQPdf_NetCore" Version="12.0.0" />
-    <PackageReference Include="Utilities.PdfHandling" Version="3.3.1" />
+    <PackageReference Include="Utilities.PdfHandling" Version="3.5.8417.8782" />
   </ItemGroup>
 
   <ItemGroup>
