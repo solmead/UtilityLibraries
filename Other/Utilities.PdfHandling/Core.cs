@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.ServiceModel;
 using System.Text;
 using System.Threading.Tasks;
 using Utilities.FileExtensions;
@@ -11,25 +12,62 @@ namespace Utilities.PdfHandling
 {
     public static class Core
     {
-        public static FileInfo CombineFiles(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)
+
+        public static PdfConfig config = null;
+
+        public static FileInfo CombineFiles(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName, Action<string> log)
         {
-            var ps = new PdfService.PdfConvertClient();
+
+            if (Core.config == null)
+            {
+                throw new Exception("Please call services.InitilizePdfHandling()");
+            }
+
+            if (log == null)
+            {
+                log = (msg) => { };
+            }
+
+            var bhbind = new BasicHttpBinding();// BasicHttpSecurityMode.Transport);
+            bhbind.MaxBufferSize = int.MaxValue;
+            bhbind.MaxReceivedMessageSize = int.MaxValue;
+            bhbind.OpenTimeout = new TimeSpan(12, 0, 0);
+            bhbind.ReceiveTimeout = new TimeSpan(12, 0, 0);
+            bhbind.SendTimeout = new TimeSpan(12, 0, 0);
+            bhbind.CloseTimeout = new TimeSpan(12, 0, 0);
+            bhbind.ReaderQuotas.MaxStringContentLength = int.MaxValue;
+            bhbind.ReaderQuotas.MaxNameTableCharCount = int.MaxValue;
+            bhbind.ReaderQuotas.MaxDepth = int.MaxValue;
+            bhbind.ReaderQuotas.MaxArrayLength = int.MaxValue;
+            bhbind.ReaderQuotas.MaxBytesPerRead = int.MaxValue;
+            EndpointAddress endpointAddress = new EndpointAddress(Core.config.ConnectionString);
+            var ps = new PdfService.PdfConvertClient(bhbind, endpointAddress);
+
+            //var ps = new PdfService.PdfConvertClient(new PdfService.PdfConvertClient.EndpointConfiguration(), Core.config.ConnectionString);
 
             var fileData = new List<PdfService.FileItem>();
+
+            log(fileList.Count + " files passed in.");
+
 
             fileList.ForEach((file) =>
             {
                 file.Refresh();
                 if (file.Exists)
                 {
+                    log("File [" + file.FullName + "] Exists");
                     fileData.Add(new PdfService.FileItem()
                     {
                         FileName = file.Name.Replace(",", "_").Replace(" ", "_"),
                         Data = File.ReadAllBytes(file.FullName)
                     });
+                } else
+                {
+                    log("File [" + file.FullName + "] Missing");
                 }
             });
 
+            log(fileData.Count + " files existed.");
 
             foreach (var fd in fileData)
             {
@@ -40,7 +78,9 @@ namespace Utilities.PdfHandling
 
             try
             {
+                log("Calling PdfService");
                 var finalFile = ps.CombineFilesIntoOnePdf(fileData);
+                log("PdfService Returned: [" + finalFile?.FileName +"] - Size: [" + finalFile?.Data?.Length + "]");
 
                 var fFile = new FileInfo(toDirectory.FullName + "/" + finalFile.FileName);
 
@@ -59,8 +99,8 @@ namespace Utilities.PdfHandling
             return toFile;
         }
 
-        [Obsolete("Use CombineFiles(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)")]
-        public static void CombineFiles(List<FileInfo> fileList, FileInfo toFile)
+        [Obsolete("Use CombineFiles(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)", true)]
+        public static void CombineFiles(List<FileInfo> fileList, FileInfo toFile, Action<string> log)
         {
             try
             {
@@ -79,7 +119,7 @@ namespace Utilities.PdfHandling
                     }
                 }
 
-                var fFile = CombineFiles(fileList, toFile.Directory, toFile.FileNameWithoutExtension());
+                var fFile = CombineFiles(fileList, toFile.Directory, toFile.FileNameWithoutExtension(), log);
 
 
 
@@ -92,7 +132,25 @@ namespace Utilities.PdfHandling
         }
         public static async Task<FileInfo> CombineFilesAsync(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)
         {
-            var ps = new PdfService.PdfConvertClient();
+            if (Core.config == null)
+            {
+                throw new Exception("Please call services.InitilizePdfHandling()");
+            }
+
+            var bhbind = new BasicHttpBinding();// BasicHttpSecurityMode.Transport);
+            bhbind.MaxBufferSize = int.MaxValue;
+            bhbind.MaxReceivedMessageSize = int.MaxValue;
+            bhbind.OpenTimeout = new TimeSpan(12, 0, 0);
+            bhbind.ReceiveTimeout = new TimeSpan(12, 0, 0);
+            bhbind.SendTimeout = new TimeSpan(12, 0, 0);
+            bhbind.CloseTimeout = new TimeSpan(12, 0, 0);
+            bhbind.ReaderQuotas.MaxStringContentLength = int.MaxValue;
+            bhbind.ReaderQuotas.MaxNameTableCharCount = int.MaxValue;
+            bhbind.ReaderQuotas.MaxDepth = int.MaxValue;
+            bhbind.ReaderQuotas.MaxArrayLength = int.MaxValue;
+            bhbind.ReaderQuotas.MaxBytesPerRead = int.MaxValue;
+            EndpointAddress endpointAddress = new EndpointAddress(Core.config.ConnectionString);
+            var ps = new PdfService.PdfConvertClient(bhbind, endpointAddress);
 
             var fileData = new List<PdfService.FileItem>();
 
@@ -137,7 +195,7 @@ namespace Utilities.PdfHandling
 
             return toFile;
         }
-        [Obsolete("Use CombineFilesAsync(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)")]
+        [Obsolete("Use CombineFilesAsync(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)", true)]
         public static async Task CombineFilesAsync(List<FileInfo> fileList, FileInfo toFile)
         {
             try

@@ -12,5 +12,10 @@ namespace Utilities.FileExtensions.Services
         FileInfo GetFileInfo(string directory, string fileName);
         Task<FileInfo> GetFileInfoAsync(string directory, string fileName);
         Task<FileInfo> GetFileInfoAsync(string fileName);
+
+        List<string> GetDirectories(string directory);
+        List<string> GetFiles(string directory);
+
+
     }
 }

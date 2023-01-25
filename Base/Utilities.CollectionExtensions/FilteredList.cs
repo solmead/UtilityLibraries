@@ -27,8 +27,8 @@ namespace System.Collections.Extensions
 
         //page, rows, sidx, sord
         //public int page { get { return Page; } set { Page = value; } }
-        public int? rows { get { return PageSize; } set { PageSize = value; } }
-        public string sidx { get { return SortColumn; } set { SortColumn = value; } }
+        public int? rows { get { return PageSize; } set { PageSize = value ?? PageSize;  } }
+        public string sidx { get { return SortColumn; } set { SortColumn = value ?? SortColumn; } }
         public string sord { get { return OrderDirection.ToString().ToUpper(); }
             set
             {
@@ -36,7 +36,7 @@ namespace System.Collections.Extensions
                 {
                     OrderDirection = OrderDirectionEnum.Asc;
                 }
-                else
+                else if (value == "desc")
                 {
                     OrderDirection = OrderDirectionEnum.Desc;
                 }
@@ -47,7 +47,7 @@ namespace System.Collections.Extensions
     public class FilteredList<tt> where tt:class
     {
 
-        private IQueryable<tt> BaseData { get; set; }
+        private IQueryable<tt> _baseData;
 
 
         public delegate IQueryable<tt> QueryableFunction(int? page, int? pageSize, string sortColumn, FilteredInfo.OrderDirectionEnum? orderDirection);
@@ -69,11 +69,30 @@ namespace System.Collections.Extensions
             Info = info;
             getFilteredData = queryableFunction;
             getItemCount = getTotalItemCount;
+
+
+            if (Info.Page == null)
+            {
+                Info.Page = 1;
+            }
+            if (Info.PageSize == null)
+            {
+                Info.PageSize = 20;
+            }
+            if (Info.SortColumn == null)
+            {
+                Info.SortColumn = "";
+            }
+            if (Info.OrderDirection == null)
+            {
+                Info.OrderDirection = FilteredInfo.OrderDirectionEnum.Asc;
+            }
+
         }
         public FilteredList(IQueryable<tt> baseData, FilteredInfo info)
         {
             Info = info;
-            BaseData = baseData;
+            _baseData = baseData;
             //Info.PageSize = 25;
             //Info.Page = 1;
 
@@ -84,14 +103,39 @@ namespace System.Collections.Extensions
             };
             getItemCount = () =>
             {
-                return BaseData.Count();
+                return _baseData.Count();
             };
 
+
+            if (Info.Page == null)
+            {
+                Info.Page = 1;
+            }
+            if (Info.PageSize == null)
+            {
+                Info.PageSize = 20;
+            }
+            if (Info.SortColumn == null)
+            {
+                Info.SortColumn = "";
+            }
+            if (Info.OrderDirection == null)
+            {
+                Info.OrderDirection = FilteredInfo.OrderDirectionEnum.Asc;
+            }
+
+
         }
+
+        //public IQueryable<tt> BaseData => _baseData;
+        public IQueryable<tt> FilteredData => GetFilteredData();
+
         public IQueryable<tt> GetFilteredData()
         {
+
             return getFilteredData(Info.Page, Info.PageSize, Info.SortColumn, Info.OrderDirection);
         }
+
 
 
         private IQueryable<tt> GetFilteredDataFromBase(int? page, int? pageSize, string sortColumn, FilteredInfo.OrderDirectionEnum? orderDirection)
@@ -106,7 +150,7 @@ namespace System.Collections.Extensions
             }
             if (TotalItems == 0)
             {
-                return BaseData;
+                return _baseData;
             }
             int startPosition;
 
@@ -133,13 +177,13 @@ namespace System.Collections.Extensions
                 stopPosition = TotalItems;
             }
 
-            IQueryable<tt> pList = BaseData;
+            IQueryable<tt> pList = _baseData;
 
             if (!string.IsNullOrWhiteSpace(sortColumn))
             {
                 try
                 {
-                    pList = BaseData.OrderBy(sortColumn + " " + orderDirection?.ToString());
+                    pList = _baseData.OrderBy(sortColumn + " " + orderDirection?.ToString());
                 }
                 catch
                 {

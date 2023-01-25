@@ -12,8 +12,8 @@
 	  <PackageLicenseUrl>https://github.com/solmead/UtilityLibraries</PackageLicenseUrl>
 
 
-	  <VersionSuffix Condition="'$(DesignTimeBuild)' != 'true'">1.1.$([System.DateTime]::UtcNow.Date.Subtract($([System.DateTime]::Parse("2000-01-01"))).TotalDays).$([System.Math]::Floor($([MSBuild]::Divide($([System.DateTime]::UtcNow.TimeOfDay.TotalSeconds), 1.32))))</VersionSuffix>
-	  <VersionSuffix Condition="'$(DesignTimeBuild)' == 'true'">1.1.0.0</VersionSuffix>
+	  <VersionSuffix Condition="'$(DesignTimeBuild)' != 'true'">1.2.$([System.DateTime]::UtcNow.Date.Subtract($([System.DateTime]::Parse("2000-01-01"))).TotalDays).$([System.Math]::Floor($([MSBuild]::Divide($([System.DateTime]::UtcNow.TimeOfDay.TotalSeconds), 1.32))))</VersionSuffix>
+	  <VersionSuffix Condition="'$(DesignTimeBuild)' == 'true'">1.2.0.0</VersionSuffix>
 	  
 	  <AssemblyVersion Condition=" '$(VersionSuffix)' == '' ">0.0.0.1</AssemblyVersion>
 	  <AssemblyVersion Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</AssemblyVersion>
@@ -39,7 +39,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.FileProviders.Physical" Version="6.0.0" />
-    <PackageReference Include="Utilities.FileExtensions" Version="3.5.8236.50077" />
+    <PackageReference Include="Utilities.FileExtensions" Version="3.5.8424.5300" />
   </ItemGroup>
 
 </Project>

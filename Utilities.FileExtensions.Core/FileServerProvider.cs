@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 namespace Utilities.FileExtensions.AspNetCore
 {
 
+
+
+
     public interface IPhysicalFileServerProvider
     {
         /// <summary>
@@ -75,10 +78,10 @@ namespace Utilities.FileExtensions.AspNetCore
             try
             {
                 var options = FileServerOptionsCollection.FirstOrDefault(e => e.RequestPath == virtualPath);
-                if (options == null)
-                    throw new FileNotFoundException($"virtual path {virtualPath} is not registered in the fileserver provider");
+                //if (options == null)
+                //    throw new FileNotFoundException($"virtual path {virtualPath} is not registered in the fileserver provider");
 
-                return options.FileProvider;
+                return options?.FileProvider;
 
             }
             catch

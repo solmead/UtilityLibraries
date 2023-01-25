@@ -9,6 +9,7 @@ namespace Utilities.FileExtensions.Services
     public interface IEmbeddedFileHandling<TT> : IFileHandling
         where TT:class
     {
-
+        List<string> GetDirectories(string directory);
+        List<string> GetFiles(string directory);
     }
 }

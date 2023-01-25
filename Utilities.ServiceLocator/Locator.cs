@@ -7,6 +7,8 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Xml.Linq;
 using Utilities.ServiceLocator.Interfaces;
 
 namespace Utilities.ServiceLocator
@@ -148,21 +150,80 @@ namespace Utilities.ServiceLocator
             }
         }
 
+        public TT FindService<TT>(Func<TT, bool> whereClause)
+             where TT : class, IService
+        {
+            try
+            {
+                var list = GetServicesList<TT>();
+                if (whereClause != null)
+                {
+                    list = (from se in list
+                                    where whereClause(se)
+                                    select se).ToList();
+                }
+
+                var selected = list.FirstOrDefault();
+                if (selected != null)
+                {
+                    selected = (TT)ActivatorUtilities.GetServiceOrCreateInstance(_provider, selected.GetType());
+                }
+
+                return selected;
+            }
+            catch (Exception ex)
+            {
+                var ttype = typeof(TT);
+                _logger.LogDebug("Error FindService with where <TT>=[" + ttype.ToString() + "]");
+                _logger.LogError(ex, "Error FindService with where <TT>=[" + ttype.ToString() + "]");
+            }
+            return default(TT);
+        }
         public TT FindService<TT>(string name) 
             where TT : class, IService
         {
-            
-            var list = GetServices<TT>();
+            try
+            {
 
-            var selected = (from se in list
-                            where se.Name.ToUpper().Trim() == name.ToUpper().Trim()
-                            select se).FirstOrDefault();
+                var list = GetServicesList<TT>();
 
+                var selected = (from se in list
+                                where se.Name.ToUpper().Trim() == name.ToUpper().Trim()
+                                select se).FirstOrDefault();
 
-            return selected;
+                if (selected != null)
+                {
+                    selected = (TT)ActivatorUtilities.GetServiceOrCreateInstance(_provider, selected.GetType());
+                }
+
+                return selected;
+            } catch (Exception ex)
+            {
+                var ttype = typeof(TT);
+                _logger.LogDebug("Error FindService name=[" + name.ToString() + "] <TT>=[" + ttype.ToString() + "]");
+                _logger.LogError(ex, "Error FindService name=[" + name.ToString() + "] <TT>=[" + ttype.ToString() + "]");
+            }
+            return default(TT);
         }
 
-        
+        public void ExecutePerService<TT>(Action<TT> actionClause, Func<TT, int> orderBy = null) 
+            where TT : class, IService
+        {
+
+            var list = GetServicesList<TT>();
+            if (orderBy != null)
+            {
+                list = list.OrderBy(orderBy).ToList();
+            }
+
+            if (actionClause != null)
+            {
+                list.ForEach(actionClause);
+            }
+
+
+        }
+
         public TT GetServiceInstance<TT>(Type type) where TT : class
         {
             try
@@ -178,7 +239,12 @@ namespace Utilities.ServiceLocator
             }
         }
 
+        [Obsolete("Do not use this, instead use the FindService call", true)]
         public List<TT> GetServices<TT>() where TT : class
+        {
+            return GetServicesList<TT>();
+        }
+        private List<TT> GetServicesList<TT>() where TT : class
         {
             var type = typeof(TT);
             var nm = "GetServices_" + type.Name;
@@ -221,6 +287,8 @@ namespace Utilities.ServiceLocator
 
                 List<TT> list = _entries[nm] as List<TT>;
 
+
+                list = (from i in list where i != null select i).ToList();
 
                 //var cList = (from t in AssemblyTypes
                 //             where t.GetInterfaces().Contains(type) && !t.IsInterface && !t.IsAbstract

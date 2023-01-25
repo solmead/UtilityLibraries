@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Utilities.FileExtensions.Services;
@@ -315,6 +316,44 @@ namespace Utilities.FileExtensions
         public Task<DateTime?> GetLastWriteTimeAsync(string fileName)
         {
             return Task.FromResult(GetLastWriteTime(fileName));
+        }
+
+        public List<string> GetDirectories(string directory)
+        {
+
+            directory = directory.Replace("\\", "/");
+            if (!(directory.EndsWith("/") || directory.EndsWith("\\")))
+            {
+                directory = directory + "/";
+            }
+            var di = new DirectoryInfo(_serverService.MapPath(directory));
+            if (!di.Exists)
+            {
+                di.Create();
+            }
+
+
+            return  di.GetDirectories().Select((d)=>d.Name).ToList();
+
+
+
+        }
+
+        public List<string> GetFiles(string directory)
+        {
+            directory = directory.Replace("\\", "/");
+            if (!(directory.EndsWith("/") || directory.EndsWith("\\")))
+            {
+                directory = directory + "/";
+            }
+            var di = new DirectoryInfo(_serverService.MapPath(directory));
+            if (!di.Exists)
+            {
+                di.Create();
+            }
+
+
+            return di.GetFiles().Select((d) => d.Name).ToList();
         }
     }
 }
