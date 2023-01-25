@@ -25,7 +25,8 @@
 
   <ItemGroup>
     <PackageReference Include="HiQPdf_NetCore" Version="12.0.0" />
-    <PackageReference Include="Utilities.PdfHandling" Version="3.5.8417.8782" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
+    <PackageReference Include="Utilities.PdfHandling" Version="3.6.8421.10915" />
   </ItemGroup>
 
   <ItemGroup>

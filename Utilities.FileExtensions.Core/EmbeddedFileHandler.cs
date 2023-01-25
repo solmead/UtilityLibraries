@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Utilities.FileExtensions.Services;
@@ -47,6 +48,23 @@ namespace Utilities.FileExtensions.AspNetCore
             return fi;
         }
 
+        private string GetDirectoryLocation(string directory)
+        {
+            if (directory.StartsWith("~/") || directory.StartsWith("~\\"))
+            {
+                directory = directory.Substring(2);
+            }
+            if (!(directory.EndsWith("/") || directory.EndsWith("\\")))
+            {
+                directory = directory + "/";
+            }
+
+            var fi = directory;
+            fi = fi.Replace("\\", ".").Replace("/", ".").Replace("..", ".");
+
+            return fi;
+        }
+
         private IFileInfo FindFile(string directory, string fileName)
         {
             var fi = GetFileLocation(directory, fileName).ToLower();
@@ -55,6 +73,43 @@ namespace Utilities.FileExtensions.AspNetCore
             return file;
         }
 
+
+        public List<string> GetDirectories(string directory)
+        {
+            var lst = GetEntries(directory);
+
+
+            lst = lst.Where((i) => !i.Contains(".")).Distinct().ToList();
+
+            return lst;
+        }
+
+        public List<string> GetFiles(string directory)
+        {
+            var lst = GetEntries(directory);
+
+
+            lst = lst.Where((i) => i.Contains(".")).Distinct().ToList();
+
+            return lst;
+        }
+        public List<string> GetEntries(string directory)
+        {
+            var dr = GetDirectoryLocation(directory);
+            var drl = dr.ToLower();
+
+            var lst = (from d in dList where d.Name.ToLower().StartsWith(drl) select d);
+
+            var subLst = (from i in lst select i.Name.Replace(dr, "", true, null)).ToList();
+
+
+            var finLst = (from i in subLst select i.Split("."));
+
+            var fLst = (from i2 in finLst select (i2.Count() > 2 ? i2[0] : i2[0] + "." + i2[1])).ToList();
+
+
+            return fLst;
+        }
 
         public bool Exists(string directory, string fileName)
         {
@@ -232,5 +287,6 @@ namespace Utilities.FileExtensions.AspNetCore
         {
             return Task.FromResult(GetLastWriteTime(fileName));
         }
+
     }
 }

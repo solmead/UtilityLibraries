@@ -27,8 +27,8 @@ namespace System.Collections.Extensions
 
         //page, rows, sidx, sord
         //public int page { get { return Page; } set { Page = value; } }
-        public int? rows { get { return PageSize; } set { PageSize = value; } }
-        public string sidx { get { return SortColumn; } set { SortColumn = value; } }
+        public int? rows { get { return PageSize; } set { PageSize = value ?? PageSize;  } }
+        public string sidx { get { return SortColumn; } set { SortColumn = value ?? SortColumn; } }
         public string sord { get { return OrderDirection.ToString().ToUpper(); }
             set
             {
@@ -36,7 +36,7 @@ namespace System.Collections.Extensions
                 {
                     OrderDirection = OrderDirectionEnum.Asc;
                 }
-                else
+                else if (value == "desc")
                 {
                     OrderDirection = OrderDirectionEnum.Desc;
                 }
@@ -69,6 +69,25 @@ namespace System.Collections.Extensions
             Info = info;
             getFilteredData = queryableFunction;
             getItemCount = getTotalItemCount;
+
+
+            if (Info.Page == null)
+            {
+                Info.Page = 1;
+            }
+            if (Info.PageSize == null)
+            {
+                Info.PageSize = 20;
+            }
+            if (Info.SortColumn == null)
+            {
+                Info.SortColumn = "";
+            }
+            if (Info.OrderDirection == null)
+            {
+                Info.OrderDirection = FilteredInfo.OrderDirectionEnum.Asc;
+            }
+
         }
         public FilteredList(IQueryable<tt> baseData, FilteredInfo info)
         {
@@ -87,13 +106,7 @@ namespace System.Collections.Extensions
                 return _baseData.Count();
             };
 
-        }
 
-        //public IQueryable<tt> BaseData => _baseData;
-        public IQueryable<tt> FilteredData => GetFilteredData();
-
-        public IQueryable<tt> GetFilteredData()
-        {
             if (Info.Page == null)
             {
                 Info.Page = 1;
@@ -111,6 +124,14 @@ namespace System.Collections.Extensions
                 Info.OrderDirection = FilteredInfo.OrderDirectionEnum.Asc;
             }
 
+
+        }
+
+        //public IQueryable<tt> BaseData => _baseData;
+        public IQueryable<tt> FilteredData => GetFilteredData();
+
+        public IQueryable<tt> GetFilteredData()
+        {
 
             return getFilteredData(Info.Page, Info.PageSize, Info.SortColumn, Info.OrderDirection);
         }

@@ -82,7 +82,8 @@
 
 	<ItemGroup>
 	  <PackageReference Include="hiqpdf" Version="10.17.0" />
-	  <PackageReference Include="Utilities.PdfHandling" Version="3.5.8417.8782" />
+	  <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
+	  <PackageReference Include="Utilities.PdfHandling" Version="3.6.8421.10915" />
 	</ItemGroup>
 	<PropertyGroup Condition=" '$(TargetFramework)' == 'net48'">
 		<DefineConstants>NET45;NETFULL</DefineConstants>

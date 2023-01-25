@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using HiQPdf;
+using Microsoft.Extensions.Logging;
 
 namespace Utilities.PdfHandling.NetFramework
 {
@@ -15,6 +16,11 @@ namespace Utilities.PdfHandling.NetFramework
 
         private static string HiQPDFSerial { get; set; } = "DUVkXF1p-a0Fkb39s-f3Q8PSM9-LTwtPy01-PDUtPjwj-PD8jNDQ0-NA==";
 
+        private readonly ILogger _logger;
+        public PdfCreator(ILogger logger)
+        {
+            _logger = logger;
+        }
 
         public void SavePdfFromHtml(string html, string baseUrl, FileInfo file, PageOrientation orientation = PageOrientation.Portrait)
         {
@@ -223,7 +229,7 @@ namespace Utilities.PdfHandling.NetFramework
         [Obsolete("Use CombineFiles(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)", true)]
         public void CombineFiles(List<FileInfo> fileList, FileInfo toFile)
         {
-            Core.CombineFiles(fileList, toFile);
+            Core.CombineFiles(fileList, toFile, (msg) => _logger.LogInformation(msg));
         }
 
         [Obsolete("Use CombineFilesAsync(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)", true)]
@@ -237,7 +243,7 @@ namespace Utilities.PdfHandling.NetFramework
         }
         public FileInfo CombineFiles(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)
         {
-            return Core.CombineFiles(fileList, toDirectory, fileName);
+            return Core.CombineFiles(fileList, toDirectory, fileName, (msg) => _logger.LogInformation(msg));
         }
     }
 }

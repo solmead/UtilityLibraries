@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
@@ -21,13 +22,20 @@ namespace Utilities.FileExtensions.AspNetCore.Configuration
 
 
 
-        public static IServiceCollection AddFileServerExtensions(this IServiceCollection services, ILogger logger, Action<FileServerProviderOptions> configFunc = null)
+        public static IServiceCollection AddFileServerExtensions(this IServiceCollection services, ILogger logger, Action<FileServerProviderOptions> configFunc = null, Action<StaticFileOptions> staticFileOptions = null)
         {
-            services.AddFileServerProvider(logger, configFunc);
-            services.AddScoped<IServerServices, ServerFileServices>();
-            services.InitilizeFileExtensions();
-            services.AddScoped(typeof(IEmbeddedFileHandling<>), typeof(EmbeddedFileHandler<>));
-
+            try
+            {
+                services.AddFileServerProvider(logger, configFunc, staticFileOptions);
+                services.AddScoped<IServerServices, ServerFileServices>();
+                services.InitilizeFileExtensions();
+                services.AddScoped(typeof(IEmbeddedFileHandling<>), typeof(EmbeddedFileHandler<>));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, ex.ToString());
+                throw;
+            }
 
             return services;
         }
@@ -38,11 +46,11 @@ namespace Utilities.FileExtensions.AspNetCore.Configuration
         /// <param name="services"></param>
         /// <param name="configuration"></param>
         /// <returns></returns>
-        private static IServiceCollection AddFileServerProvider(this IServiceCollection services, ILogger logger, Action<FileServerProviderOptions> configFunc = null)
+        private static IServiceCollection AddFileServerProvider(this IServiceCollection services, ILogger logger, Action<FileServerProviderOptions> configFunc = null, Action<StaticFileOptions> staticFileOptions = null)
         {
             //Add our IFileServerProvider implementation as a singleton
             services.AddSingleton<IPhysicalFileServerProvider>(new PhysicalFileServerProvider(GetFileServerOptions(logger, configFunc)));
-            services.AddSingleton<IEmbeddedFileServerProvider>(new EmbeddedFileServerProvider(GetEmbeddedFileOptions(logger)));
+            services.AddSingleton<IEmbeddedFileServerProvider>(new EmbeddedFileServerProvider(GetEmbeddedFileOptions(logger, staticFileOptions)));
 
 
             return services;
@@ -84,10 +92,12 @@ namespace Utilities.FileExtensions.AspNetCore.Configuration
             return fileServers;
         }
 
-        private static List<FileServerOptions> GetEmbeddedFileOptions(ILogger logger)
+        private static List<FileServerOptions> GetEmbeddedFileOptions(ILogger logger, Action<StaticFileOptions> staticFileOptions)
         {
             var fileServers = new List<FileServerOptions>();
 
+           // var providerList = new FileExtensionContentTypeProvider();
+            //providerList.Mappings[".proto"] = "text/plain";
             var assList = Assemblies;
             foreach (var ass in assList)
             {
@@ -104,14 +114,29 @@ namespace Utilities.FileExtensions.AspNetCore.Configuration
                             logger.LogInformation("Assembly Directories: [" +  nm + "] [" + d.PhysicalPath + "] [" + d.Name + "]");
                         }
 
-                        fileServers.Add(
-                                    new FileServerOptions
-                                    {
-                                        FileProvider = efp,
-                                        RequestPath = new PathString(Core.GetEmbeddedBasePath(ass)),
-                                        EnableDirectoryBrowsing = true
-                                    }
-                                );
+                        var fso = new FileServerOptions
+                        {
+                            FileProvider = efp,
+                            RequestPath = new PathString(Core.GetEmbeddedBasePath(ass)),
+                            EnableDirectoryBrowsing = true
+                        };
+                        //fso.StaticFileOptions.ContentTypeProvider = providerList;
+                        fso.StaticFileOptions.ServeUnknownFileTypes = true;
+                        fso.StaticFileOptions.DefaultContentType = "text/plain";
+
+                        if (staticFileOptions != null)
+                        {
+                            staticFileOptions(fso.StaticFileOptions);
+                        }
+
+                        //new StaticFileOptions
+                        //{
+                        //    ServeUnknownFileTypes = true,
+                        //    DefaultContentType = "text/plain",
+                        //    ContentTypeProvider = providerList
+                        //}
+
+                        fileServers.Add(fso);
                     }
                 }
                 catch (Exception e)
@@ -147,6 +172,9 @@ namespace Utilities.FileExtensions.AspNetCore.Configuration
 
             foreach (var option in embeddedServerprovider.FileServerOptionsCollection)
             {
+
+
+
                 app.UseFileServer(option);
             }
 
@@ -190,7 +218,7 @@ namespace Utilities.FileExtensions.AspNetCore.Configuration
                     {
                         try
                         {
-                            var assembly = Assembly.Load(reference);
+                           var assembly = Assembly.Load(reference);
                             assembliesToCheck.Enqueue(assembly);
                             loadedAssemblies.Add(reference.FullName);
                             returnAssemblies.Add(assembly);
