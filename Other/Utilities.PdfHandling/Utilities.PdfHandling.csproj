@@ -30,7 +30,7 @@
     <PackageReference Include="System.ServiceModel.Http" Version="4.10.0" />
     <PackageReference Include="System.ServiceModel.NetTcp" Version="4.10.0" />
     <PackageReference Include="System.ServiceModel.Security" Version="4.10.0" />
-    <PackageReference Include="Utilities.FileExtensions" Version="3.5.8424.5300" />
+    <PackageReference Include="Utilities.FileExtensions" Version="3.5.8439.54004" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
