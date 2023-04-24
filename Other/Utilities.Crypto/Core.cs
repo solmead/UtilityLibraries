@@ -16,6 +16,7 @@ namespace Utilities.Crypto
         const int Keysize = 256;
         const int DerivationIterations = 1000;
 
+
         public static string Encrypt(string plainText, string passPhrase)
         {
             //  Salt and IV is randomly generated each time, but is preprended to encrypted cipher text
