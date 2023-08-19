@@ -44,7 +44,7 @@ namespace Utilities.Tokenizer
             int cnt = 0;
             while (i >= 0 && cnt < 10000)
             {
-                dynamic E = Content.IndexOf(EndChar, i + BeginChar.Length);
+                var E = Content.IndexOf(EndChar, i + BeginChar.Length);
                 if (E > i + BeginChar.Length)
                 {
                     Content = Content.Substring(0, i) + Content.Substring(E + EndChar.Length);
@@ -64,7 +64,7 @@ namespace Utilities.Tokenizer
             int cnt = 0;
             while (i >= 0 && cnt < 10000)
             {
-                dynamic E = Content.IndexOf(EndChar, i + BeginChar.Length);
+                var E = Content.IndexOf(EndChar, i + BeginChar.Length);
                 if (E > i + BeginChar.Length)
                 {
                     i = i + BeginChar.Length;

@@ -1,5 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿
 using System;
+using System.Text.Json.Serialization;
 using System.Xml.Serialization;
 
 namespace Utilities.Caching.Helpers

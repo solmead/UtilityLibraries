@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -39,6 +40,43 @@ namespace Utilities.FileExtensions.AspNetCore
             _webHostEnvironment = webHostEnvironment;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
+        }
+
+        private Uri BaseUrl(IUrlHelper urlHelper)
+        {
+            var baseUrl = "";
+
+            //No configuration given, so use the one from the context
+            if (string.IsNullOrWhiteSpace(baseUrl))
+            {
+                var request = _httpContextAccessor.HttpContext.Request;
+                baseUrl = request.Scheme + "://" + request.Host.Value;
+            }
+
+            return new Uri(baseUrl);
+        }
+
+        public string GetAbsUrl(string path)
+        {
+            if (path.Contains("://"))
+            {
+                return path;
+            }
+
+            IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+            var uri = new Uri(path, UriKind.RelativeOrAbsolute);
+            if (uri.IsAbsoluteUri)
+            {
+                return path;
+            }
+
+            Uri combinedUri;
+            if (Uri.TryCreate(BaseUrl(urlHelper), path, out combinedUri))
+            {
+                return combinedUri.AbsoluteUri;
+            }
+
+            throw new Exception(string.Format("Could not create absolute url for {0} using baseUri{0}", path, BaseUrl(urlHelper)));
         }
 
         public string GetTempDirectory()
@@ -123,49 +161,39 @@ namespace Utilities.FileExtensions.AspNetCore
             }
 
             var pths = path.Split(Path.DirectorySeparatorChar);
-            var pt = _fileServerProvider.GetProvider(pths[1]) as PhysicalFileProvider;
 
-
-            if (pt != null)
+            var subPath = "";
+            for(var a=2; a<pths.Length; a++)
             {
-                return Path.Join(pt.Root, path);
-                //if (_siteSettings.DocumentsDirectory.Contains(netPath) || _siteSettings.DocumentsDirectory.Contains("." + Path.DirectorySeparatorChar) || _siteSettings.DocumentsDirectory.Contains(dirPath))
-                //{
-                //    path = path.Substring(10);
-                //    var finPath = Path.Join(_siteSettings.DocumentsDirectory, path);
-                //    return finPath;
-                //}
+                subPath = subPath + Path.DirectorySeparatorChar + pths[a] ;
             }
-            //path.Contains(".\\") ||
 
 
 
-            //if (_siteSettings.DocumentsPath.Contains("\\\\") || _siteSettings.DocumentsPath.Contains(".\\") || _siteSettings.DocumentsPath.Contains(":\\"))
+            var pt = _fileServerProvider.GetProvider(pths[1]) as PhysicalFileProvider;
+            var pt2 = _fileServerProvider.GetProvider("/" + pths[1]) as PhysicalFileProvider;
+            var pt3 = _fileServerProvider.GetProvider("\\" + pths[1]) as PhysicalFileProvider;
+
+            //if (path.Contains("documents") && pt==null)
             //{
-            //    //app.UseFileServer(new FileServerOptions
-            //    //{
-            //    //    FileProvider = new PhysicalFileProvider(settings.DocumentsPath),
-            //    //    RequestPath = new PathString("/Documents"),
-            //    //    EnableDirectoryBrowsing = false
-            //    //});
+            //    throw new Exception("Chris expected documents to be mapped to a PhysicalFileProvider pths[1]=[" + pths[1] + "] pt2 exists = [" + (pt2!=null) + "]");
             //}
 
 
+            pt = pt ?? pt2 ?? pt3;
 
+            var finPath = "";
+            if (pt != null)
+            {
+                finPath = Path.GetFullPath(Path.Join(pt.Root, subPath));
+            } else
+            {
+                string contentRootPath = _webHostEnvironment.ContentRootPath;
+                finPath = Path.GetFullPath(Path.Join(contentRootPath, path));
 
-
-            //string webRootPath = _webHostEnvironment.WebRootPath;
-            string contentRootPath = _webHostEnvironment.ContentRootPath;
-
-            //string path = "";
-            //path = Path.Combine(webRootPath, "CSS");
-
-
-
-            return Path.Join(contentRootPath, path);
-
-            //throw new NotImplementedException();
-            //throw new NotImplementedException();
+            }
+            return finPath;
+           
         }
     }
 }

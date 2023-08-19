@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Utilities.Caching.Core;
 using Utilities.Caching.Helpers;
 using Utilities.SerializeExtensions;
+using Microsoft.Extensions.Logging;
 
 namespace Utilities.Caching.AspNetCore.Sessions
 {
@@ -15,15 +16,18 @@ namespace Utilities.Caching.AspNetCore.Sessions
 
         public static ConcurrentDictionary<string, string> Names = new ConcurrentDictionary<string, string>();
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ILogger _logger;
+
         public HttpContext Current => _httpContextAccessor.HttpContext;
 
 
         public BaseCacheArea Area { get { return BaseCacheArea.Global; } }
 
 
-        public SessionDataSource(IHttpContextAccessor contextAccessor)
+        public SessionDataSource(IHttpContextAccessor contextAccessor, ILogger logger)
         {
             _httpContextAccessor = contextAccessor;
+            _logger = logger;
         }
 
         public async Task<CachedEntry<tt>> GetItemAsync<tt>(string name)
@@ -69,8 +73,9 @@ namespace Utilities.Caching.AspNetCore.Sessions
                  //   as CachedEntry<tt>;
                 return t;
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex.ToString());
                 //throw;
             }
             return default;
@@ -124,48 +129,62 @@ namespace Utilities.Caching.AspNetCore.Sessions
                     }
                     catch (Exception ex)
                     {
-
+                        _logger.LogError(ex.ToString());
                         throw;
                     }
                 }
                 else
                 {
-                    var ser = new Serializer();
-                    var ts = ser.Serialize<CachedEntry<tt>>(item);
-                    Current.Session.SetString(item.Name.ToUpper(), ts);
-                    //lock (_memoryCache)
-                    //{
-                    //    try
-                    //    {
-                    //        _memoryCache.Remove(item.Name.ToUpper());
-                    //    }
-                    //    catch (Exception)
-                    //    {
+                    try
+                    {
+                        var ser = new Serializer();
+                        var ts = ser.Serialize<CachedEntry<tt>>(item);
+                        Current.Session.SetString(item.Name.ToUpper(), ts);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex.ToString());
+                    }
+                        //lock (_memoryCache)
+                        //{
+                        //    try
+                        //    {
+                        //        _memoryCache.Remove(item.Name.ToUpper());
+                        //    }
+                        //    catch (Exception)
+                        //    {
 
-                    //    }
-                    //    _memoryCache.Set(item.Name.ToUpper(), item);
-                    //}
-                }
+                        //    }
+                        //    _memoryCache.Set(item.Name.ToUpper(), item);
+                        //}
+                    }
 
 
             }
             else
             {
-                Current.Session.Remove(item.Name.ToUpper());
-                //lock (_memoryCache)
-                //{
-                //    try
-                //    {
-                //        _memoryCache.Remove(item.Name.ToUpper());
-                //    }
-                //    catch (Exception)
-                //    {
+                try
+                {
+                    Current.Session.Remove(item.Name.ToUpper());
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex.ToString());
+                }
+            //lock (_memoryCache)
+            //{
+            //    try
+            //    {
+            //        _memoryCache.Remove(item.Name.ToUpper());
+            //    }
+            //    catch (Exception)
+            //    {
 
-                //    }
-                //}
-                ////_memoryCache.Remove(item.Name.ToUpper());
-                ////HttpRuntime.Cache.Remove(item.Name.ToUpper());
-            }
+            //    }
+            //}
+            ////_memoryCache.Remove(item.Name.ToUpper());
+            ////HttpRuntime.Cache.Remove(item.Name.ToUpper());
+        }
         }
 
         public CachedEntry<object> GetItem(string name, Type type)
@@ -186,9 +205,9 @@ namespace Utilities.Caching.AspNetCore.Sessions
                 //    return t;
                 //}
             }
-            catch
+            catch (Exception ex)
             {
-                //throw;
+                _logger.LogError(ex.ToString());
             }
             return null;
         }
@@ -209,10 +228,16 @@ namespace Utilities.Caching.AspNetCore.Sessions
                     var lifeSpanSeconds = item.TimeOut.Value.Subtract(DateTime.Now).TotalSeconds;
                     int totSeconds = (int)lifeSpanSeconds;
                     int ms = (int)((lifeSpanSeconds - 1.0 * totSeconds) * 1000.0);
-
-                    var ser = new Serializer();
-                    var ts = ser.Serialize<CachedEntry<object>>(item);
-                    Current.Session.SetString(item.Name.ToUpper(), ts);
+                    try
+                    {
+                        var ser = new Serializer();
+                        var ts = ser.Serialize<CachedEntry<object>>(item);
+                        Current.Session.SetString(item.Name.ToUpper(), ts);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex.ToString());
+                    }
                     //lock (_memoryCache)
                     //{
                     //    try
@@ -232,9 +257,16 @@ namespace Utilities.Caching.AspNetCore.Sessions
                 }
                 else
                 {
-                    var ser = new Serializer();
-                    var ts = ser.Serialize<CachedEntry<object>>(item);
-                    Current.Session.SetString(item.Name.ToUpper(), ts);
+                    try
+                    {
+                        var ser = new Serializer();
+                        var ts = ser.Serialize<CachedEntry<object>>(item);
+                        Current.Session.SetString(item.Name.ToUpper(), ts);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex.ToString());
+                    }
                     //lock (_memoryCache)
                     //{
                     //    try
@@ -254,7 +286,14 @@ namespace Utilities.Caching.AspNetCore.Sessions
             }
             else
             {
-                Current.Session.Remove(item.Name.ToUpper());
+                try
+                {
+                    Current.Session.Remove(item.Name.ToUpper());
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex.ToString());
+                }
                 //lock (_memoryCache)
                 //{
                 //    try
@@ -283,9 +322,9 @@ namespace Utilities.Caching.AspNetCore.Sessions
                 //    //HttpRuntime.Cache.Remove(name.ToUpper());
                 //}
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                _logger.LogError(ex.ToString());
             }
         }
 

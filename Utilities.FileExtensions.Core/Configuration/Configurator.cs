@@ -74,11 +74,17 @@ namespace Utilities.FileExtensions.AspNetCore.Configuration
                 {
                     logger.LogInformation("Network Directories: [" + dir.WebPath + "] - [" + dir.NetworkPath + "]");
 
+                    var wPath = dir.WebPath;
+                    if (!wPath.StartsWith("/"))
+                    {
+                        wPath = "/" + wPath;
+                    }
+
                     fileServers.Add(
                         new FileServerOptions
                         {
                             FileProvider = new PhysicalFileProvider(dir.NetworkPath),
-                            RequestPath = new PathString(dir.WebPath),
+                            RequestPath = new PathString(wPath),
                             EnableDirectoryBrowsing = false
                         }
                     );

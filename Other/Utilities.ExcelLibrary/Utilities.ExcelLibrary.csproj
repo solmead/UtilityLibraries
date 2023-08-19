@@ -29,12 +29,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ClosedXML" Version="0.100.3" />
+    <PackageReference Include="ClosedXML" Version="0.101.0" />
     <PackageReference Include="CsvHelper" Version="30.0.1" />
-    <PackageReference Include="DocumentFormat.OpenXml" Version="2.19.0" />
+    <PackageReference Include="DocumentFormat.OpenXml" Version="2.20.0" />
     <PackageReference Include="ExcelNumberFormat" Version="1.1.0" />
-    <PackageReference Include="Utilities.LinqDynamic" Version="2.3.0" />
-    <PackageReference Include="Utilities.Poco" Version="2.7.8314.39874" />
+    <PackageReference Include="Utilities.LinqDynamic" Version="2.3.8539.49056" />
+    <PackageReference Include="Utilities.Poco" Version="2.8.8622.54432" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">

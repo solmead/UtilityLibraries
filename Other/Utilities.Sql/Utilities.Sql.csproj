@@ -26,12 +26,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.13" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.13" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.16" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.16" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
-    <PackageReference Include="Utilities.LinqDynamic" Version="2.3.0" />
-    <PackageReference Include="Utilities.Poco" Version="2.8.8439.53201" />
+    <PackageReference Include="Utilities.LinqDynamic" Version="2.3.8539.49056" />
+    <PackageReference Include="Utilities.Poco" Version="2.8.8622.54432" />
   </ItemGroup>
 
 
