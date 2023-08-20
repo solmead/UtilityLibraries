@@ -18,7 +18,9 @@ namespace Utilities.Dapper.TypeHandlers
 
         public override DateOnly? Parse(object value)
         {
-            return DateOnly.TryParse(value.ToString(), out DateOnly d) ? d : null;
+            if (value == null) return null;
+
+            return DateOnly.FromDateTime((DateTime)value);
         }
     }
     #endif
