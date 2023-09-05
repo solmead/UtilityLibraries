@@ -74,7 +74,7 @@ namespace Utilities.PdfHandling
                 Debug.WriteLine(fd.FileName + " " + fd.Data.Length);
             }
 
-            FileInfo toFile = null;
+            FileInfo toFile = new FileInfo(toDirectory.FullName + "/" + fileName);
 
             try
             {
@@ -84,7 +84,7 @@ namespace Utilities.PdfHandling
 
                 var fFile = new FileInfo(toDirectory.FullName + "/" + finalFile.FileName);
 
-                toFile = new FileInfo(toDirectory.FullName + "/" + fileName + fFile.Extension);
+                toFile = new FileInfo(toDirectory.FullName + "/" + toFile.FileNameWithoutExtension() + fFile.Extension);
 
                 var f = new FileStream(toFile.FullName, FileMode.Create);
                 f.Write(finalFile.Data, 0, finalFile.Data.Length);

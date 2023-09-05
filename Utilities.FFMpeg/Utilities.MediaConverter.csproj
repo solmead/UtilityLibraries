@@ -98,7 +98,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
     <PackageReference Include="System.IO.Compression" Version="4.3.0" />
     <PackageReference Include="Utilities.EnumExtensions" Version="6.3.8539.49024" />
-    <PackageReference Include="Utilities.FileExtensions" Version="3.5.8596.55627" />
+    <PackageReference Include="Utilities.FileExtensions" Version="3.5.8642.51198" />
   </ItemGroup>
 
 </Project>

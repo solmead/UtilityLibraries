@@ -38,6 +38,11 @@ namespace Utilities.FileExtensions
         Task<bool> SaveFileAsync(string directory, string fileName, byte[] data);
 
         Task<bool> SaveFileAsync(string fileName, byte[] data);
+
+        bool SaveFile(string directory, string fileName, Stream data);
+        bool SaveFile(string fileName, Stream data);
+        Task<bool> SaveFileAsync(string fileName, Stream data);
+        Task<bool> SaveFileAsync(string directory, string fileName, Stream data);
     }
 
 }

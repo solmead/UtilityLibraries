@@ -66,6 +66,27 @@ namespace Utilities.FileExtensions
             return null;
         }
 
+        public bool SaveFile(string directory, string fileName, Stream data)
+        {
+            if (!(directory.EndsWith("/") || directory.EndsWith("\\")))
+            {
+                directory = directory + "/";
+            }
+            var fi = new FileInfo(_serverService.MapPath(directory + fileName));
+            if (!fi.Directory.Exists)
+            {
+                fi.Directory.Create();
+            }
+            if (fi.Exists)
+            {
+                fi.Delete();
+            }
+            var fileStream = File.Create(fi.FullName);
+            data.CopyTo(fileStream);
+            fileStream.Close();
+
+            return true;
+        }
         public bool SaveFile(string directory, string fileName, byte[] data)
         {
             if (!(directory.EndsWith("/") || directory.EndsWith("\\")))
@@ -134,6 +155,21 @@ namespace Utilities.FileExtensions
                 dir = fileName.Substring(0, last);
                 fileName = fileName.Substring(last);
             }
+            return SaveFile(dir, fileName, data);
+        }
+
+        public bool SaveFile(string fileName, Stream data)
+        {
+            fileName = fileName.Replace("\\", "/");
+            var last = fileName.LastIndexOf("/");
+            var dir = "";
+            if (last >= 0)
+            {
+                last = last + 1;
+                dir = fileName.Substring(0, last);
+                fileName = fileName.Substring(last);
+            }
+
             return SaveFile(dir, fileName, data);
         }
 
@@ -262,6 +298,10 @@ namespace Utilities.FileExtensions
             return Task.FromResult(GetFile(directory, fileName));
         }
 
+        public Task<bool> SaveFileAsync(string directory, string fileName, Stream data)
+        {
+            return Task.FromResult(SaveFile(directory, fileName, data));
+        }
         public Task<bool> SaveFileAsync(string directory, string fileName, byte[] data)
         {
             return Task.FromResult(SaveFile(directory, fileName, data));
@@ -287,6 +327,10 @@ namespace Utilities.FileExtensions
             return Task.FromResult(SaveFile(fileName, data));
         }
 
+        public Task<bool> SaveFileAsync(string fileName, Stream data)
+        {
+            return Task.FromResult(SaveFile(fileName, data));
+        }
         public Task<string> GetFileURLAsync(string fileName)
         {
             return Task.FromResult(GetFileURL(fileName));
@@ -355,5 +399,7 @@ namespace Utilities.FileExtensions
 
             return di.GetFiles().Select((d) => d.Name).ToList();
         }
+
+
     }
 }
