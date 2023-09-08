@@ -44,7 +44,6 @@
     <Reference Include="System.Security" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Configuration" />
-		<Reference Include="System.Text.Json" />
   </ItemGroup>
 	<PropertyGroup Condition=" '$(TargetFramework)' == 'net462'">
 		<DefineConstants>NET45;NETFULL</DefineConstants>
@@ -61,7 +60,6 @@
 		<Reference Include="System.Security" />
 		<Reference Include="System.Xml" />
 		<Reference Include="System.Configuration" />
-		<Reference Include="System.Text.Json" />
 	</ItemGroup>
 	<PropertyGroup Condition=" '$(TargetFramework)' == 'net472'">
 		<DefineConstants>NET45;NETFULL</DefineConstants>
@@ -78,7 +76,6 @@
 		<Reference Include="System.Security" />
 		<Reference Include="System.Xml" />
 		<Reference Include="System.Configuration" />
-		<Reference Include="System.Text.Json" />
 	</ItemGroup>
 	<PropertyGroup Condition=" '$(TargetFramework)' == 'net48'">
 		<DefineConstants>NET45;NETFULL</DefineConstants>
@@ -87,8 +84,10 @@
 
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
-		<PackageReference Include="System.Text.Json" Version="7.0.3" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />		
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+
+		
 	</ItemGroup>
 
 </Project>

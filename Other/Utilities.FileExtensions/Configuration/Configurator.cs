@@ -13,6 +13,7 @@ namespace Utilities.FileExtensions.Configuration
             //where TT:class,IFileHandling
         {
 
+            services.AddTransient<LocalFileHandler, LocalFileHandler>();
             services.AddTransient<ILocalFileHandling, LocalFileHandler>();
             services.AddTransient<IFullFileHandling, LocalFileHandler>();
             services.AddTransient<IFileHandling, LocalFileHandler>();

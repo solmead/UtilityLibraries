@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace Utilities.SerializeExtensions.Serializers
 {
@@ -87,7 +88,7 @@ namespace Utilities.SerializeExtensions.Serializers
 
             try
             {
-                return System.Text.Json.JsonSerializer.Deserialize(data, type);
+                return JsonConvert.DeserializeObject(data, type);
             }
             catch (Exception ex)
             {
@@ -108,7 +109,7 @@ namespace Utilities.SerializeExtensions.Serializers
 
         public string Serialize(object item, Type type)
         {
-            return System.Text.Json.JsonSerializer.Serialize(item).Replace("\n","").Replace("\r", "");
+            return JsonConvert.SerializeObject(item).Replace("\n","").Replace("\r", "");
         }
 
         public byte[] SerializeToArray<T>(T item) where T : class

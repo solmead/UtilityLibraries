@@ -114,10 +114,10 @@ namespace Utilities.FileExtensions.AspNetCore.Configuration
                     if (dList.Any())
                     {
                         var nm = Core.GetEmbeddedBasePath(ass);
-                        logger.LogInformation("Assembly Directories: [" + ass.GetName().Name + "] [" + nm + "]");
+                        logger.LogInformation("Assembly Embedded Directories: [" + ass.GetName().Name + "] [" + nm + "]");
                         foreach (var d in dList)
                         {
-                            logger.LogInformation("Assembly Directories: [" +  nm + "] [" + d.PhysicalPath + "] [" + d.Name + "]");
+                            logger.LogInformation("Assembly Embedded Directories: [" +  nm + "] [" + d.PhysicalPath + "] File: [" + d.Name + "]");
                         }
 
                         var fso = new FileServerOptions

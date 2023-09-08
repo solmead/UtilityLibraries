@@ -39,7 +39,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
     <PackageReference Include="Utilities.EnumExtensions" Version="6.3.8539.49024" />
-    <PackageReference Include="Utilities.SerializeExtensions" Version="6.8.8596.49216" />
+    <PackageReference Include="Utilities.SerializeExtensions" Version="6.8.8650.5946" />
   </ItemGroup>
 
 	<PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">

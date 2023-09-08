@@ -38,7 +38,7 @@
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
     <PackageReference Include="System.Text.Json" Version="7.0.3" />
     <PackageReference Include="Utilities.Caching" Version="7.3.8596.49364" />
-    <PackageReference Include="Utilities.SerializeExtensions" Version="6.8.8596.49216" />
+    <PackageReference Include="Utilities.SerializeExtensions" Version="6.8.8650.5946" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">

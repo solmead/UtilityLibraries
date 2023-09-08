@@ -34,7 +34,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
     <PackageReference Include="System.Text.Json" Version="7.0.3" />
     <PackageReference Include="Utilities.CollectionExtensions" Version="2.8.8598.48308" />
-    <PackageReference Include="Utilities.SerializeExtensions" Version="6.8.8596.49216" />
+    <PackageReference Include="Utilities.SerializeExtensions" Version="6.8.8650.5946" />
   </ItemGroup>
 
   <ItemGroup>

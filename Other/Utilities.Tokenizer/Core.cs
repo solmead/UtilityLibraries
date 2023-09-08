@@ -1,13 +1,38 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Utilities.Poco;
 
 namespace Utilities.Tokenizer
 {
     public static class Core
     {
-        public static string Tokenize(this string message, object obj)
+        public static string Tokenize(this string message, object obj, string propertyBaseName = "")
         {
-            return message.Tokenize(obj.PropertiesAsDictionary());
+            var dc = obj.PropertiesAsDictionary();
+            if (!string.IsNullOrWhiteSpace(propertyBaseName))
+            {
+                var dic = dc;
+                dc = new Dictionary<string, string>();
+                foreach(var it in dic)
+                {
+                    dc.Add(propertyBaseName + it.Key, it.Value);
+                }
+            }
+
+            return message.Tokenize(dc);
+        }
+        //public static string Tokenize(this string message, object obj)
+        //{
+        //    return message.Tokenize(obj.PropertiesAsDictionary());
+        //}
+        public static string Tokenize(this string message, string key, string value)
+        {
+            var dc = new Dictionary<string, string>
+            {
+                { key, value }
+            };
+
+            return message.Tokenize(dc);
         }
 
         public static string Tokenize(this string message, Dictionary<string, string> tokens)
@@ -22,14 +47,23 @@ namespace Utilities.Tokenizer
                 c = c.Replace("{[" + formulaEvaluate + "]}", finEval);
                 formulaEvaluate = c.GetNextBetween("{[", "]}");
             }
-            c = c.RemoveBetween("{[", "]}");
+            //c = c.RemoveBetween("{[", "]}");
 
             foreach (var key in tokens.Keys)
             {
                 c = c.Replace("[/" + key + "/]", tokens[key]);
             }
+            //c = c.RemoveBetween("[/", "/]");
+            return c;
+        }
+
+        public static string ClearRemainingTokens(this string message)
+        {
+            var c = message;
+            c = c.RemoveBetween("{[", "]}");
             c = c.RemoveBetween("[/", "/]");
             return c;
+
         }
         
 
