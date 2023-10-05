@@ -3,6 +3,7 @@ using System;
 using System.Text.Json.Serialization;
 using System.Xml.Serialization;
 
+
 namespace Utilities.Caching.Helpers
 {
     public interface ICacheEntry
@@ -24,6 +25,7 @@ namespace Utilities.Caching.Helpers
         public DateTime? TimeOut { get; set; }
         [XmlIgnore]
         [JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public object TheObject { get { return GetMe()?.ItemObject; } }
     }
 
@@ -45,6 +47,7 @@ namespace Utilities.Caching.Helpers
 
         [XmlIgnore]
         [JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public object ItemObject { get { return Item; } }
     }
 }

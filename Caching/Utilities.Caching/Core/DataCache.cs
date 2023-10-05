@@ -228,6 +228,18 @@ namespace Utilities.Caching.Core
         //    }
         //    return entry;
         //}
+
+
+        public void ClearItem(string name)
+        {
+            _dataSource.DeleteItem(name);
+        }
+
+        public Task ClearItemAsync(string name)
+        {
+            return _dataSource.DeleteItemAsync(name);
+        }
+
         private void SaveItem<tt>(CachedEntry<tt> entry)
         {
              _dataSource.SetItem(entry);
@@ -270,6 +282,7 @@ namespace Utilities.Caching.Core
 
             return null;
         }
+
 
 
         //public object GetItem(string name, Type type, Func<object> createMethod = null, double? lifeSpanSeconds = null)

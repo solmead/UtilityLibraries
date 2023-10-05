@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using Utilities.Caching.CacheAreas;
 using Utilities.Caching.Core;
-using Utilities.Caching.CacheAreas;
 
 namespace Utilities.Caching.Caches
 {
@@ -12,11 +11,20 @@ namespace Utilities.Caching.Caches
         public string Name { get { return "DefaultNone"; } }
         public IDataSource DataSource { get; private set; }
 
+
         public void ClearCache()
         {
             
         }
 
+        public void ClearItem(string name)
+        {
+        }
+
+        public async Task ClearItemAsync(string name)
+        {
+
+        }
         public tt GetItem<tt>(string name, Func<tt> createMethod = null, double? lifeSpanSeconds = null, string tags = "")
         {
             if (createMethod != null)

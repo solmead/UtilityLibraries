@@ -202,7 +202,7 @@ namespace Utilities.Caching
             foreach (var t in tList)
             {
                 try { 
-                    await Cache.SetItemAsync<object>(t.CacheArea, t.EntryName, null);
+                    await Cache.ClearItemAsync(t.CacheArea, t.EntryName);
                 }
                 catch
                 {
@@ -250,14 +250,12 @@ namespace Utilities.Caching
         {
             try
             {
-                var tList = (from t in TaggedEntries
-                         where t.Tags.ToUpper().Contains("," + tag.ToUpper() + ",")
-                         select t).ToList();
+                var tList = GetTaggedCacheEntries(tag);
                 foreach (var t in tList)
                 {
                     try
                     {
-                        Cache.SetItem<string>(t.CacheArea, t.EntryName, null);
+                        Cache.ClearItem(t.CacheArea, t.EntryName);
                     }
                     catch
                     {

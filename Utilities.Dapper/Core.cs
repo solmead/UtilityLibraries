@@ -214,6 +214,66 @@ namespace Utilities.Dapper
             return q;
         }
 
+        public static async Task<Tuple<IEnumerable<TT1>, IEnumerable<TT2>, IEnumerable<TT3>, IEnumerable<TT4>, IEnumerable<TT5>>> SqlQueryAsync<TT1, TT2, TT3, TT4, TT5>(this IDbConnection db,
+            string sql, object param = null, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+            where TT4 : class
+            where TT5 : class
+        {
+
+            if (commandType == null && !sql.ToUpper().StartsWith("EXEC ") && !sql.ToUpper().Contains(" @"))
+            {
+                commandType = CommandType.StoredProcedure;
+            }
+
+
+            var items = await db.QueryMultipleAsync(sql, param, transaction, commandTimeout, commandType);
+
+            var q1 = items.Read<TT1>();
+            var q2 = items.Read<TT2>();
+            var q3 = items.Read<TT3>();
+            var q4 = items.Read<TT4>();
+            var q5 = items.Read<TT5>();
+
+            var q = new Tuple<IEnumerable<TT1>, IEnumerable<TT2>, IEnumerable<TT3>, IEnumerable<TT4>, IEnumerable<TT5>>(q1, q2, q3, q4, q5);
+
+            return q;
+        }
+
+        public static async Task<Tuple<IEnumerable<TT1>, IEnumerable<TT2>, IEnumerable<TT3>, IEnumerable<TT4>, IEnumerable<TT5>, IEnumerable<TT6>>> SqlQueryAsync<TT1, TT2, TT3, TT4, TT5, TT6>(this IDbConnection db,
+            string sql, object param = null, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null)
+            where TT1 : class
+            where TT2 : class
+            where TT3 : class
+            where TT4 : class
+            where TT5 : class
+            where TT6 : class
+        {
+
+            if (commandType == null && !sql.ToUpper().StartsWith("EXEC ") && !sql.ToUpper().Contains(" @"))
+            {
+                commandType = CommandType.StoredProcedure;
+            }
+
+
+            var items = await db.QueryMultipleAsync(sql, param, transaction, commandTimeout, commandType);
+
+            var q1 = items.Read<TT1>();
+            var q2 = items.Read<TT2>();
+            var q3 = items.Read<TT3>();
+            var q4 = items.Read<TT4>();
+            var q5 = items.Read<TT5>();
+            var q6 = items.Read<TT6>();
+
+            var q = new Tuple<IEnumerable<TT1>, IEnumerable<TT2>, IEnumerable<TT3>, IEnumerable<TT4>, IEnumerable<TT5>, IEnumerable<TT6>>(q1, q2, q3, q4, q5, q6);
+
+            return q;
+        }
+
+
+
 
 
     }

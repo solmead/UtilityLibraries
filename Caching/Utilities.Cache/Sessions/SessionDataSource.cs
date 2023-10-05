@@ -67,7 +67,7 @@ namespace Utilities.Caching.AspNetCore.Sessions
             Names.TryAdd(name.ToUpper(), "");
             try
             {
-                var ser = new Serializer();
+                var ser = Cache.Serializer;
                 var ts = Current.Session.GetString(name.ToUpper());
                 var t = ser.Deserialize<CachedEntry<tt>>(ts);
                  //   as CachedEntry<tt>;
@@ -103,7 +103,7 @@ namespace Utilities.Caching.AspNetCore.Sessions
                     {
 
 
-                        var ser = new Serializer();
+                        var ser = Cache.Serializer;
                         var ts = ser.Serialize<CachedEntry<tt>>(item);
                         Current.Session.SetString(item.Name.ToUpper(), ts);
                         //HttpContext.Current.Session.Remove(item.Name.ToUpper());
@@ -137,7 +137,7 @@ namespace Utilities.Caching.AspNetCore.Sessions
                 {
                     try
                     {
-                        var ser = new Serializer();
+                        var ser = Cache.Serializer;
                         var ts = ser.Serialize<CachedEntry<tt>>(item);
                         Current.Session.SetString(item.Name.ToUpper(), ts);
                     }
@@ -192,7 +192,7 @@ namespace Utilities.Caching.AspNetCore.Sessions
             Names.TryAdd(name.ToUpper(), "");
             try
             {
-                var ser = new Serializer();
+                var ser = Cache.Serializer;
                 var ts = Current.Session.GetString(name.ToUpper());
                 var t = ser.Deserialize<CachedEntry<object>>(ts);
                 return t;
@@ -230,7 +230,7 @@ namespace Utilities.Caching.AspNetCore.Sessions
                     int ms = (int)((lifeSpanSeconds - 1.0 * totSeconds) * 1000.0);
                     try
                     {
-                        var ser = new Serializer();
+                        var ser = Cache.Serializer;
                         var ts = ser.Serialize<CachedEntry<object>>(item);
                         Current.Session.SetString(item.Name.ToUpper(), ts);
                     }
@@ -259,7 +259,7 @@ namespace Utilities.Caching.AspNetCore.Sessions
                 {
                     try
                     {
-                        var ser = new Serializer();
+                        var ser = Cache.Serializer;
                         var ts = ser.Serialize<CachedEntry<object>>(item);
                         Current.Session.SetString(item.Name.ToUpper(), ts);
                     }
