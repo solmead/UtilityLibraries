@@ -20,26 +20,26 @@ namespace Utilities.PdfHandling.Configuration
         }
 
 
-        public static IServiceCollection InitilizePdfHandling(this IServiceCollection services, Action<PdfConfig> setupAction)
-        {
-            Core.config = Core.config ?? new PdfConfig();
-            //services.AddTransient<ILocalFileHandling, LocalFileHandler>();
-            //services.AddTransient<IFullFileHandling, LocalFileHandler>();
-            //services.AddTransient<IFileHandling, LocalFileHandler>();
-            ////services.AddSingleton<IFileHandling, TT>();
+        //public static IServiceCollection InitilizePdfHandling(this IServiceCollection services, Action<PdfConfig> setupAction)
+        //{
+        //    Core.config = Core.config ?? new PdfConfig();
+        //    //services.AddTransient<ILocalFileHandling, LocalFileHandler>();
+        //    //services.AddTransient<IFullFileHandling, LocalFileHandler>();
+        //    //services.AddTransient<IFileHandling, LocalFileHandler>();
+        //    ////services.AddSingleton<IFileHandling, TT>();
 
-            //var config = new PdfConfig();
+        //    //var config = new PdfConfig();
 
-            if (setupAction!=null)
-            {
-                setupAction(Core.config);
-            }
-
-
+        //    if (setupAction!=null)
+        //    {
+        //        setupAction(Core.config);
+        //    }
 
 
-            return services;
-        }
+
+
+        //    return services;
+        //}
 
     }
 }
