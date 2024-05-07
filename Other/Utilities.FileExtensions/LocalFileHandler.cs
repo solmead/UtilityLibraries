@@ -112,6 +112,16 @@ namespace Utilities.FileExtensions
             {
                 directory = directory.Substring(2);
             }
+            if (directory.StartsWith("/") || directory.StartsWith("\\"))
+            {
+                directory = directory.Substring(1);
+            }
+
+            if (!directory.EndsWith("/") && !directory.EndsWith("\\"))
+            {
+                directory = directory + "/";
+            }
+            directory = directory.Replace("\\", "/");
 
             return _serverService.GetUrl("~/" + directory + fileName);
         }

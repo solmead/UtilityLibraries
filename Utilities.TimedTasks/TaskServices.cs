@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Utilities.EnumExtensions;
+using Utilities.KeyValueStore;
 using Utilities.TimedTasks.Quartz;
 using Utilities.TimedTasks.Repos;
 
@@ -27,7 +28,7 @@ namespace Utilities.TimedTasks
         internal List<ITask> TaskList = new List<ITask>();
         private bool disposedValue;
 
-        public TaskServices(ITimedTaskRepository timedTaskRepository,ILogger logger)
+        public TaskServices(IKeyValueRepository timedTaskRepository,ILogger logger)
         {
             _logger = logger;
 

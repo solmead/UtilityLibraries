@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Utilities.KeyValueStore;
 using Utilities.SerializeExtensions;
 using Utilities.TimedTasks.Repos;
 using Utilities.TimedTasks.TimeCheck;
@@ -14,17 +15,17 @@ namespace Utilities.TimedTasks
     {
 
         private readonly ILogger _logger;
-        private readonly ITimedTaskRepository _timedTaskRepository;
+        private readonly IKeyValueRepository _timedTaskRepository;
         private ICheck _checkMethod { get; set; }
 
-        public TasksHandler(ICheck checkMethod, ITimedTaskRepository timedTaskRepository, ILogger logger)
+        public TasksHandler(ICheck checkMethod, IKeyValueRepository timedTaskRepository, ILogger logger)
         {
             _checkMethod = checkMethod;
             _logger = logger;
             _timedTaskRepository = timedTaskRepository;
             CallRate = _checkMethod.CallRate;
         }
-        public TasksHandler(CallRateEnum callRate, ITimedTaskRepository timedTaskRepository, ILogger logger)
+        public TasksHandler(CallRateEnum callRate, IKeyValueRepository timedTaskRepository, ILogger logger)
         {
             CallRate = callRate;
             _logger = logger;

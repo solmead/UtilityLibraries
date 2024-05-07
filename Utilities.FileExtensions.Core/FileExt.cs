@@ -13,31 +13,31 @@ namespace Utilities.FileExtensions.AspNetCore
     public static class FileExt
     {
 
-
-        public static bool SaveFile(this IFullFileHandling fileHandlng, IFormFile file, string path)
+        public static bool SaveFile(this IFullFileHandling fileHandlng, IFormFile file, string path, string filename = null)
         {
+            filename = filename ?? file.FileName;
             using (var stream = new MemoryStream())
             {
                 file.CopyTo(stream);
                 stream.Seek(0, SeekOrigin.Begin);
-                fileHandlng.SaveFile(path, file.FileName, stream);
+                fileHandlng.SaveFile(path, filename, stream);
                 return true;
             }
         }
-        public static Task<bool> SaveFileAsync(this IFormFile file, IFullFileHandling fileHandlng, string path)
+
+        public static Task<bool> SaveFileAsync(this IFormFile file, IFullFileHandling fileHandlng, string path, string filename = null)
         {
-            return Task.FromResult(SaveFile(fileHandlng, file, path));
+            return Task.FromResult(SaveFile(fileHandlng, file, path, filename));
+        }
+        public static bool SaveFile(this IFormFile file, IFullFileHandling fileHandlng, string path, string filename = null)
+        {
+
+            return SaveFile(fileHandlng, file, path, filename);
         }
 
-
-        public static bool SaveFile(this IFormFile file, IFullFileHandling fileHandlng, string path)
+        public static Task<bool> SaveFileAsync(this IFullFileHandling fileHandlng, IFormFile file, string path, string filename = null)
         {
-
-            return SaveFile(fileHandlng, file, path);
-        }
-        public static Task<bool> SaveFileAsync(this IFullFileHandling fileHandlng, IFormFile file, string path)
-        {
-            return Task.FromResult(SaveFile(fileHandlng, file, path));
+            return Task.FromResult(SaveFile(fileHandlng, file, path, filename));
         }
     }
 }

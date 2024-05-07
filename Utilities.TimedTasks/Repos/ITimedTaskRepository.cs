@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Utilities.KeyValueStore;
 
 namespace Utilities.TimedTasks.Repos
 {
-    public interface ITimedTaskRepository
+    [Obsolete("Use the base IKeyValueRepository instead", true)]
+    public interface ITimedTaskRepository : IKeyValueRepository
     {
-        void SetSettingValue(string name, string value);
-        string GetSettingValue(string name, string defaultValue = "");
+
     }
 }

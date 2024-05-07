@@ -134,6 +134,7 @@ namespace Utilities.FileExtensions.AspNetCore
 
         public string MapPath(string path)
         {
+            //_logger.LogInformation("MapPath path=[" + path + "]");
             path = path.Trim();
             path = path.Replace('\\', Path.DirectorySeparatorChar);
             path = path.Replace('/', Path.DirectorySeparatorChar);
@@ -144,6 +145,7 @@ namespace Utilities.FileExtensions.AspNetCore
 
             if (path.StartsWith(netPath) || path.Contains(dirPath))
             {
+                //_logger.LogInformation("MapPath network or full path=[" + path + "]");
                 return path;
             }
 
@@ -152,6 +154,7 @@ namespace Utilities.FileExtensions.AspNetCore
 
             if (path.First() == '~')
             {
+                //_logger.LogInformation("MapPath starts with ~");
                 path = path.Substring(1);
             }
 
@@ -159,6 +162,9 @@ namespace Utilities.FileExtensions.AspNetCore
             {
                 path = Path.DirectorySeparatorChar + path;
             }
+
+
+            //_logger.LogInformation("MapPath checking path=[" + path + "]");
 
             var pths = path.Split(Path.DirectorySeparatorChar);
 
@@ -169,6 +175,7 @@ namespace Utilities.FileExtensions.AspNetCore
             }
 
 
+            //_logger.LogInformation("MapPath looking for mapping for [" + pths[1] + "]");
 
             var pt = _fileServerProvider.GetProvider(pths[1]) as PhysicalFileProvider;
             var pt2 = _fileServerProvider.GetProvider("/" + pths[1]) as PhysicalFileProvider;
@@ -180,18 +187,26 @@ namespace Utilities.FileExtensions.AspNetCore
             //}
 
 
+            //_logger.LogInformation("MapPath pt = " + (pt==null ? "is null" : "found provider"));
+            //_logger.LogInformation("MapPath pt2 = " + (pt2 == null ? "is null" : "found provider"));
+            //_logger.LogInformation("MapPath pt3 = " + (pt3 == null ? "is null" : "found provider"));
+
             pt = pt ?? pt2 ?? pt3;
 
             var finPath = "";
             if (pt != null)
             {
                 finPath = Path.GetFullPath(Path.Join(pt.Root, subPath));
+
             } else
             {
                 string contentRootPath = _webHostEnvironment.ContentRootPath;
+                //_logger.LogInformation("MapPath contentRootPath = [" + contentRootPath + "]");
                 finPath = Path.GetFullPath(Path.Join(contentRootPath, path));
 
             }
+
+            //_logger.LogInformation("MapPath finPath = [" + finPath + "]");
             return finPath;
            
         }

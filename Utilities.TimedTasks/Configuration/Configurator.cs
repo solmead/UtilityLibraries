@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Utilities.KeyValueStore;
 using Utilities.TimedTasks.Repos;
 
 namespace Utilities.TimedTasks.Configuration
@@ -16,7 +17,7 @@ namespace Utilities.TimedTasks.Configuration
         private static IServiceProvider? _serviceProvider { get; set; } = null;
 
         private static ILogger? _logger { get; set; } = null;
-        private static ITimedTaskRepository? _timedTaskRepository { get; set; } = null;
+        private static IKeyValueRepository? _timedTaskRepository { get; set; } = null;
 
 
         public static TaskServices Instance
@@ -31,7 +32,7 @@ namespace Utilities.TimedTasks.Configuration
                 if (_serviceProvider != null)
                 {
                     _logger = _serviceProvider.GetRequiredService<ILogger>();
-                    _timedTaskRepository = _serviceProvider.GetRequiredService<ITimedTaskRepository>();
+                    _timedTaskRepository = _serviceProvider.GetRequiredService<IKeyValueRepository>();
                     _instance = _serviceProvider.GetRequiredService<TaskServices>();
                 }
                 else
@@ -79,9 +80,9 @@ namespace Utilities.TimedTasks.Configuration
         /// <param name="timedTaskRepository"></param>
         /// <param name="logger"></param>
         /// <param name="createTaskFromType">Pass in "DependencyResolver.Current.GetService" if you want to have DI support</param>
-        public static void InitTimeTasks(ITimedTaskRepository timedTaskRepository, ILogger logger, Func<Type, ITask>? createTaskFromType = null)
+        public static void InitTimeTasks(IKeyValueRepository keyValueRepository, ILogger logger, Func<Type, ITask>? createTaskFromType = null)
         {
-            _timedTaskRepository = timedTaskRepository;
+            _timedTaskRepository = keyValueRepository;
             _logger = logger;
             var it = Instance;
 
