@@ -80,69 +80,69 @@ namespace Utilities.PdfHandling.NetCore
         }
         public byte[] GetPdfFromUrl(string url, PageOrientation orientation = PageOrientation.Portrait)
         {
-            try
-            {
-                _logger.LogInformation("Utilities.PdfHandling.NetCore.PdfCreator.GetPdfFromUrl calling temp webservice");
+            //try
+            //{
+            //    _logger.LogInformation("Utilities.PdfHandling.NetCore.PdfCreator.GetPdfFromUrl calling temp webservice");
 
 
-                var bhbind = new BasicHttpsBinding();// BasicHttpSecurityMode.Transport);
-                bhbind.MaxBufferSize = int.MaxValue;
-                bhbind.MaxReceivedMessageSize = int.MaxValue;
-                bhbind.OpenTimeout = new TimeSpan(12, 0, 0);
-                bhbind.ReceiveTimeout = new TimeSpan(12, 0, 0);
-                bhbind.SendTimeout = new TimeSpan(12, 0, 0);
-                bhbind.CloseTimeout = new TimeSpan(12, 0, 0);
-                bhbind.ReaderQuotas.MaxStringContentLength = int.MaxValue;
-                bhbind.ReaderQuotas.MaxNameTableCharCount = int.MaxValue;
-                bhbind.ReaderQuotas.MaxDepth = int.MaxValue;
-                bhbind.ReaderQuotas.MaxArrayLength = int.MaxValue;
-                bhbind.ReaderQuotas.MaxBytesPerRead = int.MaxValue;
-                EndpointAddress endpointAddress = new EndpointAddress("https://webservices-ext.uc.edu/nightride/PdfCreate.svc");
-                using (var us = new PdfCreateService.PdfCreateServiceClient(bhbind, endpointAddress))
-                {
-                    us.InnerChannel.OperationTimeout = new TimeSpan(0, 10, 0);
-                    var arr = us.GetPdfFromUrl(url, (PdfCreateService.PageOrientation)orientation);
+            //    var bhbind = new BasicHttpsBinding();// BasicHttpSecurityMode.Transport);
+            //    bhbind.MaxBufferSize = int.MaxValue;
+            //    bhbind.MaxReceivedMessageSize = int.MaxValue;
+            //    bhbind.OpenTimeout = new TimeSpan(12, 0, 0);
+            //    bhbind.ReceiveTimeout = new TimeSpan(12, 0, 0);
+            //    bhbind.SendTimeout = new TimeSpan(12, 0, 0);
+            //    bhbind.CloseTimeout = new TimeSpan(12, 0, 0);
+            //    bhbind.ReaderQuotas.MaxStringContentLength = int.MaxValue;
+            //    bhbind.ReaderQuotas.MaxNameTableCharCount = int.MaxValue;
+            //    bhbind.ReaderQuotas.MaxDepth = int.MaxValue;
+            //    bhbind.ReaderQuotas.MaxArrayLength = int.MaxValue;
+            //    bhbind.ReaderQuotas.MaxBytesPerRead = int.MaxValue;
+            //    EndpointAddress endpointAddress = new EndpointAddress("https://webservices-ext.uc.edu/nightride/PdfCreate.svc");
+            //    using (var us = new PdfCreateService.PdfCreateServiceClient(bhbind, endpointAddress))
+            //    {
+            //        us.InnerChannel.OperationTimeout = new TimeSpan(0, 10, 0);
+            //        var arr = us.GetPdfFromUrl(url, (PdfCreateService.PageOrientation)orientation);
 
-                    _logger.LogInformation("Utilities.PdfHandling.NetCore.PdfCreator.GetPdfFromUrl temp webservice returned [" + arr.Length + "] bytes");
-                    return arr;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Utilities.PdfHandling.NetCore.PdfCreator.GetPdfFromUrl Error -> " +  ex.ToString());
-            } 
+            //        _logger.LogInformation("Utilities.PdfHandling.NetCore.PdfCreator.GetPdfFromUrl temp webservice returned [" + arr.Length + "] bytes");
+            //        return arr;
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    _logger.LogError(ex, "Utilities.PdfHandling.NetCore.PdfCreator.GetPdfFromUrl Error -> " +  ex.ToString());
+            //} 
             return null;
         }
         public async Task<byte[]> GetPdfFromUrlAsync(string url, PageOrientation orientation = PageOrientation.Portrait)
         {
-            try
-            {
-                _logger.LogInformation("Utilities.PdfHandling.NetCore.PdfCreator.GetPdfFromUrlAsync calling temp webservice");
+            //try
+            //{
+            //    _logger.LogInformation("Utilities.PdfHandling.NetCore.PdfCreator.GetPdfFromUrlAsync calling temp webservice");
 
-                var bhbind = new BasicHttpsBinding();// BasicHttpSecurityMode.Transport);
-                bhbind.MaxBufferSize = int.MaxValue;
-                bhbind.MaxReceivedMessageSize = int.MaxValue;
-                bhbind.OpenTimeout = new TimeSpan(12, 0, 0);
-                bhbind.ReceiveTimeout = new TimeSpan(12, 0, 0);
-                bhbind.SendTimeout = new TimeSpan(12, 0, 0);
-                bhbind.CloseTimeout = new TimeSpan(12, 0, 0);
-                bhbind.ReaderQuotas.MaxStringContentLength = int.MaxValue;
-                bhbind.ReaderQuotas.MaxNameTableCharCount = int.MaxValue;
-                bhbind.ReaderQuotas.MaxDepth = int.MaxValue;
-                bhbind.ReaderQuotas.MaxArrayLength = int.MaxValue;
-                bhbind.ReaderQuotas.MaxBytesPerRead = int.MaxValue;
-                EndpointAddress endpointAddress = new EndpointAddress("https://webservices-ext.uc.edu/nightride/PdfCreate.svc");
-                using (var us = new PdfCreateService.PdfCreateServiceClient(bhbind, endpointAddress))
-                {
-                    us.InnerChannel.OperationTimeout = new TimeSpan(0, 10, 0);
-                    var arr = await us.GetPdfFromUrlAsync(url, (PdfCreateService.PageOrientation)orientation);
-                    _logger.LogInformation("Utilities.PdfHandling.NetCore.PdfCreator.GetPdfFromUrlAsync temp webservice returned [" + arr.Length + "] bytes");
-                    return arr;
-                }
-            } catch (Exception ex)
-            {
-                _logger.LogError(ex, "Utilities.PdfHandling.NetCore.PdfCreator.GetPdfFromUrl Error -> " + ex.ToString());
-            }
+            //    var bhbind = new BasicHttpsBinding();// BasicHttpSecurityMode.Transport);
+            //    bhbind.MaxBufferSize = int.MaxValue;
+            //    bhbind.MaxReceivedMessageSize = int.MaxValue;
+            //    bhbind.OpenTimeout = new TimeSpan(12, 0, 0);
+            //    bhbind.ReceiveTimeout = new TimeSpan(12, 0, 0);
+            //    bhbind.SendTimeout = new TimeSpan(12, 0, 0);
+            //    bhbind.CloseTimeout = new TimeSpan(12, 0, 0);
+            //    bhbind.ReaderQuotas.MaxStringContentLength = int.MaxValue;
+            //    bhbind.ReaderQuotas.MaxNameTableCharCount = int.MaxValue;
+            //    bhbind.ReaderQuotas.MaxDepth = int.MaxValue;
+            //    bhbind.ReaderQuotas.MaxArrayLength = int.MaxValue;
+            //    bhbind.ReaderQuotas.MaxBytesPerRead = int.MaxValue;
+            //    EndpointAddress endpointAddress = new EndpointAddress("https://webservices-ext.uc.edu/nightride/PdfCreate.svc");
+            //    using (var us = new PdfCreateService.PdfCreateServiceClient(bhbind, endpointAddress))
+            //    {
+            //        us.InnerChannel.OperationTimeout = new TimeSpan(0, 10, 0);
+            //        var arr = await us.GetPdfFromUrlAsync(url, (PdfCreateService.PageOrientation)orientation);
+            //        _logger.LogInformation("Utilities.PdfHandling.NetCore.PdfCreator.GetPdfFromUrlAsync temp webservice returned [" + arr.Length + "] bytes");
+            //        return arr;
+            //    }
+            //} catch (Exception ex)
+            //{
+            //    _logger.LogError(ex, "Utilities.PdfHandling.NetCore.PdfCreator.GetPdfFromUrl Error -> " + ex.ToString());
+            //}
             return null;
         }
 
@@ -161,7 +161,7 @@ namespace Utilities.PdfHandling.NetCore
         }
         public Task<FileInfo> CombineFilesAsync(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)
         {
-            return Core.CombineFilesAsync(fileList, toDirectory, fileName);
+            return Core.CombineFilesAsync(fileList, toDirectory, fileName, (msg) => _logger.LogInformation(msg));
         }
         public FileInfo CombineFiles(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)
         {

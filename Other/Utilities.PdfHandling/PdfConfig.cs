@@ -15,7 +15,7 @@ namespace Utilities.PdfHandling
 
     public class PdfConfig
     {
-        public string ConnectionString { get; set; } = "http://uc-activepdf.northcentralus.cloudapp.azure.com/pdfconvert.svc";
+        //public string ConnectionString { get; set; } = "http://uc-activepdf.northcentralus.cloudapp.azure.com/pdfconvert.svc";
        
 
         public ServerEnum CurrentServer { get; set; } = ServerEnum.Development;

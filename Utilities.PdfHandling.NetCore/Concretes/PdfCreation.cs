@@ -148,11 +148,11 @@ namespace Utilities.PdfHandling.NetCore.Concretes
         }
         public Task<FileInfo> CombineFilesAsync(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)
         {
-            return Core.CombineFilesAsync(fileList, toDirectory, fileName);
+            return Core.CombineFilesAsync(fileList, toDirectory, fileName, (msg) => _logger.LogInformation(msg));
         }
         public FileInfo CombineFiles(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)
         {
-            return Core.CombineFiles(fileList, toDirectory, fileName, (msg) => _logger.LogInformation(msg));
+            throw new Exception("No longer Supported");
         }
     }
 }

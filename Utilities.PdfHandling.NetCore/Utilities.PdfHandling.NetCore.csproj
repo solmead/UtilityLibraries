@@ -36,7 +36,7 @@
     <PackageReference Include="System.ServiceModel.Http" Version="4.10.*" />
     <PackageReference Include="System.ServiceModel.NetTcp" Version="4.10.*" />
     <PackageReference Include="System.ServiceModel.Security" Version="4.10.*" />
-    <PackageReference Include="Utilities.PdfHandling" Version="4.0.8893.3308" />
+    <PackageReference Include="Utilities.PdfHandling" Version="4.0.8896.48011" />
   </ItemGroup>
 
 </Project>
