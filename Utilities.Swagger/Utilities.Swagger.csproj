@@ -14,8 +14,8 @@
 	  <PackageLicenseUrl>https://github.com/solmead/UtilityLibraries</PackageLicenseUrl>
 
 
-	  <VersionSuffix Condition="'$(DesignTimeBuild)' != 'true'">1.5.$([System.DateTime]::UtcNow.Date.Subtract($([System.DateTime]::Parse("2000-01-01"))).TotalDays).$([System.Math]::Floor($([MSBuild]::Divide($([System.DateTime]::UtcNow.TimeOfDay.TotalSeconds), 1.32))))</VersionSuffix>
-	  <VersionSuffix Condition="'$(DesignTimeBuild)' == 'true'">1.5.0.0</VersionSuffix>
+	  <VersionSuffix Condition="'$(DesignTimeBuild)' != 'true'">2.0.$([System.DateTime]::UtcNow.Date.Subtract($([System.DateTime]::Parse("2000-01-01"))).TotalDays).$([System.Math]::Floor($([MSBuild]::Divide($([System.DateTime]::UtcNow.TimeOfDay.TotalSeconds), 1.32))))</VersionSuffix>
+	  <VersionSuffix Condition="'$(DesignTimeBuild)' == 'true'">2.0.0.0</VersionSuffix>
 
 	  <AssemblyVersion Condition=" '$(VersionSuffix)' == '' ">0.0.0.1</AssemblyVersion>
 	  <AssemblyVersion Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</AssemblyVersion>

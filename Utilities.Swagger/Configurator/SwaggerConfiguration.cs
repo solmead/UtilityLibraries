@@ -15,6 +15,7 @@ using Swashbuckle.AspNetCore.SwaggerUI;
 using System.Reflection;
 using Utilities.FileExtensions;
 using Utilities.Swagger;
+using Utilities.Swagger.Configs;
 
 namespace Utilities.Swagger.Configurator
 {
@@ -33,6 +34,37 @@ namespace Utilities.Swagger.Configurator
     }
     public static class SwaggerConfiguration
     {
+
+        internal static Dictionary<string, SwaggerGenProfile> profileServices = new Dictionary<string, SwaggerGenProfile>();
+
+        public static SwaggerGenProfile getProfile(string name)
+        {
+            name = name.ToUpper();
+            if (profileServices.ContainsKey(name))
+            {
+                return profileServices[name];
+            }
+            if (profileServices.Count > 0)
+            {
+                return profileServices[profileServices.Keys.First()];
+            }
+            return null;
+        }
+        public static void addProfile(string name, SwaggerGenProfile profile)
+        {
+            name = name.ToUpper();
+            if (profileServices.ContainsKey(name))
+            {
+                profileServices[name] = profile;
+            }
+            else
+            {
+                profileServices.Add(name, profile);
+            }
+        }
+
+
+
 
 
         public static IServiceCollection AddSwaggerApiVersion(this IServiceCollection services, 
@@ -77,7 +109,7 @@ namespace Utilities.Swagger.Configurator
         }
 
 
-            public static IApplicationBuilder UseStandardSwagger(this IApplicationBuilder app,
+        public static IApplicationBuilder UseStandardSwagger(this IApplicationBuilder app,
             ILogger logger,
             IApiVersionDescriptionProvider provider,
             string siteDirectory,
@@ -123,17 +155,46 @@ namespace Utilities.Swagger.Configurator
                 });
 
             return app;
-        } 
-
-
-
+        }
 
         public static IServiceCollection RegisterSwagger(this IServiceCollection services, IHostEnvironment env, IConfiguration configuration, ILogger logger, LocalFileHandler localFileHandler, string tempDirectory)
         {
+            var lst = new List<SwaggerGenProfile>();
             var ass = Assembly.GetCallingAssembly();
             var xmlFilename = $"{ass.GetName().Name}.xml";
 
-            services.AddSwaggerGenCustom(env, configuration, logger, localFileHandler, tempDirectory, xmlFilename);
+            return services.AddSwaggerGenCustom(env, configuration, logger, localFileHandler, tempDirectory, xmlFilename, lst);
+        }
+        public static IServiceCollection RegisterSwagger(this IServiceCollection services, IHostEnvironment env, IConfiguration configuration, ILogger logger, LocalFileHandler localFileHandler, string tempDirectory,
+            SwaggerGenProfile? options = null)
+        {
+            var lst = new List<SwaggerGenProfile>();
+            if (options!=null)
+            {
+                lst.Add(options);
+            }
+
+            var ass = Assembly.GetCallingAssembly();
+            var xmlFilename = $"{ass.GetName().Name}.xml";
+
+            return services.AddSwaggerGenCustom(env, configuration, logger, localFileHandler, tempDirectory, xmlFilename, lst);
+        }
+
+
+        public static IServiceCollection RegisterSwagger(this IServiceCollection services, IHostEnvironment env, IConfiguration configuration, ILogger logger, LocalFileHandler localFileHandler, string tempDirectory,
+            List<SwaggerGenProfile>? options = null)
+        {
+            options = options ?? new List<SwaggerGenProfile>();
+
+            if (!options.Any())
+            {
+                options.Add(new SwaggerStandardConfig());
+            }
+
+            var ass = Assembly.GetCallingAssembly();
+            var xmlFilename = $"{ass.GetName().Name}.xml";
+
+            services.AddSwaggerGenCustom(env, configuration, logger, localFileHandler, tempDirectory, xmlFilename, options);
 
 
             return services;
@@ -147,9 +208,21 @@ namespace Utilities.Swagger.Configurator
         /// <param name="env"></param>
         /// <param name="configuration"></param>
         /// <returns></returns>
-        private static IServiceCollection AddSwaggerGenCustom(this IServiceCollection services, IHostEnvironment env, IConfiguration configuration, ILogger _logger, LocalFileHandler localFileHandler, string tempDirectory, string xmlFilename)
+        private static IServiceCollection AddSwaggerGenCustom(this IServiceCollection services, 
+            IHostEnvironment env, 
+            IConfiguration configuration, 
+            ILogger _logger, 
+            LocalFileHandler localFileHandler, 
+            string tempDirectory, 
+            string xmlFilename,
+            List<SwaggerGenProfile>? options = null)
         {
+            options = options ?? new List<SwaggerGenProfile>();
 
+            if (!options.Any())
+            {
+                options.Add(new SwaggerStandardConfig());
+            }
 
 
             //services.AddMvcCore()
@@ -196,9 +269,11 @@ namespace Utilities.Swagger.Configurator
                 xmlCommentsFile = f.FullName;
 
 
+                if (!string.IsNullOrWhiteSpace(xmlCommentsFile))
+                {
 
-                c.IncludeXmlComments(xmlCommentsFile);
-
+                    c.IncludeXmlComments(xmlCommentsFile);
+                }
 
 
                 _logger.LogInformation("DocInclusionPredicate");
@@ -267,6 +342,12 @@ namespace Utilities.Swagger.Configurator
                 // or use the generic method, e.g. c.OperationFilter<AppendAuthorizeToSummaryOperationFilter<MyCustomAttribute>>();
                 c.OperationFilter<AppendAuthorizeToSummaryOperationFilter>();
 
+                foreach (var opt in options)
+                {
+                    addProfile(opt.Name, opt);
+                }
+
+
                 _logger.LogInformation("DocumentFilter - SwaggerFilterGen");
                 c.DocumentFilter<SwaggerFilterGen>();
 
@@ -280,21 +361,6 @@ namespace Utilities.Swagger.Configurator
             return services;
         }
 
-        //static string XmlCommentsFilePath
-        //{
-        //    get
-        //    {
-        //        var basePath = PlatformServices.Default.Application.ApplicationBasePath;
-        //        var fileName = typeof(Startup).GetTypeInfo().Assembly.GetName().Name + ".xml";
-        //        //var file = Path.Combine(basePath, fileName);
-        //        //var f = new FileInfo(file);
-        //        //if (!f.Exists)
-        //        //{
-        //        //    f.Create();
-        //        //}
-        //        return Path.Combine(basePath, fileName);
-        //    }
-        //}
 
     }
 }
