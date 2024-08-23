@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utilities.FluentResults
+namespace Utilities.Rest.Base
 {
     internal class LoggingHandler : DelegatingHandler
     {

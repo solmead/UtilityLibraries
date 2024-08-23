@@ -12,7 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Utilities.KeyValueStore;
 
-namespace Utilities.FluentResults
+namespace Utilities.Rest.Base
 {
     public static class RestBaseConfigurator
     {
@@ -24,11 +24,11 @@ namespace Utilities.FluentResults
         }
 
         public static IServiceCollection InitilizeRestServices<TTSettings>(this IServiceCollection services, ILogger logger, IHostEnvironment env, ISettingsRepository config, TTSettings? defaultSettings = null)
-            where TTSettings :RestSettings
+            where TTSettings : RestSettings
         {
             var settings = defaultSettings ?? Create<TTSettings>();
 
-            var x = config.GetValueSeperate<TTSettings>(settings?.ClientName + "Settings", settings);
+            var x = config.GetValueSeperate(settings?.ClientName + "Settings", settings);
 
             services.AddSingleton(x);
 

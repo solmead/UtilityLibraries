@@ -11,7 +11,7 @@ using FluentResults;
 using Utilities.Poco;
 using static System.Net.Mime.MediaTypeNames;
 
-namespace Utilities.FluentResults
+namespace Utilities.Rest.Base
 {
     public abstract class RestBaseClient
     {
@@ -63,7 +63,7 @@ namespace Utilities.FluentResults
                 options.Converters.Add(new JsonStringEnumConverter());
 
                 var text = JsonSerializer.Serialize(data, options);
-                ret = new StringContent(text, UnicodeEncoding.UTF8, "application/json");
+                ret = new StringContent(text, Encoding.UTF8, "application/json");
             }
             if (dataFormat == DataFormatEnum.FormEncoded)
             {
@@ -130,7 +130,7 @@ namespace Utilities.FluentResults
                 var client = _client;
                 if (clientSetup != null)
                 {
-                    client = (await clientSetup(client)) ?? client;
+                    client = await clientSetup(client) ?? client;
                 }
                 var httpResponse = await client.GetAsync(url);
                 var s = httpResponse.Content.ReadAsStringAsync().Result;
@@ -232,7 +232,7 @@ namespace Utilities.FluentResults
                 var client = _client;
                 if (clientSetup != null)
                 {
-                    client = (await clientSetup(client)) ?? client;
+                    client = await clientSetup(client) ?? client;
                 }
 
                 var httpResponse = await client.PutAsync(url, content);
@@ -336,7 +336,7 @@ namespace Utilities.FluentResults
                 var client = _client;
                 if (clientSetup != null)
                 {
-                    client = (await clientSetup(client)) ?? client;
+                    client = await clientSetup(client) ?? client;
                 }
                 var httpResponse = await client.PostAsync(url, content);
 
@@ -378,7 +378,7 @@ namespace Utilities.FluentResults
         }
 
 
-            protected async Task<Result<TT?>> DeleteAsync<TT>(string url, object data, DataFormatEnum dataFormat, JsonSerializerOptions? options = null, Func<HttpClient, Task<HttpClient>>? clientSetup = null)
+        protected async Task<Result<TT?>> DeleteAsync<TT>(string url, object data, DataFormatEnum dataFormat, JsonSerializerOptions? options = null, Func<HttpClient, Task<HttpClient>>? clientSetup = null)
         {
             try
             {
@@ -502,7 +502,7 @@ namespace Utilities.FluentResults
                 var client = _client;
                 if (clientSetup != null)
                 {
-                    client = (await clientSetup(client)) ?? client;
+                    client = await clientSetup(client) ?? client;
                 }
                 var httpResponse = await client.DeleteAsync(url, content);
 
@@ -529,6 +529,9 @@ namespace Utilities.FluentResults
 
 
         #endregion
+
+
+
 
 
 
