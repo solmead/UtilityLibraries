@@ -10,5 +10,10 @@ namespace Utilities.KeyValueStore
     {
         void SetSettingValue(string name, string value);
         string GetSettingValue(string name, string defaultValue = "");
+
+
+
+
+
     }
 }

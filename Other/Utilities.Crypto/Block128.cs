@@ -76,17 +76,29 @@ namespace Utilities.Crypto
                     symmetricKey.Padding = PaddingMode.PKCS7;
                     using (var decryptor = symmetricKey.CreateDecryptor(keyBytes, ivStringBytes))
                     {
-                        using (var memoryStream = new MemoryStream(cipherTextBytes))
-                        {
-                            using (var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
-                            {
-                                var plainTextBytes = new byte[cipherTextBytes.Length];
-                                var decryptedByteCount = cryptoStream.Read(plainTextBytes, 0, plainTextBytes.Length);
-                                memoryStream.Close();
-                                cryptoStream.Close();
-                                return Encoding.UTF8.GetString(plainTextBytes, 0, decryptedByteCount);
-                            }
-                        }
+                        var memoryStream2 = new MemoryStream();
+                        var cryptoStream2 = new CryptoStream(memoryStream2, decryptor, CryptoStreamMode.Write);
+                        cryptoStream2.Write(cipherTextBytes, 0, cipherTextBytes.Length);
+                        cryptoStream2.FlushFinalBlock();
+                        cryptoStream2.Close();
+                        var answer = Encoding.UTF8.GetString(memoryStream2.ToArray());
+
+
+                        return answer;
+
+
+                        //using (var memoryStream = new MemoryStream(cipherTextBytes))
+                        //{
+                        //    using (var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
+                        //    {
+                        //        var plainTextBytes = new byte[cipherTextBytes.Length];
+                        //        var decryptedByteCount = cryptoStream.Read(plainTextBytes, 0, plainTextBytes.Length);
+                        //        cryptoStream.FlushFinalBlock();
+                        //        memoryStream.Close();
+                        //        cryptoStream.Close();
+                        //        return Encoding.UTF8.GetString(plainTextBytes, 0, decryptedByteCount);
+                        //    }
+                        //}
                     }
                 }
             }

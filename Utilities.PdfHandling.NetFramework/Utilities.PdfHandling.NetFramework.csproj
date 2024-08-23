@@ -83,7 +83,7 @@
 	<ItemGroup>
 	  <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
 	  <PackageReference Include="Ninject" Version="3.3.6" />
-	  <PackageReference Include="Utilities.PdfHandling" Version="4.0.8896.48011" />
+	  <PackageReference Include="Utilities.PdfHandling" Version="4.0.8896.51035" />
 	</ItemGroup>
 
 

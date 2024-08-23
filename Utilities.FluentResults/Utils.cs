@@ -1,16 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Net.Http;
 using FluentResults;
-using Microsoft.AspNetCore.Mvc;
 using Utilities.FluentResults.ApiModels;
 using Utilities.FluentResults.Errors;
 
 namespace Utilities.FluentResults
 {
+    public enum DataFormatEnum
+    {
+        [Description("application/json")]
+        JsonEncoded,
+        [Description("application/x-www-form-urlencoded")]
+        FormEncoded
+    }
+
     public static class Utils
     {
+
+        public static async Task<HttpResponseMessage> DeleteAsync(this HttpClient client, string requestUri, HttpContent? data)
+        {
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Delete,
+                RequestUri = new Uri(client.BaseAddress + requestUri),
+                Content = data
+            };
+            var response = await client.SendAsync(request);
+            return response;
+        }
         public static string FetchMetadataValueFromErrorCollection(Result result, string key)
         {
             string returnValue = string.Empty;
@@ -53,73 +73,73 @@ namespace Utilities.FluentResults
         }
 
 
-        public static ActionResult HandleFailedStatus(this Controller controller, Result result, int? statusCode = null)
-        {
+        //public static ActionResult HandleFailedStatus(this Controller controller, Result result, int? statusCode = null)
+        //{
 
-            var topLevelError = result.Errors[0];
+        //    var topLevelError = result.Errors[0];
 
-            List<ApiError> apiErrors = new List<ApiError>();
-            List<ApiErrorDetail> details = new List<ApiErrorDetail>();
+        //    List<ApiError> apiErrors = new List<ApiError>();
+        //    List<ApiErrorDetail> details = new List<ApiErrorDetail>();
 
-            foreach (var err in result.Errors)
-            {
-                var errorTypeName = err.GetType().Name;
-                apiErrors.Add(new ApiError
-                {
-                    ErrorType = errorTypeName,
-                    Detail = new ApiErrorDetail(err.Message, err.Metadata)
-                });
-            }
+        //    foreach (var err in result.Errors)
+        //    {
+        //        var errorTypeName = err.GetType().Name;
+        //        apiErrors.Add(new ApiError
+        //        {
+        //            ErrorType = errorTypeName,
+        //            Detail = new ApiErrorDetail(err.Message, err.Metadata)
+        //        });
+        //    }
 
 
-            var errorResponse = new
-            {
-                message = "One or more errors occurred while processing your request",
-                errors = apiErrors
-            };
+        //    var errorResponse = new
+        //    {
+        //        message = "One or more errors occurred while processing your request",
+        //        errors = apiErrors
+        //    };
 
-            if (topLevelError is RecordNotFoundError)
-            {
-                var idValue = FetchMetadataValueFromErrorCollection(result, "Id");
-                var fieldName = FetchMetadataValueFromErrorCollection(result, "FieldName");
+        //    if (topLevelError is RecordNotFoundError)
+        //    {
+        //        var idValue = FetchMetadataValueFromErrorCollection(result, "Id");
+        //        var fieldName = FetchMetadataValueFromErrorCollection(result, "FieldName");
 
-                var errorObject = new
-                {
-                    errorType = "RecordNotFoundError",
-                    details
-                };
+        //        var errorObject = new
+        //        {
+        //            errorType = "RecordNotFoundError",
+        //            details
+        //        };
 
-                controller.HttpContext.Response.Headers.Add("x-response-error", "id value not found");
-                controller.HttpContext.Response.Headers.Add("x-response-error-id", idValue.ToString());
-                controller.HttpContext.Response.Headers.Add("x-response-error-field", fieldName);
+        //        controller.HttpContext.Response.Headers.Add("x-response-error", "id value not found");
+        //        controller.HttpContext.Response.Headers.Add("x-response-error-id", idValue.ToString());
+        //        controller.HttpContext.Response.Headers.Add("x-response-error-field", fieldName);
 
-                return controller.StatusCode(404, errorObject);
-            }
-            else if (topLevelError is MultiStepDependencyError)
-            {
-                return controller.StatusCode(422, errorResponse);
-            }
-            else if (topLevelError is InvalidRequestData)
-            {
-                return controller.StatusCode(422, errorResponse);
-            }
-            else if (topLevelError is SqlExceptionError)
-            {
-                return controller.StatusCode(500, errorResponse);
-            }
-            else if (topLevelError is StoredProcedureExecutionError)
-            {
-                return controller.StatusCode(500, errorResponse);
-            }
-            else if (topLevelError is DataTransformationError)
-            {
-                return controller.StatusCode(500, errorResponse);
-            }
-            else
-            {
-                return controller.StatusCode(500, errorResponse);
-            }
-        }
+        //        return controller.StatusCode(404, errorObject);
+        //    }
+        //    else if (topLevelError is MultiStepDependencyError)
+        //    {
+        //        return controller.StatusCode(422, errorResponse);
+        //    }
+        //    else if (topLevelError is InvalidRequestData)
+        //    {
+        //        return controller.StatusCode(422, errorResponse);
+        //    }
+        //    else if (topLevelError is SqlExceptionError)
+        //    {
+        //        return controller.StatusCode(500, errorResponse);
+        //    }
+        //    else if (topLevelError is StoredProcedureExecutionError)
+        //    {
+        //        return controller.StatusCode(500, errorResponse);
+        //    }
+        //    else if (topLevelError is DataTransformationError)
+        //    {
+        //        return controller.StatusCode(500, errorResponse);
+        //    }
+        //    else
+        //    {
+        //        return controller.StatusCode(500, errorResponse);
+        //    }
+        //}
 
 
 

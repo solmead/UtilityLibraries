@@ -28,6 +28,9 @@ namespace Utilities.TimedTasks
         internal List<ITask> TaskList = new List<ITask>();
         private bool disposedValue;
 
+
+        private static object TimedTaskCreateLock = new object();
+
         public TaskServices(IKeyValueRepository timedTaskRepository,ILogger logger)
         {
             _logger = logger;
@@ -49,6 +52,10 @@ namespace Utilities.TimedTasks
 
         }
 
+        public ITask? FindTask(string name)
+        {
+            return TaskList.FirstOrDefault((r) => r.Name.ToUpper().Trim() == name.ToUpper().Trim());
+        }
 
         public void AddTask(ITask task)
         {
@@ -69,13 +76,21 @@ namespace Utilities.TimedTasks
                 return;
             }
 
-            await Task.Delay(1000);
+            await Task.Delay(1005);
 
-            IsTriggering = true;
+            lock (TimedTaskCreateLock)
+            {
+                if (IsTriggering)
+                {
+                    return;
+                }
+                IsTriggering = true;
+            }
+
 
             try
             {
-                foreach(var hand in Handlers)
+                foreach (var hand in Handlers)
                 {
                     await hand.TriggerAsync();
                 }

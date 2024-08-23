@@ -182,6 +182,11 @@ namespace Utilities.Swagger.Generators
             {
                 var a = 1;
             }
+            if (className== "BaseActor")
+            {
+                var b = 1;
+            }
+
 
             data.AppendLine("     export class " + className + " {");
 
@@ -216,6 +221,12 @@ namespace Utilities.Swagger.Generators
 
             data.AppendLine("           static convertFrom(obj:any):" + className + " {");
             data.AppendLine("                      let it = <" + className + ">Object.assign(new " + className + "(), obj);");
+            data.AppendLine("                      it = " + className + ".convert(obj, it);");
+            data.AppendLine("                      return it;");
+            data.AppendLine("           }");
+
+            data.AppendLine("           static convert(fromObj:any, toObj:" + className + "):" + className + " {");
+            data.AppendLine("                      let it = toObj;");
             foreach (var paramInfo in objectParams.Values)
             {
                 if (_swaggerFilterGen.IsArray(paramInfo.DataType))
@@ -386,15 +397,15 @@ namespace Utilities.Swagger.Generators
             }
             if (operation == OperationType.Post)
             {
-                data.AppendLine("               return this._httpClient.post<" + funcType + ">(url" + (hasBody ? ", " + bodyName : "null") + ")");
+                data.AppendLine("               return this._httpClient.post<" + funcType + ">(url" + (hasBody ? ", " + bodyName : ", null") + ")");
             }
             if (operation == OperationType.Put)
             {
-                data.AppendLine("               return this._httpClient.put<" + funcType + ">(url" + (hasBody ? ", " + bodyName : "null") + ")");
+                data.AppendLine("               return this._httpClient.put<" + funcType + ">(url" + (hasBody ? ", " + bodyName : ", null") + ")");
             }
             if (operation == OperationType.Delete)
             {
-                data.AppendLine("               return this._httpClient.delete<" + funcType + ">(url" + (hasBody ? ", " + bodyName : "null") + ")");
+                data.AppendLine("               return this._httpClient.delete<" + funcType + ">(url" + (hasBody ? ", " + bodyName : "") + ")");
             }
 
             data.AppendLine("                    .pipe(");
@@ -405,7 +416,7 @@ namespace Utilities.Swagger.Generators
             {
                 data.AppendLine("");
 
-                data.AppendLine("debugger;");
+                //data.AppendLine("debugger;");
                 if (_swaggerFilterGen.IsArray(funcType))
                 {
                     var subType = _swaggerFilterGen.ArraySubType(funcType);
@@ -427,7 +438,7 @@ namespace Utilities.Swagger.Generators
                     data.AppendLine("                                var value2 = " + funcType + ".convertFrom(value);");
                 }
 
-                data.AppendLine("debugger;");
+                //data.AppendLine("debugger;");
                 data.AppendLine("                                value = value2;");
                 data.AppendLine("");
             }

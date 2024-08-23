@@ -12,13 +12,11 @@ namespace Utilities.Swagger.Writers
     public class StandardSingleFileWriter : StandardWriter
     {
         private readonly SwaggerStandardConfig _config;
-        private readonly ILogger _logger;
         private readonly ISwaggerGen _swaggerFilterGen;
 
-        public StandardSingleFileWriter(SwaggerStandardConfig config, ILogger logger, ISwaggerGen swaggerFilterGen) :base() 
+        public StandardSingleFileWriter(SwaggerStandardConfig config, ILogger logger, ISwaggerGen swaggerFilterGen) :base(logger) 
         {
             _config = config;
-            _logger = logger;
             _swaggerFilterGen  = swaggerFilterGen;
         }
 
@@ -29,14 +27,21 @@ namespace Utilities.Swagger.Writers
                 _config.Path = _config.Path + "/";
             }
             var fi = new FileInfo(_swaggerFilterGen.MapPath(_config.Path + "index.ts"));
-            if (!fi.Directory.Exists)
+
+            try
             {
-                fi.Directory.Create();
-            }
-            if (fi.Exists && DateTime.Now.Subtract(fi.LastWriteTime).TotalMinutes > 5)
+                if (!fi.Directory.Exists)
+                {
+                    fi.Directory.Create();
+                }
+                if (fi.Exists && DateTime.Now.Subtract(fi.LastWriteTime).TotalMinutes > 5)
+                {
+
+                    fi.Delete();
+                }
+            } catch
             {
 
-                fi.Delete();
             }
 
             return new FileEntry()
@@ -52,14 +57,21 @@ namespace Utilities.Swagger.Writers
                 _config.Path = _config.Path + "/";
             }
             var fi = new FileInfo(_swaggerFilterGen.MapPath(_config.Path + _config.Filename));
-            if (!fi.Directory.Exists)
+
+            try
             {
-                fi.Directory.Create();
+                if (!fi.Directory.Exists)
+                {
+                    fi.Directory.Create();
+                }
+                if (fi.Exists && DateTime.Now.Subtract(fi.LastWriteTime).TotalMinutes > 5)
+                {
+                    fi.Delete();
+                }
             }
-            if (fi.Exists && DateTime.Now.Subtract( fi.LastWriteTime).TotalMinutes>5)
+            catch
             {
-                
-                fi.Delete();
+
             }
 
             return new FileEntry()

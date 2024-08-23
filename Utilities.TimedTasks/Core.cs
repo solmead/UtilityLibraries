@@ -179,6 +179,13 @@ namespace Utilities.TimedTasks
             Instance.AddTask(task);
         }
 
+        public static ITask? FindTask(string name)
+        {
+            return Instance.FindTask(name);
+        }
+
+
+
 
         public static void TriggerTasks()
         {

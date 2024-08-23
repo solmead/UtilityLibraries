@@ -216,9 +216,14 @@ namespace Utilities.Swagger.Generators
             data.AppendLine("           }");
             data.AppendLine("           ");
 
-
             data.AppendLine("           static convertFrom(obj:any):" + className + " {");
             data.AppendLine("                      let it = <" + className + ">Object.assign(new " + className + "(), obj);");
+            data.AppendLine("                      it = " + className + ".convert(obj, it);");
+            data.AppendLine("                      return it;");
+            data.AppendLine("           }");
+
+            data.AppendLine("           static convert(fromObj:any, toObj:" + className + "):" + className + " {");
+            data.AppendLine("                      let it = toObj;");
             foreach (var paramInfo in objectParams.Values)
             {
                 if (_swaggerFilterGen.IsArray(paramInfo.DataType))

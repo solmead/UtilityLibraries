@@ -77,9 +77,9 @@
 
 
 	<ItemGroup>
-	  <PackageReference Include="Azure.Storage.Blobs" Version="12.18.0" />
-	  <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
-	  <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
+	  <PackageReference Include="Azure.Storage.Blobs" Version="12.21.2" />
+	  <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
+	  <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
 	  <PackageReference Include="System.Linq.Async" Version="6.0.1" />
 		<PackageReference Include="Utilities.FileExtensions" Version="3.5.8794.59077" />
 	</ItemGroup>

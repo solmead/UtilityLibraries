@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Any;
@@ -24,7 +26,7 @@ namespace Utilities.Swagger
 
         public static List<string> Objects = new List<string>();
 
-        public Dictionary<string, Dictionary<string, ObjParamInfo>> ObjectDic = new Dictionary<string, Dictionary<string, ObjParamInfo>>();
+        public Dictionary<string, ObjDefInfo> ObjectDic = new Dictionary<string, ObjDefInfo>();
 
         public SwaggerFilterGen(IWebHostEnvironment webHostEnvironment, ILogger logger)
         {
@@ -162,7 +164,7 @@ namespace Utilities.Swagger
             {
                 lst.Add(new ObjParamInfo()
                 {
-                    Name = p.Name,
+                    Name =  p.Name,
                     DataType = HandleType(p.Schema),
                     IsNullable = IsNullable(p.Schema)
                 });
@@ -384,9 +386,9 @@ namespace Utilities.Swagger
                 var od = ObjectDic[dataType];
 
                 var sb2 = new StringBuilder();
-                foreach (var param in od.Keys)
+                foreach (var param in od.Params.Keys)
                 {
-                    var tpe = od[param].DataType;
+                    var tpe = od.Params[param].DataType;
                     if (tpe == "Date")
                     {
                         sb2.AppendLine(prefillLines + "     " + "if(" + classPath + param + "!=null) {");
@@ -523,23 +525,54 @@ namespace Utilities.Swagger
             generator.EndComponents("All");
         }
 
-        public void WriteSchema(IFileGenerator generator, string name, OpenApiSchema schema)
+        public void WriteSchema(IFileGenerator generator, string key, OpenApiSchema schema)
         {
-            generator.StartSchemas(name);
+            var title = schema.Title ?? key;
+            var type = GetTypeName(schema);
+
+            generator.StartSchemas(title);
+
+            //if (key.Contains("."))
+            //{
+            //    key = key.Substring(key.IndexOf(".") + 1);
+            //}
+            if (title.Contains("."))
+            {
+                title = title.Substring(title.LastIndexOf(".") + 1);
+            }
+            if (title.Contains("+"))
+            {
+                title = title.Substring(title.LastIndexOf("+") + 1);
+            }
 
 
-            Objects.Add(name);
+            if (key == "MeetingTime" || title == "BaseActor" || key.Contains("`"))
+            {
+                
+                var a = 1;
+            }
+
+            Objects.Add(title);
             if (!IsEnum(schema))
             {
                 var paramDic = new Dictionary<string, ObjParamInfo>();
                 foreach (var paramName in schema.Properties.Keys)
                 {
+                    if (paramName== "MeetingTime" || paramName.Contains("`"))
+                    {
+                        var i = 0;
+                    }
                     var param = schema.Properties[paramName];
                     if (IsValid(param))
                     {
                         var tpe = HandleType(param);
                         if (!paramDic.ContainsKey(paramName))
                         {
+                            if(tpe == "TimeSpan" || tpe.Contains("`"))
+                            {
+                                var a = 1;
+                            }
+
                             paramDic.Add(paramName, new ObjParamInfo()
                             {
                                 Name = paramName,
@@ -550,22 +583,26 @@ namespace Utilities.Swagger
                     }
                 }
 
-                if (!ObjectDic.ContainsKey(name))
+                if (!ObjectDic.ContainsKey(key))
                 {
-                    ObjectDic.Add(name, paramDic);
+                    ObjectDic.Add(key, new ObjDefInfo() {
+                         Params=paramDic,
+                         Key = key,
+                         Title = title
+                    });
                 }
 
-                generator.WriteObjectDefinition(name, paramDic);
+                generator.WriteObjectDefinition(title, paramDic);
             }
             else
             {
-                AddEnum(name);
+                AddEnum(title);
                 var lst = schema.Enum.Select((e) => (e as OpenApiString)?.Value ?? "").ToList();
-                generator.WriteEnumDefinition(name, lst);
+                generator.WriteEnumDefinition(title, lst);
             }
 
 
-            generator.EndSchemas(name);
+            generator.EndSchemas(title);
         }
 
 
@@ -581,13 +618,21 @@ namespace Utilities.Swagger
         {
             return schema.Default != null;
         }
+        //public bool IsGeneric(OpenApiSchema schema)
+        //{
+        //    return schema.Gene;
+        //}
         public bool IsValid(OpenApiSchema schema)
         {
             return true;
         }
-        public string GetBodyName(OpenApiSchema schema)
+
+        public string GetTypeName(OpenApiSchema schema)
         {
-            //var type = schema.Format ?? schema.Type;
+
+
+
+            var title = schema.Title;
             var type = schema.Format ?? schema.Type;
             type = type ?? "";
 
@@ -605,7 +650,51 @@ namespace Utilities.Swagger
             {
                 type = schema.Reference.Id;
             }
+            if (string.IsNullOrWhiteSpace(type) && (schema.AllOf?.Any() ?? false))
+            {
+                var sc = schema.AllOf[0];
 
+                if (string.IsNullOrWhiteSpace(type) && sc.Items?.Reference != null)
+                {
+                    type = sc.Items.Reference.Id;
+                }
+
+                if (string.IsNullOrWhiteSpace(type) && sc.Reference != null)
+                {
+                    type = sc.Reference.Id;
+                }
+            }
+
+
+
+            if (ObjectDic.ContainsKey(type))
+            {
+                var it = ObjectDic[type];
+                type = it.Title;
+            }
+
+            if (type.Contains("."))
+            {
+                type = type.Substring(type.LastIndexOf(".") + 1);
+            }
+            if (type.Contains("+"))
+            {
+                type = type.Substring(type.LastIndexOf("+") + 1);
+            }
+
+            if (type.Contains("`"))
+            {
+                var ii = 0;
+            }
+
+            return type;
+        }
+
+        public string GetBodyName(OpenApiSchema schema)
+        {
+            //var type = schema.Format ?? schema.Type;
+            var type = GetTypeName(schema);
+           
             if (string.IsNullOrWhiteSpace(type))
             {
                 type = "void";
@@ -632,36 +721,37 @@ namespace Utilities.Swagger
             };
             numbers.ForEach((s) =>
             {
-                type = type.Replace(s, "number");
+                type = type.ReplaceTypeName(s, "number");
             });
-            type = type.Replace("Boolean", "boolean");
+            type = type.ReplaceTypeName("Boolean", "boolean");
             //DateTime
             //type = type.Replace("DateTime", "string");
             //postal-code
             //email
-            type = type.Replace("postal-code", "string");
-            type = type.Replace("email", "string");
-            type = type.Replace("tel", "string");
-            type = type.Replace("uuid", "string");
+            type = type.ReplaceTypeName("postal-code", "string");
+            type = type.ReplaceTypeName("email", "string");
+            type = type.ReplaceTypeName("tel", "string");
+            type = type.ReplaceTypeName("uuid", "string");
+            type = type.ReplaceTypeName("date-span", "string");
 
-            type = type.Replace("date-time", "Date");
-            type = type.Replace("date", "Date");
-            type = type.Replace("timespan", "string");
+            type = type.ReplaceTypeName("date-time", "Date");
+            type = type.ReplaceTypeName("date", "Date");
+            type = type.ReplaceTypeName("timespan", "string");
 
-            type = type.Replace("object", "any");
-            type = type.Replace("fileinfo", "any");
+            type = type.ReplaceTypeName("object", "any");
+            type = type.ReplaceTypeName("fileinfo", "any");
 
-            type = type.Replace("String", "string");
-            type = type.Replace("char", "string");
+            type = type.ReplaceTypeName("String", "string");
+            type = type.ReplaceTypeName("char", "string");
 
 
-            type = type.Replace("array", "Array");
-            type = type.Replace("list<", "Array<");
-            type = type.Replace("ilist", "Array");
-            type = type.Replace("ienumerable", "Array");
-            type = type.Replace("icollection", "Array");
-            type = type.Replace("iqueryable", "Array");
-            type = type.Replace("iarray", "Array");
+            type = type.ReplaceTypeName("array", "Array");
+            type = type.ReplaceTypeName("list<", "Array<");
+            type = type.ReplaceTypeName("ilist", "Array");
+            type = type.ReplaceTypeName("ienumerable", "Array");
+            type = type.ReplaceTypeName("icollection", "Array");
+            type = type.ReplaceTypeName("iqueryable", "Array");
+            type = type.ReplaceTypeName("iarray", "Array");
 
             if (type == "Array")
             {
@@ -681,25 +771,7 @@ namespace Utilities.Swagger
                 return "any";
             }
 
-            var type = schema.Format ?? schema.Type;
-            //if (type.)
-            
-            type = type ?? "";
-
-            if (type.ToUpper().Contains("DATE"))
-            {
-                //var a = 1;
-            }
-
-            if (string.IsNullOrWhiteSpace(type) && schema.Items?.Reference != null)
-            {
-                type = schema.Items.Reference.Id;
-            }
-
-            if (string.IsNullOrWhiteSpace(type) && schema.Reference != null)
-            {
-                type = schema.Reference.Id;
-            }
+            var type = GetTypeName(schema);
 
             if (string.IsNullOrWhiteSpace(type))
             {
@@ -727,35 +799,36 @@ namespace Utilities.Swagger
             };
             numbers.ForEach((s) =>
             {
-                type = type.Replace(s, "number");
+                type = type.ReplaceTypeName(s, "number");
             });
-            type = type.Replace("Boolean", "boolean");
+            type = type.ReplaceTypeName("Boolean", "boolean");
             //DateTime
             //type = type.Replace("DateTime", "string");
-            type = type.Replace("postal-code", "string");
-            type = type.Replace("email", "string");
-            type = type.Replace("tel", "string");
-            type = type.Replace("uuid", "string");
+            type = type.ReplaceTypeName("postal-code", "string");
+            type = type.ReplaceTypeName("email", "string");
+            type = type.ReplaceTypeName("tel", "string");
+            type = type.ReplaceTypeName("uuid", "string");
+            type = type.ReplaceTypeName("date-span", "string");
+
+            type = type.ReplaceTypeName("date-time", "Date");
+            type = type.ReplaceTypeName("date", "Date");
+            type = type.ReplaceTypeName("timespan", "string");
+
+            type = type.ReplaceTypeName("object", "any");
+            type = type.ReplaceTypeName("fileinfo", "any");
+
+            type = type.ReplaceTypeName("String", "string");
+            type = type.ReplaceTypeName("char", "string");
 
 
-            type = type.Replace("date-time", "Date");
-            type = type.Replace("date", "Date");
-            type = type.Replace("timespan", "string");
-
-            type = type.Replace("object", "any");
-            type = type.Replace("fileinfo", "any");
-
-            type = type.Replace("String", "string");
-            type = type.Replace("char", "string");
-
-
-            type = type.Replace("array", "Array");
-            type = type.Replace("list<", "Array<");
-            type = type.Replace("ilist", "Array");
-            type = type.Replace("ienumerable", "Array");
-            type = type.Replace("icollection", "Array");
-            type = type.Replace("iqueryable", "Array");
-            type = type.Replace("iarray", "Array");
+            type = type.ReplaceTypeName("array", "Array");
+            type = type.ReplaceTypeName("list<", "Array<");
+            type = type.ReplaceTypeName("ilist", "Array");
+            type = type.ReplaceTypeName("list", "Array");
+            type = type.ReplaceTypeName("ienumerable", "Array");
+            type = type.ReplaceTypeName("icollection", "Array");
+            type = type.ReplaceTypeName("iqueryable", "Array");
+            type = type.ReplaceTypeName("iarray", "Array");
 
             if (type == "Array")
             {

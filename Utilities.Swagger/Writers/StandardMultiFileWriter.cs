@@ -12,13 +12,11 @@ namespace Utilities.Swagger.Writers
     public class StandardMultiFileWriter : StandardWriter
     {
         private readonly SwaggerSplitConfig _config;
-        private readonly ILogger _logger;
         private readonly ISwaggerGen _swaggerFilterGen;
 
-        public StandardMultiFileWriter(SwaggerSplitConfig config, ILogger logger, ISwaggerGen swaggerFilterGen) : base()
+        public StandardMultiFileWriter(SwaggerSplitConfig config, ILogger logger, ISwaggerGen swaggerFilterGen) : base(logger)
         {
             _config = config;
-            _logger = logger;
             _swaggerFilterGen = swaggerFilterGen;
         }
 

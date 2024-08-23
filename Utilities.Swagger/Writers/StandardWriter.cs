@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -20,9 +21,9 @@ namespace Utilities.Swagger.Writers
     {
         protected IGeneratorInfo _generatorInfo { get; set; } = null;
 
-        public StandardWriter()
+        public StandardWriter(ILogger logger)
         {
-
+            _logger = logger;
         }
         public void SetGenerator(IGeneratorInfo generator)
         {
@@ -31,6 +32,7 @@ namespace Utilities.Swagger.Writers
 
 
         private Dictionary<string, FileEntry> files = new Dictionary<string, FileEntry>();
+        private readonly ILogger _logger;
 
         public abstract bool NamespacesInOneFile { get; }
         public abstract FileEntry GetModuleFile(string name);
@@ -63,11 +65,17 @@ namespace Utilities.Swagger.Writers
         {
             foreach(var fileItem in files)
             {
-                var fi = fileItem.Value.File;
-                var file = new System.IO.BinaryWriter(fi.OpenWrite());
-                file.Write(System.Text.ASCIIEncoding.ASCII.GetBytes(fileItem.Value.Data));
+                try
+                {
+                    var fi = fileItem.Value.File;
+                    var file = new System.IO.BinaryWriter(fi.OpenWrite());
+                    file.Write(System.Text.ASCIIEncoding.ASCII.GetBytes(fileItem.Value.Data));
 
-                file.Close();
+                    file.Close();
+                } catch (Exception ex) {
+
+                    _logger.LogError(ex, ex.ToString());
+                }
             }
         }
 

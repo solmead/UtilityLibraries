@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentResults" Version="3.15.2" />
+    <PackageReference Include="FluentResults" Version="3.16.0" />
     <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="8.0.4" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
     <PackageReference Include="Polly" Version="8.3.1" />
@@ -36,7 +36,7 @@
     <PackageReference Include="System.ServiceModel.Http" Version="4.10.*" />
     <PackageReference Include="System.ServiceModel.NetTcp" Version="4.10.*" />
     <PackageReference Include="System.ServiceModel.Security" Version="4.10.*" />
-    <PackageReference Include="Utilities.PdfHandling" Version="4.0.8896.48011" />
+    <PackageReference Include="Utilities.PdfHandling" Version="4.0.8896.51035" />
   </ItemGroup>
 
 </Project>

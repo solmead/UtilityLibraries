@@ -21,8 +21,8 @@ namespace Utilities.Crypto
                 return data;
             } catch
             {
-                var data = Block256.Encrypt(plainText, passPhrase);
-                return data;
+                //var data = Block256.Encrypt(plainText, passPhrase);
+                return null;
 
             } 
         }
@@ -37,8 +37,8 @@ namespace Utilities.Crypto
             }
             catch
             {
-                var data = Block256.Decrypt(cipherText, passPhrase);
-                return data;
+                //var data = Block256.Decrypt(cipherText, passPhrase);
+                return null;
 
             }
         }

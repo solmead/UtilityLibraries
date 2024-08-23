@@ -16,22 +16,11 @@ using System.Reflection;
 using Utilities.FileExtensions;
 using Utilities.Swagger;
 using Utilities.Swagger.Configs;
+using Utilities.Swagger.Filters;
 
 namespace Utilities.Swagger.Configurator
 {
-    public class EnumSchemaFilter : ISchemaFilter
-    {
-        public void Apply(OpenApiSchema model, SchemaFilterContext context)
-        {
-            if (context.Type.IsEnum)
-            {
-                model.Enum.Clear();
-                Enum.GetNames(context.Type)
-                    .ToList()
-                    .ForEach(name => model.Enum.Add(new OpenApiString($"{name} = {Convert.ToInt64(Enum.Parse(context.Type, name))}")));
-            }
-        }
-    }
+    
     public static class SwaggerConfiguration
     {
 
@@ -157,7 +146,7 @@ namespace Utilities.Swagger.Configurator
             return app;
         }
 
-        public static IServiceCollection RegisterSwagger(this IServiceCollection services, IHostEnvironment env, IConfiguration configuration, ILogger logger, LocalFileHandler localFileHandler, string tempDirectory)
+        public static IServiceCollection RegisterSwagger(this IServiceCollection services, IHostEnvironment env, IConfiguration configuration, ILogger logger, LocalFileHandler localFileHandler, string? tempDirectory = null)
         {
             var lst = new List<SwaggerGenProfile>();
             var ass = Assembly.GetCallingAssembly();
@@ -181,7 +170,7 @@ namespace Utilities.Swagger.Configurator
         }
 
 
-        public static IServiceCollection RegisterSwagger(this IServiceCollection services, IHostEnvironment env, IConfiguration configuration, ILogger logger, LocalFileHandler localFileHandler, string tempDirectory,
+        public static IServiceCollection RegisterSwagger(this IServiceCollection services, IHostEnvironment env, IConfiguration configuration, ILogger logger, LocalFileHandler localFileHandler, string? tempDirectory = null,
             List<SwaggerGenProfile>? options = null)
         {
             options = options ?? new List<SwaggerGenProfile>();
@@ -213,8 +202,8 @@ namespace Utilities.Swagger.Configurator
             IConfiguration configuration, 
             ILogger _logger, 
             LocalFileHandler localFileHandler, 
-            string tempDirectory, 
-            string xmlFilename,
+            string? tempDirectory, 
+            string? xmlFilename,
             List<SwaggerGenProfile>? options = null)
         {
             options = options ?? new List<SwaggerGenProfile>();
@@ -252,11 +241,16 @@ namespace Utilities.Swagger.Configurator
 
                 c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
 
+                c.UseAllOfToExtendReferenceSchemas();
+                c.SupportNonNullableReferenceTypes();
 
                 // Resolve the temprary IApiVersionDescriptionProvider service  
                 var provider = services.BuildServiceProvider().GetRequiredService<IApiVersionDescriptionProvider>();
 
-                c.CustomSchemaIds(x => x.Name);
+                c.SchemaFilter<GenericFilter>();
+
+                //c.CustomSchemaIds(x => x.Name);
+                c.CustomSchemaIds(x => x.FullName);
 
                 c.SchemaFilter<EnumSchemaFilter>();
 
@@ -271,8 +265,11 @@ namespace Utilities.Swagger.Configurator
 
                 if (!string.IsNullOrWhiteSpace(xmlCommentsFile))
                 {
-
-                    c.IncludeXmlComments(xmlCommentsFile);
+                    var fi = new FileInfo(xmlCommentsFile);
+                    if (fi.Exists)
+                    {
+                        c.IncludeXmlComments(xmlCommentsFile);
+                    }
                 }
 
 
