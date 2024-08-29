@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,12 +13,10 @@ namespace Utilities.Swagger.Writers
     public class StandardSingleFileWriter : StandardWriter
     {
         private readonly SwaggerStandardConfig _config;
-        private readonly ISwaggerGen _swaggerFilterGen;
 
-        public StandardSingleFileWriter(SwaggerStandardConfig config, ILogger logger, ISwaggerGen swaggerFilterGen) :base(logger) 
+        public StandardSingleFileWriter(SwaggerStandardConfig config, ILogger logger, ISwaggerGen swaggerFilterGen) :base(logger, swaggerFilterGen) 
         {
             _config = config;
-            _swaggerFilterGen  = swaggerFilterGen;
         }
 
         private FileEntry GetIndexFile()
@@ -26,6 +25,8 @@ namespace Utilities.Swagger.Writers
             {
                 _config.Path = _config.Path + "/";
             }
+            _config.Path = _config.Path.Replace("\\", "/");
+            //_config.Path = _config.Path.Replace('/', Path.PathSeparator);
             var fi = new FileInfo(_swaggerFilterGen.MapPath(_config.Path + "index.ts"));
 
             try
@@ -56,6 +57,8 @@ namespace Utilities.Swagger.Writers
             {
                 _config.Path = _config.Path + "/";
             }
+            _config.Path = _config.Path.Replace("\\", "/");
+            //_config.Path = _config.Path.Replace('/', Path.PathSeparator);
             var fi = new FileInfo(_swaggerFilterGen.MapPath(_config.Path + _config.Filename));
 
             try

@@ -20,13 +20,19 @@ namespace Utilities.Caching.AspNetCore.Configuration
         public static void InitCache(this IApplicationBuilder app)
         {
             var serviceProvider = app.ApplicationServices;
+            InitCache(serviceProvider);
+        }
+
+        public static void InitCache(IServiceProvider serviceProvider)
+        {
+            //var serviceProvider = app.ApplicationServices;
             var contextAccessor = serviceProvider.GetRequiredService<IHttpContextAccessor>();
             var logger = serviceProvider.GetRequiredService<ILogger>();
             HttpContext CurrentContext = contextAccessor.HttpContext;
             Utilities.Caching.Configuration.Configurator.InitCache(serviceProvider);
             Utilities.Caching.Configuration.Configurator.SetCookieRepository(new CookieRepository(contextAccessor));
 
-              var system = Cache.Instance;
+            var system = Cache.Instance;
             system.CacheAreas[CacheArea.Session] = new Sessions.SessionCache(contextAccessor, logger);
             system.CacheAreas[CacheArea.Request] = new RequestCache(contextAccessor);
         }

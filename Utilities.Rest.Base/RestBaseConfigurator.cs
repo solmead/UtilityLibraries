@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Runtime;
 using System.Text;
 using System.Threading.Tasks;
 using Utilities.KeyValueStore;
@@ -16,6 +17,7 @@ namespace Utilities.Rest.Base
 {
     public static class RestBaseConfigurator
     {
+        internal static bool useLoggingForClients { get; set; }
         internal static TItem? Create<TItem>()
         {
             var tp = typeof(TItem);
@@ -28,33 +30,56 @@ namespace Utilities.Rest.Base
         {
             var settings = defaultSettings ?? Create<TTSettings>();
 
-            var x = config.GetValueSeperate(settings?.ClientName + "Settings", settings);
+            var x = config.GetValueSeperate<TTSettings>(settings?.ClientName + "Settings", settings!);
 
             services.AddSingleton(x);
 
-            services.AddHttpClient(x.ClientName, c =>
+
+            useLoggingForClients = config.GetValueBool("UseLoggingForRestClients", true);
+
+
+            var conClient = services.AddHttpClient(x.ClientName, c =>
             {
-                c.BaseAddress = new Uri(x.ApiAddress);
+                c.BaseAddress = new Uri(x.ApiAddress!);
                 //string base64EncodedCredentials = Base64Encode(String.Format("{0}:{1}", x.RojoUsername, x.RojoPassword));
                 //c.DefaultRequestHeaders.Add($"Authorization", $"Basic {base64EncodedCredentials}");
                 c.DefaultRequestHeaders.Add("Accept-Encoding", "gzip"); //This can be changed to another compression method, gzip was just arbitrarily selected.
                 c.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", x.SubscriptionKey);
+                
+            });
 
-            }).ConfigurePrimaryHttpMessageHandler(() => new LoggingHandler(new HttpClientHandler
+            if (useLoggingForClients)
             {
-                //Added so that responses are decompressed upon recieving.  This can be removed if we remove the Accept-Encoding gzip above.  
-                AutomaticDecompression = DecompressionMethods.GZip
-            }))
-            .AddPolicyHandler(CatalystDataPollyPolicy(logger))
-            .AddPolicyHandler(Policy.TimeoutAsync<HttpResponseMessage>(5));
+                conClient = conClient.ConfigurePrimaryHttpMessageHandler(() => new LoggingHandler(new HttpClientHandler
+                {
+                    //Added so that responses are decompressed upon recieving.  This can be removed if we remove the Accept-Encoding gzip above.  
+                    AutomaticDecompression = DecompressionMethods.GZip
+                }));
+            } else
+            {
+                conClient = conClient.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+                {
+                    //Added so that responses are decompressed upon recieving.  This can be removed if we remove the Accept-Encoding gzip above.  
+                    AutomaticDecompression = DecompressionMethods.GZip
+                });
+            }
 
 
+            if (x.UseRetry ?? false)
+            {
+                conClient = conClient.AddPolicyHandler(CatalystDataPollyPolicy(logger, x));
+            }
+
+            if (x.UseTimeout ?? false)
+            {
+                conClient = conClient.AddPolicyHandler(Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(x.Timeout ?? 1.0)));
+            }
 
 
             return services;
         }
 
-        private static AsyncRetryPolicy<HttpResponseMessage> CatalystDataPollyPolicy(ILogger logger)
+        private static  AsyncRetryPolicy<HttpResponseMessage> CatalystDataPollyPolicy(ILogger logger, RestSettings config)
         {
             // Handle both exceptions and return values in one policy
             HttpStatusCode[] httpStatusCodesWorthRetrying = {
@@ -65,14 +90,20 @@ namespace Utilities.Rest.Base
                HttpStatusCode.GatewayTimeout // 504
             };
 
+
+
             var policy = Policy.Handle<HttpRequestException>()
                 .Or<TimeoutRejectedException>()
                 .OrResult<HttpResponseMessage>(r =>
                 {
-                    logger.LogError($"OnResult Running for httpStatusCode: {r.StatusCode}!");
-                    return httpStatusCodesWorthRetrying.Contains(r.StatusCode);
+                    var err = httpStatusCodesWorthRetrying.Contains(r.StatusCode);
+                    if (useLoggingForClients)
+                    {
+                        logger.LogError($"OnResult Running for httpStatusCode: {r.StatusCode}!");
+                    }
+                    return err;
                 })
-                .WaitAndRetryAsync(2, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                .WaitAndRetryAsync(config.MaxRetries ?? 2, retryAttempt => TimeSpan.FromSeconds(config.RetrySeconds(retryAttempt)),
                 (exception, timeSpan, retryCount, context) =>
                 {
                     logger.LogError($"Wait and Retry Occuring: timeSpan: {timeSpan}, currentRetryCount {retryCount}");

@@ -62,6 +62,11 @@ namespace Utilities.FileExtensions.AspNetCore
             {
                 return path;
             }
+            if (_actionContextAccessor?.ActionContext == null)
+            {
+                _logger.LogError("No Context available on _actionContextAccessor");
+                return "";
+            }
 
             IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
             var uri = new Uri(path, UriKind.RelativeOrAbsolute);
@@ -88,6 +93,12 @@ namespace Utilities.FileExtensions.AspNetCore
         {
             try
             {
+                if (_actionContextAccessor?.ActionContext == null)
+                {
+                    _logger.LogError("No Context available on _actionContextAccessor");
+                    return "";
+                }
+
                 IUrlHelper url = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
                 var actionUrl = url.Content(path);
                 var request = _httpContextAccessor.HttpContext.Request;
@@ -105,6 +116,11 @@ namespace Utilities.FileExtensions.AspNetCore
 
         public string GetUrl(string action, object parameters)
         {
+            if (_actionContextAccessor?.ActionContext == null)
+            {
+                _logger.LogError("No Context available on _actionContextAccessor");
+                return "";
+            }
             IUrlHelper url = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
 
             var actionUrl = url.Action(action, parameters);
@@ -120,6 +136,11 @@ namespace Utilities.FileExtensions.AspNetCore
 
         public string GetUrlRoute(string route, object parameters)
         {
+            if (_actionContextAccessor?.ActionContext == null)
+            {
+                _logger.LogError("No Context available on _actionContextAccessor");
+                return "";
+            }
             IUrlHelper url = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
 
             var actionUrl = url.RouteUrl(route, parameters);

@@ -34,7 +34,7 @@
     <PackageReference Include="DocumentFormat.OpenXml" Version="2.20.0" />
     <PackageReference Include="ExcelNumberFormat" Version="1.1.0" />
     <PackageReference Include="Utilities.LinqDynamic" Version="2.3.8539.49056" />
-    <PackageReference Include="Utilities.Poco" Version="2.8.8622.54432" />
+    <PackageReference Include="Utilities.Poco" Version="2.8.9006.47455" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">

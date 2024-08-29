@@ -85,41 +85,90 @@ namespace Utilities.Swagger
 
         public string MapPath(string path)
         {
-
+            //_logger.LogInformation("MapPath path=[" + path + "]");
             path = path.Trim();
-            path = path.Replace("/", "\\");
+            path = path.Replace('\\', Path.DirectorySeparatorChar);
+            path = path.Replace('/', Path.DirectorySeparatorChar);
 
-            if (path.StartsWith("\\\\") || path.Contains(":\\"))
+            var dirPath = "" + Path.VolumeSeparatorChar + Path.DirectorySeparatorChar;
+            var netPath = "" + Path.DirectorySeparatorChar + Path.DirectorySeparatorChar;
+
+
+            if (path.StartsWith(netPath) || path.Contains(dirPath))
             {
+                //_logger.LogInformation("MapPath network or full path=[" + path + "]");
                 return path;
             }
 
-            path = path.Replace("\\\\", "\\");
+            path = path.Replace(netPath, "" + Path.DirectorySeparatorChar);
 
 
             if (path.First() == '~')
             {
+                //_logger.LogInformation("MapPath starts with ~");
                 path = path.Substring(1);
             }
 
-            if (path.First() != '\\')
+            if (path.First() != Path.DirectorySeparatorChar)
             {
-                path = "\\" + path;
+                path = Path.DirectorySeparatorChar + path;
             }
 
 
-            //string webRootPath = _webHostEnvironment.WebRootPath;
+            //_logger.LogInformation("MapPath checking path=[" + path + "]");
+
+            var pths = path.Split(Path.DirectorySeparatorChar);
+
+            var subPath = "";
+            for (var a = 2; a < pths.Length; a++)
+            {
+                subPath = subPath + Path.DirectorySeparatorChar + pths[a];
+            }
+
+
+            var finPath = "";
+
             string contentRootPath = _webHostEnvironment.ContentRootPath;
+            //_logger.LogInformation("MapPath contentRootPath = [" + contentRootPath + "]");
+            finPath = Path.GetFullPath(Path.Join(contentRootPath, path));
 
-            //string path = "";
-            //path = Path.Combine(webRootPath, "CSS");
+            return finPath;
+
+
+            //path = path.Trim();
+            //path = path.Replace("/", "\\");
+
+            //if (path.StartsWith("\\\\") || path.Contains(":\\"))
+            //{
+            //    return path;
+            //}
+
+            //path = path.Replace("\\\\", "\\");
+
+
+            //if (path.First() == '~')
+            //{
+            //    path = path.Substring(1);
+            //}
+
+            //if (path.First() != '\\')
+            //{
+            //    path = "\\" + path;
+            //}
+
+
+            ////string webRootPath = _webHostEnvironment.WebRootPath;
+            //string contentRootPath = _webHostEnvironment.ContentRootPath;
+
+            ////string path = "";
+            ////path = Path.Combine(webRootPath, "CSS");
 
 
 
-            return Path.Join(contentRootPath, path);
+            //return Path.Join(contentRootPath, path);
 
-            //throw new NotImplementedException();
-            //throw new NotImplementedException();
+            ////throw new NotImplementedException();
+            ////throw new NotImplementedException();
         }
 
         public List<ObjParamInfo> GetAllParams((string Name, OpenApiPathItem Path) entry, (OperationType Name, OpenApiOperation Operation) operation, bool appendOperation = false)

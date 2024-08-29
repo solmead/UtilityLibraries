@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Utilities.SerializeExtensions;
 using Utilities.Poco;
+using Microsoft.Extensions.Logging;
 
 namespace Utilities.KeyValueStore.Concrete
 {
@@ -14,12 +15,12 @@ namespace Utilities.KeyValueStore.Concrete
 
         private readonly IConfiguration _configuration;
 
-        public SettingsFromConfigRepository(IConfiguration configuration) : base()
+        public SettingsFromConfigRepository(IConfiguration configuration, ILogger logging) : base(logging)
         {
             _configuration = configuration;
         }
 
-        public SettingsFromConfigRepository(IConfiguration configuration, IKeyValueRepository keyValueRepository) : base(keyValueRepository) 
+        public SettingsFromConfigRepository(IConfiguration configuration, ILogger logging, IKeyValueRepository keyValueRepository) : base(logging, keyValueRepository) 
         {
             _configuration = configuration;
         }

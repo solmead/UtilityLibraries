@@ -20,10 +20,12 @@ namespace Utilities.Swagger.Writers
     public abstract class StandardWriter : IFileWriter
     {
         protected IGeneratorInfo _generatorInfo { get; set; } = null;
+        protected readonly ISwaggerGen _swaggerFilterGen;
 
-        public StandardWriter(ILogger logger)
+        public StandardWriter(ILogger logger, ISwaggerGen swaggerFilterGen)
         {
             _logger = logger;
+            _swaggerFilterGen = swaggerFilterGen;
         }
         public void SetGenerator(IGeneratorInfo generator)
         {
@@ -85,6 +87,8 @@ namespace Utilities.Swagger.Writers
 
             if (!files.ContainsKey(fi.File.FullName.ToLower()))
             {
+                _logger.LogDebug($"Swagger TS WriteToFile adding [{fi.File.FullName}]");
+
                 files.Add(fi.File.FullName.ToLower(), new FileEntry()
                 {
                      File = fi.File,
@@ -103,8 +107,8 @@ namespace Utilities.Swagger.Writers
                 }
             }
 
-
-            if (string.IsNullOrEmpty(files[fi.File.FullName.ToLower()].Data))
+            var selectedFile = files[fi.File.FullName.ToLower()];
+            if (string.IsNullOrEmpty(selectedFile.Data))
             {
                 isRepo = !isIndex && ( isRepo || NamespacesInOneFile);
 
@@ -113,10 +117,10 @@ namespace Utilities.Swagger.Writers
 
                 var head = _generatorInfo.GetFileHeader(modules, enums, relativePath, isRepo);
 
-                files[fi.File.FullName.ToLower()].Data = files[fi.File.FullName.ToLower()].Data + head;
+                selectedFile.Data = selectedFile.Data + head;
             }
 
-            files[fi.File.FullName.ToLower()].Data = files[fi.File.FullName.ToLower()].Data + data;
+            selectedFile.Data = selectedFile.Data + data;
 
             
         }

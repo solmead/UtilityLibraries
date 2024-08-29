@@ -457,7 +457,7 @@ namespace Utilities.Poco
             return prop?.PropertyType ?? typeof(string);
         }
 
-        public static void SetValue<TItem>(this TItem item, string propertyName, object value, Dictionary<string, string> mappings = null)
+        private static void SetValue<TItem>(this TItem item, string propertyName, object value, Dictionary<string, string> mappings = null)
         {
             try
             {

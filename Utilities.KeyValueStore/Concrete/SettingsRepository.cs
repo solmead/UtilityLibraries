@@ -1,11 +1,13 @@
 ﻿using Utilities.SerializeExtensions;
 using Utilities.Poco;
+using Microsoft.Extensions.Logging;
 
 namespace Utilities.KeyValueStore.Concrete
 {
     public class SettingsRepository : ISettingsRepository
     {
         private IKeyValueRepository? _keyValueRepository;
+        private readonly ILogger _logger;
 
         public IKeyValueRepository? KeyValueRepository
         {
@@ -13,13 +15,14 @@ namespace Utilities.KeyValueStore.Concrete
             set { _keyValueRepository = value; }
         }
 
-        public SettingsRepository()
+        public SettingsRepository(ILogger logger)
         {
-
+            _logger = logger;
         }
-        public SettingsRepository(IKeyValueRepository keyValueRepository)
+        public SettingsRepository(ILogger logger, IKeyValueRepository keyValueRepository)
         {
             _keyValueRepository = keyValueRepository;
+            _logger = logger;
         }
 
 
@@ -61,11 +64,20 @@ namespace Utilities.KeyValueStore.Concrete
         public virtual TT GetValueSeperate<TT>(string name, TT defaultValue = null) where TT : class
         {
             var newObj = Extensions.Create<TT>();
+            _logger.LogDebug($"GetValueSeperate for {name}");
             foreach (var p in newObj.GetPropertyNames())
             {
-                var dt = _keyValueRepository.GetSettingValue(name + "_" + p, defaultValue?.GetValue(p)?.ToString() ?? "");
+                var df = defaultValue?.GetValue(p)?.ToString() ?? "";
+                var dt = _keyValueRepository.GetSettingValue(name + "_" + p, df);
+                _logger.LogDebug($"GetValueSeperate Key: [{name}_{p}] default: [{df}] value: [{dt}]");
 
-                newObj.SetValue(p, dt);
+
+
+                _logger.LogDebug($"GetValueSeperate setting property: [{p}] to: [{dt}]");
+                newObj.SetPropOnObj(p, dt);
+                var d = newObj.GetValue(p);
+                _logger.LogDebug($"GetValueSeperate getting property: [{p}] is: [{d}]");
+
             }
 
             return newObj;

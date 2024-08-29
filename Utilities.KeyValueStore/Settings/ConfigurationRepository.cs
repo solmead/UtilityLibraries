@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace Utilities.KeyValueStore.Settings
 {
     public class ConfigurationRepository : SettingsFromConfigRepository, IKeyValueRepository
     {
-        public ConfigurationRepository(IConfiguration configuration) : base(configuration)
+        public ConfigurationRepository(IConfiguration configuration, ILogger logging) : base(configuration, logging)
         {
             KeyValueRepository = this;
         }

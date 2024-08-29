@@ -12,12 +12,10 @@ namespace Utilities.Swagger.Writers
     public class StandardMultiFileWriter : StandardWriter
     {
         private readonly SwaggerSplitConfig _config;
-        private readonly ISwaggerGen _swaggerFilterGen;
 
-        public StandardMultiFileWriter(SwaggerSplitConfig config, ILogger logger, ISwaggerGen swaggerFilterGen) : base(logger)
+        public StandardMultiFileWriter(SwaggerSplitConfig config, ILogger logger, ISwaggerGen swaggerFilterGen) : base(logger, swaggerFilterGen)
         {
             _config = config;
-            _swaggerFilterGen = swaggerFilterGen;
         }
 
         private FileEntry GetFile(string path, string filename, string name)
@@ -26,6 +24,9 @@ namespace Utilities.Swagger.Writers
             {
                 path = path + "/";
             }
+            path = path.Replace("\\", "/");
+            //path = path.Replace('/', Path.PathSeparator);
+
             var fname = filename.Replace("{Name}", name);
 
 
@@ -52,6 +53,8 @@ namespace Utilities.Swagger.Writers
             {
                 path = path + "/";
             }
+            path = path.Replace("\\", "/");
+            //path = path.Replace('/', Path.PathSeparator);
 
             var fi = new FileInfo(_swaggerFilterGen.MapPath(path + "index.ts"));
             if (!fi.Directory.Exists)

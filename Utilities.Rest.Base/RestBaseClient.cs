@@ -40,15 +40,21 @@ namespace Utilities.Rest.Base
 
         protected void StartCall(string name)
         {
-            _logger.LogDebug("calling " + name);
-            sw = new Stopwatch();
-            sw.Start();
+            if (RestBaseConfigurator.useLoggingForClients)
+            {
+                _logger.LogDebug("calling " + name);
+                sw = new Stopwatch();
+                sw.Start();
+            }
         }
 
         protected void EndCall(string name)
         {
-            sw.Stop();
-            _logger.LogDebug("call " + name + " took [" + sw.Elapsed.ToString() + "]");
+            if (RestBaseConfigurator.useLoggingForClients)
+            {
+                sw.Stop();
+                _logger.LogDebug("call " + name + " took [" + sw.Elapsed.ToString() + "]");
+            }
         }
 
         private HttpContent getContent(object data, DataFormatEnum dataFormat, JsonSerializerOptions? options)

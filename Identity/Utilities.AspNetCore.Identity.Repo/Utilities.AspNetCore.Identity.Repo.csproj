@@ -36,7 +36,7 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="6.0.13" />
 		<PackageReference Include="System.Security.Claims" Version="4.3.0" />
-		<PackageReference Include="Utilities.Poco" Version="2.8.8622.54432" />
+		<PackageReference Include="Utilities.Poco" Version="2.8.9006.47455" />
 	</ItemGroup>
 
 
