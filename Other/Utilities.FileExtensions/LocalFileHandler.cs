@@ -372,7 +372,10 @@ namespace Utilities.FileExtensions
             return Task.FromResult(GetLastWriteTime(fileName));
         }
 
-        public List<string> GetDirectories(string directory)
+        //List<string> GetDirectories(string directory, string? searchPattern = null, Func<bool, DirectoryInfo>? orderBy = null);
+        //List<string> GetFiles(string directory, string? searchPattern = null, Func<bool, FileInfo>? orderBy = null);
+
+        public List<string> GetDirectories(string directory, string? searchPattern = null, Func<DirectoryInfo, object>? orderBy = null, bool isAscending = false)
         {
 
             directory = directory.Replace("\\", "/");
@@ -386,14 +389,31 @@ namespace Utilities.FileExtensions
                 di.Create();
             }
 
+            searchPattern = searchPattern ?? "*";
+            var list = di.GetDirectories(searchPattern).ToList() ?? new List<DirectoryInfo>();
 
-            return  di.GetDirectories().Select((d)=>d.Name).ToList();
+            orderBy = orderBy ?? ((DirectoryInfo a) => a.CreationTime);
+
+            if (orderBy!=null)
+            {
+                if (isAscending)
+                {
+                    var lst2 = list.OrderBy(orderBy).ToList();
+                    list = lst2;
+                }
+                else
+                {
+                    var lst2 = list.OrderByDescending(orderBy).ToList();
+                    list = lst2;
+                }
+            }
+            return  list.Select((d)=>d.Name).ToList();
 
 
 
         }
 
-        public List<string> GetFiles(string directory)
+        public List<string> GetFiles(string directory, string? searchPattern = null, Func<FileInfo, object>? orderBy = null, bool isAscending = false)
         {
             directory = directory.Replace("\\", "/");
             if (!(directory.EndsWith("/") || directory.EndsWith("\\")))
@@ -405,9 +425,25 @@ namespace Utilities.FileExtensions
             {
                 di.Create();
             }
+            searchPattern = searchPattern ?? "*";
+            var list = di.GetFiles(searchPattern).ToList();
+            orderBy = orderBy ?? ((FileInfo a) => a.CreationTime);
 
+            if (orderBy != null)
+            {
+                if (isAscending)
+                {
+                    var lst2 = list.OrderBy(orderBy).ToList();
+                    list = lst2;
+                }
+                else
+                {
+                    var lst2 = list.OrderByDescending(orderBy).ToList();
+                    list = lst2;
+                }
+            }
 
-            return di.GetFiles().Select((d) => d.Name).ToList();
+            return list.Select((d) => d.Name).ToList();
         }
 
 

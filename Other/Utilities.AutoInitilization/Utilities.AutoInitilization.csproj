@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-	  <TargetFrameworks>net8.0;net6.0;netstandard2.0</TargetFrameworks>
+	  <TargetFrameworks>net8.0;net6.0</TargetFrameworks>
 	  <LangVersion>12</LangVersion>
 	  <Nullable>enable</Nullable>
 
@@ -26,6 +26,9 @@
 		<DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
 	</PropertyGroup>
 
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
 	
   <ItemGroup>
     <None Remove="PackNuget.bat" />

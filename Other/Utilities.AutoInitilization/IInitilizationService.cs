@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -11,5 +12,8 @@ namespace Utilities.AutoInitilization
         int Priority { get; }
 
         IServiceCollection InitilizeServices(IServiceCollection services, IServiceProvider provider);
+
+
+        void InitilizeServices(IApplicationBuilder app);
     }
 }
