@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Utilities.KeyValueStore;
 using Utilities.SerializeExtensions;
 using Utilities.TimedTasks.Repos;
 using Utilities.TimedTasks.TimeCheck;
@@ -14,17 +15,17 @@ namespace Utilities.TimedTasks
     {
 
         private readonly ILogger _logger;
-        private readonly ITimedTaskRepository _timedTaskRepository;
+        private readonly IKeyValueRepository _timedTaskRepository;
         private ICheck _checkMethod { get; set; }
 
-        public TasksHandler(ICheck checkMethod, ITimedTaskRepository timedTaskRepository, ILogger logger)
+        public TasksHandler(ICheck checkMethod, IKeyValueRepository timedTaskRepository, ILogger logger)
         {
             _checkMethod = checkMethod;
             _logger = logger;
             _timedTaskRepository = timedTaskRepository;
             CallRate = _checkMethod.CallRate;
         }
-        public TasksHandler(CallRateEnum callRate, ITimedTaskRepository timedTaskRepository, ILogger logger)
+        public TasksHandler(CallRateEnum callRate, IKeyValueRepository timedTaskRepository, ILogger logger)
         {
             CallRate = callRate;
             _logger = logger;
@@ -62,12 +63,13 @@ namespace Utilities.TimedTasks
 
             var ser = new Serializer(_logger);
 
-
+            _logger.LogInformation("Setting Concurrency Check");
             _timedTaskRepository.SetSettingValue("Global_TimedTasks_" + task.Name + "_ConcurrencyCheck", ser.Serialize(data));
 
             //Since at this point each instance has written a lastcheckdate, which isTime uses to determine if it is time to run, only those that hit within a very short amount of time could run at the same time. This is to trap the instances where istime returned true before the lastcheckdate got changed.
             await Task.Delay(2000);
 
+            _logger.LogInformation("Getting Concurrency Check");
             var dt = _timedTaskRepository.GetSettingValue("Global_TimedTasks_" + task.Name + "_ConcurrencyCheck", "");
 
             var data2 = ser.Deserialize<ConcurrencyCheck>(dt);

@@ -61,7 +61,10 @@ namespace Utilities.FileExtensions.AspNetCore
 
             var fi = directory;
             fi = fi.Replace("\\", ".").Replace("/", ".").Replace("..", ".");
-
+            if (fi==".")
+            {
+                fi = "";
+            }
             return fi;
         }
 
@@ -100,7 +103,12 @@ namespace Utilities.FileExtensions.AspNetCore
 
             var lst = (from d in dList where d.Name.ToLower().StartsWith(drl) select d);
 
-            var subLst = (from i in lst select i.Name.Replace(dr, "", true, null)).ToList();
+            var subLst = (from i in lst select i.Name).ToList();
+
+            if (!string.IsNullOrWhiteSpace(dr))
+            {
+                subLst = (from i in subLst select i.Replace(dr, "", true, null)).ToList();
+            }
 
 
             var finLst = (from i in subLst select i.Split("."));
@@ -125,14 +133,16 @@ namespace Utilities.FileExtensions.AspNetCore
 
             if (file != null)
             {
-                var resourceStream = assembly.GetManifestResourceStream(file.Name);
-
-
-                using (var reader = new  BinaryReader(resourceStream))
+                using (var resourceStream = file.CreateReadStream())
                 {
-                    return reader.ReadBytes((int)resourceStream.Length);
-                }
+                    //var resourceStream = assembly.GetManifestResourceStream(file.Name);
 
+
+                    using (var reader = new BinaryReader(resourceStream))
+                    {
+                        return reader.ReadBytes((int)resourceStream.Length);
+                    }
+                }
             }
             return null;
         }

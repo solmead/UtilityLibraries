@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using Utilities.Dapper.TypeHandlers;
 
 namespace Utilities.Dapper
 {
@@ -149,6 +150,14 @@ namespace Utilities.Dapper
                 SqlMapper.SetTypeMap(map.Type, map);
 
             }
+
+
+            #if NET_6
+            SqlMapper.AddTypeHandler(new SqlTimeOnlyTypeHandler());
+            SqlMapper.AddTypeHandler(new SqlDateOnlyTypeHandler());
+            SqlMapper.AddTypeHandler(new SqlTimeOnlyNullableTypeHandler());
+            SqlMapper.AddTypeHandler(new SqlDateOnlyNullableTypeHandler());
+#endif
         }
 
     }

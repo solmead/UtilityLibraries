@@ -14,5 +14,8 @@ namespace Utilities.FileExtensions.Services
         string GetUrl(string action, object parameters);
         string GetUrlRoute(string route, object parameters);
 
+
+        string GetAbsUrl(string path);
+
     }
 }

@@ -113,6 +113,17 @@ namespace Utilities.Caching.Core
 
 
 
+        public void ClearItem(string name)
+        {
+            var dd = BaseDictionaryGet();
+            dd.TryRemove(name.ToUpper(), out CachedEntryBase v);
+        }
+
+        public async Task ClearItemAsync(string name)
+        {
+            var dd = await BaseDictionaryGetAsync();
+            dd.TryRemove(name.ToUpper(), out CachedEntryBase v);
+        }
 
 
         public virtual void ClearCache()

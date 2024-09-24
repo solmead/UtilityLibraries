@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>net8.0;net6.0</TargetFrameworks>
+	  <LangVersion>12</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	  <VersionSuffix Condition="'$(DesignTimeBuild)' != 'true'">1.5.$([System.DateTime]::UtcNow.Date.Subtract($([System.DateTime]::Parse("2000-01-01"))).TotalDays).$([System.Math]::Floor($([MSBuild]::Divide($([System.DateTime]::UtcNow.TimeOfDay.TotalSeconds), 1.32))))</VersionSuffix>
+	  <VersionSuffix Condition="'$(DesignTimeBuild)' == 'true'">1.5.0.0</VersionSuffix>
+	  <AssemblyVersion Condition=" '$(VersionSuffix)' == '' ">0.0.0.1</AssemblyVersion>
+	  <AssemblyVersion Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</AssemblyVersion>
+	  <Version Condition=" '$(VersionSuffix)' == '' ">0.0.1.0</Version>
+	  <Version Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</Version>
+	  <Company>University of Cincinnati</Company>
+	  <Copyright>Copyright ©2024 University of Cincinnati</Copyright>
+	  <RepositoryUrl>https://github.com/solmead/UtilityLibraries</RepositoryUrl>
+	  <PackageProjectUrl>https://github.com/solmead/UtilityLibraries</PackageProjectUrl>
+	  <PackageLicenseUrl>https://github.com/solmead/UtilityLibraries</PackageLicenseUrl>
+  </PropertyGroup>
+
+	<PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
+		<DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Remove="Errors\**" />
+		<EmbeddedResource Remove="Errors\**" />
+		<None Remove="Errors\**" />
+	</ItemGroup>
+  <ItemGroup>
+    <None Remove="PackNuget.bat" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Errors\RecordNotFoundError.cs" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="FluentResults" Version="3.16.0" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
+		<PackageReference Include="System.Text.Json" Version="8.0.4" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
+		<PackageReference Include="Utilities.KeyValueStore" Version="1.2.9006.47540" />
+		<PackageReference Include="Microsoft.Extensions.Http.Polly" Version="8.0.7" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+</Project>

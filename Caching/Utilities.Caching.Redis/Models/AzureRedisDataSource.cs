@@ -3,14 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using StackExchange.Redis;
 using Utilities.Caching;
 using Utilities.Caching.Core;
 using Utilities.Caching.Helpers;
 using Utilities.Caching.Redis;
 using Utilities.SerializeExtensions.Serializers;
-using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace Utilities.Caching.Redis.Models
 {

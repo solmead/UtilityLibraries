@@ -2,7 +2,13 @@
 	<PropertyGroup>
 		<!--<TargetFramework>netstandard2.0</TargetFramework>-->
 		<TargetFrameworks>net462;net472;net48</TargetFrameworks>
-		<Version>6.6.3</Version>
+		<VersionSuffix Condition="'$(DesignTimeBuild)' != 'true'">6.7.$([System.DateTime]::UtcNow.Date.Subtract($([System.DateTime]::Parse("2000-01-01"))).TotalDays).$([System.Math]::Floor($([MSBuild]::Divide($([System.DateTime]::UtcNow.TimeOfDay.TotalSeconds), 1.32))))</VersionSuffix>
+		<VersionSuffix Condition="'$(DesignTimeBuild)' == 'true'">6.7.0.0</VersionSuffix>
+		<AssemblyVersion Condition=" '$(VersionSuffix)' == '' ">0.0.0.1</AssemblyVersion>
+		<AssemblyVersion Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</AssemblyVersion>
+		<Version Condition=" '$(VersionSuffix)' == '' ">0.0.1.0</Version>
+		<Version Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</Version>
+
 		<RuntimeIdentifiers>win10-x64</RuntimeIdentifiers>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>Solmead Productions</Authors>
@@ -70,8 +76,8 @@
 
 
 	<ItemGroup>
-	  <PackageReference Include="Utilities.Caching" Version="7.2.8314.39051" />
-	  <PackageReference Include="Utilities.Logging" Version="6.5.7" />
+	  <PackageReference Include="Utilities.Caching" Version="7.4.8671.7939" />
+	  <PackageReference Include="Utilities.Logging" Version="6.6.8541.2330" />
 	  <PackageReference Include="WebActivatorEx" Version="2.2.0" />
 	</ItemGroup>
 

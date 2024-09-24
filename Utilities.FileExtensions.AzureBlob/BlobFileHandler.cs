@@ -147,8 +147,10 @@ namespace Utilities.FileExtensions.AzureBlob
                 {
                     dir = dir.GetDirectoryReference(tstr[a].Trim());
                 }
-
-                _directories.Add(directory.ToLower(), dir);
+                if (!_directories.ContainsKey(directory.ToLower()))
+                {
+                    _directories.Add(directory.ToLower(), dir);
+                }
 
 
                 return dir;
@@ -374,6 +376,34 @@ namespace Utilities.FileExtensions.AzureBlob
             }
             return SaveFile(dir, fileName, data);
         }
+        public bool SaveFile(string fileName, Stream data)
+        {
+            fileName = fileName.Replace("\\", "/");
+            var last = fileName.LastIndexOf("/");
+            var dir = "";
+            if (last >= 0)
+            {
+                last = last + 1;
+                dir = fileName.Substring(0, last);
+                fileName = fileName.Substring(last);
+            }
+            return SaveFile(dir, fileName, data);
+        }
+
+        public Task<bool> SaveFileAsync(string fileName, Stream data)
+        {
+
+            fileName = fileName.Replace("\\", "/");
+            var last = fileName.LastIndexOf("/");
+            var dir = "";
+            if (last >= 0)
+            {
+                last = last + 1;
+                dir = fileName.Substring(0, last);
+                fileName = fileName.Substring(last);
+            }
+            return SaveFileAsync(dir, fileName, data);
+        }
 
         public async Task<bool> ExistsAsync(string directory, string fileName)
         {
@@ -381,7 +411,8 @@ namespace Utilities.FileExtensions.AzureBlob
             var dir = await GetDirectoryBlobAsync(directory);
             if (dir == null)
             {
-                throw new Exception("Directory Blob not found");
+                _logger.LogError("Directory Blob not found");
+                return false;
             }
             var blobClient = await dir.GetBlobClientAsync(fileName);
             //var blockBlob = dir.GetBlockBlobReference(fileName);
@@ -394,7 +425,8 @@ namespace Utilities.FileExtensions.AzureBlob
             var dir = await GetDirectoryBlobAsync(directory);
             if (dir == null)
             {
-                throw new Exception("Directory Blob not found");
+                _logger.LogError("Directory Blob not found");
+                return null;
             }
             //var blockBlob = await dir.GetBlockBlobReferenceAsync(fileName);
             var blobClient = await dir.GetBlobClientAsync(fileName);
@@ -587,6 +619,56 @@ namespace Utilities.FileExtensions.AzureBlob
                 fileName = fileName.Substring(last);
             }
             return GetLastWriteTimeAsync(dir, fileName);
+        }
+
+        public bool SaveFile(string directory, string fileName, Stream data)
+        {
+            var dir = GetDirectoryBlob(directory);
+            if (dir == null)
+            {
+                throw new Exception("Directory Blob not found");
+            }
+            var blobClient = dir.GetBlobClient(fileName);
+            blobClient.DeleteIfExists();
+
+
+            byte[] bytes;
+            using (var memoryStream = new MemoryStream())
+            {
+                data.CopyTo(memoryStream);
+                bytes = memoryStream.ToArray();
+            }
+
+            var bd = new BinaryData(bytes);
+            blobClient.Upload(bd);
+            //CloudBlockBlob blockBlob = dir.GetBlockBlobReference(fileName);
+            //await blockBlob.UploadFromByteArrayAsync(data, 0, data.Length);
+            return true;
+        }
+
+
+        public async Task<bool> SaveFileAsync(string directory, string fileName, Stream data)
+        {
+            //_logger.LogInformation("SaveFileAsync called for dir=[" + directory + "] name=[" + fileName + "]");
+            var dir = await GetDirectoryBlobAsync(directory);
+            if (dir == null)
+            {
+                throw new Exception("Directory Blob not found");
+            }
+            var blobClient = await dir.GetBlobClientAsync(fileName);
+            await blobClient.DeleteIfExistsAsync();
+
+
+            byte[] bytes;
+            using (var memoryStream = new MemoryStream())
+            {
+                await data.CopyToAsync(memoryStream);
+                bytes = memoryStream.ToArray();
+            }
+
+            var bd = new BinaryData(bytes);
+            await blobClient.UploadAsync(bd);
+            return true;
         }
     }
 }

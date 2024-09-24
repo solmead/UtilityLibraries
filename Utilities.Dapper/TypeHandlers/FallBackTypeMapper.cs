@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-namespace Utilities.Dapper
+namespace Utilities.Dapper.TypeHandlers
 {
 
     public class FallBackTypeMapper : SqlMapper.ITypeMap

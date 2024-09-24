@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Utilities.TimedTasks.Repos;
 using Microsoft.Extensions.DependencyInjection;
 using Utilities.TimedTasks.Configuration;
+using System.IO;
+using System.Reflection;
 
 namespace Utilities.TimedTasks
 {
@@ -20,42 +22,110 @@ namespace Utilities.TimedTasks
 
         private static object assemLoadLock = new object();
 
-        private static List<Type> assemblyTypes { get; set; }
+        private static List<Type> _assemblyTypes { get; set; }
 
 
-
-        internal static List<Type> getAssemblyTypes()
+        private static List<string> GetSolutionAssemblies()
         {
-            if (assemblyTypes == null)
+            var assemblies = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll")
+                                .Select(x => AssemblyName.GetAssemblyName(x).FullName);
+            return assemblies.ToList();
+        }
+        private static List<string> GetDomainAssemblies()
+        {
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies()
+                                .Select(x => x.FullName);
+            return assemblies.ToList();
+        }
+        //private static Assembly[] GetReferencedAssemblies()
+        //{
+        //    var assemblies = Assembly.GetEntryAssembly().GetReferencedAssemblies();
+        //    return assemblies.ToArray();
+        //}
+        public static List<string> GetReferencedAssemblies()
+        {
+            var returnAssemblies = new List<Assembly>();
+            var loadedAssemblies = new HashSet<string>();
+            var assembliesToCheck = new Queue<Assembly>();
+
+            assembliesToCheck.Enqueue(Assembly.GetEntryAssembly());
+
+            while (assembliesToCheck.Any())
             {
-                lock (assemLoadLock)
+                var assemblyToCheck = assembliesToCheck.Dequeue();
+
+                foreach (var reference in assemblyToCheck.GetReferencedAssemblies())
                 {
-                    if (assemblyTypes == null)
+                    if (!loadedAssemblies.Contains(reference.FullName))
                     {
-                        var assemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
-
-                        var tList = new List<Type>();
-                        foreach (var ass in assemblies)
+                        try
                         {
-                            try
-                            {
-                                var types = ass.GetTypes();
-                                tList.AddRange(types);
-                            }
-                            catch //(Exception ex2)
-                            {
-                                //_logger.LogError(ex2, ex2.Message);
-                                //var i = 0;
-                            }
+                            var assembly = Assembly.Load(reference);
+                            assembliesToCheck.Enqueue(assembly);
+                            loadedAssemblies.Add(reference.FullName);
+                            returnAssemblies.Add(assembly);
                         }
+                        catch
+                        {
 
-                        assemblyTypes = tList;
+                        }
                     }
                 }
             }
-            return assemblyTypes;
+
+            return returnAssemblies.Select(x => x.FullName).ToList();
         }
 
+        internal static List<Type> AssemblyTypes
+        {
+            get
+            {
+                if (_assemblyTypes == null)
+                {
+                    var names = GetSolutionAssemblies().AsQueryable();
+                    names = names.Union(GetDomainAssemblies());
+                    names = names.Union(GetReferencedAssemblies());
+                    names = names.Distinct().Where(x => !x.StartsWith("Microsoft.") && !x.StartsWith("System."));
+
+
+                    var assemblies = new List<Assembly>();
+
+                    foreach (var name in names)
+                    {
+                        //_logger.LogDebug("Assembly [" + name + "]");
+                        try
+                        {
+                            var ass = Assembly.Load(name);
+                            assemblies.Add(ass);
+                        }
+                        catch
+                        {
+
+                        }
+                    }
+
+                    _assemblyTypes = new List<Type>();
+                    foreach (var ass in assemblies)
+                    {
+                        try
+                        {
+                            var types = ass.GetTypes();
+
+                            _assemblyTypes.AddRange(types);
+                        }
+                        catch //(Exception ex2)
+                        {
+                            //_logger.LogError(ex2, ex2.Message);
+                            //var i = 0;
+                        }
+                    }
+
+                    //_logger.LogDebug("Total Types [" + _assemblyTypes.Count() + "]");
+                }
+                //_logger.LogDebug("AssemblyTypes returning");
+                return _assemblyTypes;
+            }
+        }
 
 
 
@@ -72,10 +142,24 @@ namespace Utilities.TimedTasks
             {
                 try
                 {
-                    var types = getAssemblyTypes();
-                    var lst = (from t in types
-                                where t.GetInterfaces().Contains(typeof(ITask))
-                                select creator(t)).ToList();
+                    var assTypes = AssemblyTypes;
+
+                    var tpList = (from t in assTypes
+                                  where t.GetInterfaces().Contains(typeof(ITask))
+                                  select t).ToList();
+
+                    //_logger.LogDebug("GetServices - Make sure not interface and not abstract <TT>=[" + type.ToString() + "] count=" + tpList.Count);
+                    var tpListFin = (from t in tpList where !t.IsInterface && !t.IsAbstract select t).ToList();
+
+
+
+
+                    var lst = (from t in tpListFin select creator(t)).ToList();
+
+
+                    //var lst = (from t in types
+                    //            where t.GetInterfaces().Contains(typeof(ITask))
+                    //            select creator(t)).ToList();
                     taskList.AddRange(lst);
                 }
                 catch //(Exception ex2)
@@ -94,6 +178,13 @@ namespace Utilities.TimedTasks
         {
             Instance.AddTask(task);
         }
+
+        public static ITask? FindTask(string name)
+        {
+            return Instance.FindTask(name);
+        }
+
+
 
 
         public static void TriggerTasks()

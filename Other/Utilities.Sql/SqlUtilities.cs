@@ -131,16 +131,16 @@ namespace Utilities.Sql
             var bp = param as Parameter;
             if (bp?.SqlDbTypeEx != null)
             {
-                p.SetValue("SqlDbType", bp.SqlDbTypeEx);
+                p.SetPropOnObj("SqlDbType", bp.SqlDbTypeEx);
 
             }
             if (!string.IsNullOrEmpty(bp?.TypeNameEx))
             {
-                p.SetValue("TypeName", bp.TypeNameEx);
+                p.SetPropOnObj("TypeName", bp.TypeNameEx);
             } else if (param.Value is DataTable)
             {
                 var dt = (DataTable)param.Value;
-                p.SetValue("TypeName", dt.TableName);
+                p.SetPropOnObj("TypeName", dt.TableName);
             }
 
             return p;

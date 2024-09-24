@@ -5,11 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using HiQPdf;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Utilities.PdfHandling.NetFramework
 {
+    [Obsolete("No longer used, now setup when Configurator inits called", true)]
     public class PdfCreator : IPdfCreation
     {
 
@@ -96,132 +97,15 @@ namespace Utilities.PdfHandling.NetFramework
 
         public byte[] GetPdfFromHtml(string html, string baseUrl, PageOrientation orientation = PageOrientation.Portrait)
         {
-
-
-            var htmlToPdfConverter = new HtmlToPdf()
-            {
-                SerialNumber = HiQPDFSerial,
-                BrowserWidth = 1300,
-                //LayoutWithHinting = true,
-                TriggerMode = ConversionTriggerMode.WaitTime,
-                WaitBeforeConvert = 5,
-                HtmlLoadedTimeout = 2400
-            };
-            htmlToPdfConverter.Document.PageSize = PdfPageSize.Letter;
-            htmlToPdfConverter.Document.Margins = new PdfMargins(5);
-            htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Portrait;
-            if (orientation == PageOrientation.Landscape)
-            {
-                htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Landscape;
-            }
-
-            byte[] pdfBuffer;
-
-            pdfBuffer = htmlToPdfConverter.ConvertHtmlToMemory(html, baseUrl);
-
-            return pdfBuffer;
+            return null;
         }
         public byte[] GetPdfFromUrl(string url, PageOrientation orientation = PageOrientation.Portrait)
         {
-            //Log("GetPdfFromUrl Start Url:" + url);
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
-            byte[] pdfBuffer = null;
-
-            if (url.Contains("?"))
-            {
-                url = url + "&DisplayPdfOn=true";
-            }
-            else
-            {
-                url = url + "?DisplayPdfOn=true";
-            }
-
-
-            var htmlToPdfConverter = new HtmlToPdf()
-            {
-                SerialNumber = HiQPDFSerial,
-                BrowserWidth = 1300,
-                //LayoutWithHinting = true,
-                TriggerMode = ConversionTriggerMode.WaitTime,
-                WaitBeforeConvert = 5,
-                HtmlLoadedTimeout = 2400
-            };
-            htmlToPdfConverter.Document.PageSize = PdfPageSize.Letter;
-            htmlToPdfConverter.Document.Margins = new PdfMargins(5);
-            htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Portrait;
-            if (orientation == PageOrientation.Landscape)
-            {
-                htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Landscape;
-            }
-
-
-            //Log("htmlToPdfConverter.ConvertUrlToMemory Before");
-            try
-            {
-                pdfBuffer = htmlToPdfConverter.ConvertUrlToMemory(url);
-            }
-            catch (Exception e)
-            {
-                //e.LogToElmah();
-                throw e;
-            }
-            //Log("htmlToPdfConverter.ConvertUrlToMemory After");
-
-
-            //Log("GetPdfFromUrl End");
-            return pdfBuffer;
+            return null;
         }
         public Task<byte[]> GetPdfFromUrlAsync(string url, PageOrientation orientation = PageOrientation.Portrait)
         {
-            //Log("GetPdfFromUrl Start Url:" + url);
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
-            byte[] pdfBuffer = null;
-
-            if (url.Contains("?"))
-            {
-                url = url + "&DisplayPdfOn=true";
-            }
-            else
-            {
-                url = url + "?DisplayPdfOn=true";
-            }
-
-
-            var htmlToPdfConverter = new HtmlToPdf()
-            {
-                SerialNumber = HiQPDFSerial,
-                BrowserWidth = 1300,
-                //LayoutWithHinting = true,
-                TriggerMode = ConversionTriggerMode.WaitTime,
-                WaitBeforeConvert = 5,
-                HtmlLoadedTimeout = 2400
-            };
-            htmlToPdfConverter.Document.PageSize = PdfPageSize.Letter;
-            htmlToPdfConverter.Document.Margins = new PdfMargins(5);
-            htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Portrait;
-            if (orientation == PageOrientation.Landscape)
-            {
-                htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Landscape;
-            }
-
-
-            //Log("htmlToPdfConverter.ConvertUrlToMemory Before");
-            try
-            {
-                pdfBuffer = htmlToPdfConverter.ConvertUrlToMemory(url);
-            }
-            catch (Exception e)
-            {
-                //e.LogToElmah();
-                throw e;
-            }
-            //Log("htmlToPdfConverter.ConvertUrlToMemory After");
-
-
-            //Log("GetPdfFromUrl End");
-            return Task.FromResult(pdfBuffer);
+            return null;
         }
 
 
@@ -239,7 +123,7 @@ namespace Utilities.PdfHandling.NetFramework
         }
         public Task<FileInfo> CombineFilesAsync(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)
         {
-            return Core.CombineFilesAsync(fileList, toDirectory, fileName);
+            return Core.CombineFilesAsync(fileList, toDirectory, fileName, (msg) => _logger.LogInformation(msg));
         }
         public FileInfo CombineFiles(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)
         {

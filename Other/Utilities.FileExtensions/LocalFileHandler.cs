@@ -66,6 +66,27 @@ namespace Utilities.FileExtensions
             return null;
         }
 
+        public bool SaveFile(string directory, string fileName, Stream data)
+        {
+            if (!(directory.EndsWith("/") || directory.EndsWith("\\")))
+            {
+                directory = directory + "/";
+            }
+            var fi = new FileInfo(_serverService.MapPath(directory + fileName));
+            if (!fi.Directory.Exists)
+            {
+                fi.Directory.Create();
+            }
+            if (fi.Exists)
+            {
+                fi.Delete();
+            }
+            var fileStream = File.Create(fi.FullName);
+            data.CopyTo(fileStream);
+            fileStream.Close();
+
+            return true;
+        }
         public bool SaveFile(string directory, string fileName, byte[] data)
         {
             if (!(directory.EndsWith("/") || directory.EndsWith("\\")))
@@ -91,6 +112,16 @@ namespace Utilities.FileExtensions
             {
                 directory = directory.Substring(2);
             }
+            if (directory.StartsWith("/") || directory.StartsWith("\\"))
+            {
+                directory = directory.Substring(1);
+            }
+
+            if (!directory.EndsWith("/") && !directory.EndsWith("\\"))
+            {
+                directory = directory + "/";
+            }
+            directory = directory.Replace("\\", "/");
 
             return _serverService.GetUrl("~/" + directory + fileName);
         }
@@ -134,6 +165,21 @@ namespace Utilities.FileExtensions
                 dir = fileName.Substring(0, last);
                 fileName = fileName.Substring(last);
             }
+            return SaveFile(dir, fileName, data);
+        }
+
+        public bool SaveFile(string fileName, Stream data)
+        {
+            fileName = fileName.Replace("\\", "/");
+            var last = fileName.LastIndexOf("/");
+            var dir = "";
+            if (last >= 0)
+            {
+                last = last + 1;
+                dir = fileName.Substring(0, last);
+                fileName = fileName.Substring(last);
+            }
+
             return SaveFile(dir, fileName, data);
         }
 
@@ -262,6 +308,10 @@ namespace Utilities.FileExtensions
             return Task.FromResult(GetFile(directory, fileName));
         }
 
+        public Task<bool> SaveFileAsync(string directory, string fileName, Stream data)
+        {
+            return Task.FromResult(SaveFile(directory, fileName, data));
+        }
         public Task<bool> SaveFileAsync(string directory, string fileName, byte[] data)
         {
             return Task.FromResult(SaveFile(directory, fileName, data));
@@ -287,6 +337,10 @@ namespace Utilities.FileExtensions
             return Task.FromResult(SaveFile(fileName, data));
         }
 
+        public Task<bool> SaveFileAsync(string fileName, Stream data)
+        {
+            return Task.FromResult(SaveFile(fileName, data));
+        }
         public Task<string> GetFileURLAsync(string fileName)
         {
             return Task.FromResult(GetFileURL(fileName));
@@ -318,7 +372,10 @@ namespace Utilities.FileExtensions
             return Task.FromResult(GetLastWriteTime(fileName));
         }
 
-        public List<string> GetDirectories(string directory)
+        //List<string> GetDirectories(string directory, string? searchPattern = null, Func<bool, DirectoryInfo>? orderBy = null);
+        //List<string> GetFiles(string directory, string? searchPattern = null, Func<bool, FileInfo>? orderBy = null);
+
+        public List<string> GetDirectories(string directory, string? searchPattern = null, Func<DirectoryInfo, object>? orderBy = null, bool isAscending = false)
         {
 
             directory = directory.Replace("\\", "/");
@@ -332,14 +389,31 @@ namespace Utilities.FileExtensions
                 di.Create();
             }
 
+            searchPattern = searchPattern ?? "*";
+            var list = di.GetDirectories(searchPattern).ToList() ?? new List<DirectoryInfo>();
 
-            return  di.GetDirectories().Select((d)=>d.Name).ToList();
+            orderBy = orderBy ?? ((DirectoryInfo a) => a.CreationTime);
+
+            if (orderBy!=null)
+            {
+                if (isAscending)
+                {
+                    var lst2 = list.OrderBy(orderBy).ToList();
+                    list = lst2;
+                }
+                else
+                {
+                    var lst2 = list.OrderByDescending(orderBy).ToList();
+                    list = lst2;
+                }
+            }
+            return  list.Select((d)=>d.Name).ToList();
 
 
 
         }
 
-        public List<string> GetFiles(string directory)
+        public List<string> GetFiles(string directory, string? searchPattern = null, Func<FileInfo, object>? orderBy = null, bool isAscending = false)
         {
             directory = directory.Replace("\\", "/");
             if (!(directory.EndsWith("/") || directory.EndsWith("\\")))
@@ -351,9 +425,27 @@ namespace Utilities.FileExtensions
             {
                 di.Create();
             }
+            searchPattern = searchPattern ?? "*";
+            var list = di.GetFiles(searchPattern).ToList();
+            orderBy = orderBy ?? ((FileInfo a) => a.CreationTime);
 
+            if (orderBy != null)
+            {
+                if (isAscending)
+                {
+                    var lst2 = list.OrderBy(orderBy).ToList();
+                    list = lst2;
+                }
+                else
+                {
+                    var lst2 = list.OrderByDescending(orderBy).ToList();
+                    list = lst2;
+                }
+            }
 
-            return di.GetFiles().Select((d) => d.Name).ToList();
+            return list.Select((d) => d.Name).ToList();
         }
+
+
     }
 }

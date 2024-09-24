@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace System.Collections.Extensions
 {
-    public static class Extensions
+    public static class CollectionExt
     {
         public static IAsynchronousList<Tt> AsAsynchronousList<Tt>(this List<Tt> baselst)
         {

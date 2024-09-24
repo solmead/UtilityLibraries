@@ -172,6 +172,28 @@ namespace Utilities.Caching
             return default(tt);
         }
 
+
+        public static async Task ClearItemAsync(CacheArea area, string name)
+        {
+            var ca = Instance.GetCacheArea(area);
+            await ClearItemAsync(ca, name);
+        }
+
+        public static void ClearItem(CacheArea area, string name)
+        {
+            var ca = Instance.GetCacheArea(area);
+            ClearItem(ca, name);
+        }
+        public static async Task ClearItemAsync(ICacheArea area, string name)
+        {
+            await area.ClearItemAsync(name);
+        }
+        public static void ClearItem(ICacheArea area, string name)
+        {
+            area.ClearItem(name);
+        }
+
+
         /// <summary>
         /// Puts an item into the cache
         /// </summary>
@@ -196,6 +218,7 @@ namespace Utilities.Caching
 
 
         }
+
         /// <summary>
         /// Puts an item into the cache
         /// </summary>
@@ -373,6 +396,8 @@ namespace Utilities.Caching
             var ca = Instance.GetCacheArea(area);
             await SetItemAsync(ca, name, obj, lifeSpanSeconds, tags);
         }
+
+
         /// <summary>
         /// Puts an item into the cache
         /// </summary>

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -41,6 +42,48 @@ namespace Utilities.FileExtensions.AspNetCore
             _logger = logger;
         }
 
+        private Uri BaseUrl(IUrlHelper urlHelper)
+        {
+            var baseUrl = "";
+
+            //No configuration given, so use the one from the context
+            if (string.IsNullOrWhiteSpace(baseUrl))
+            {
+                var request = _httpContextAccessor.HttpContext.Request;
+                baseUrl = request.Scheme + "://" + request.Host.Value;
+            }
+
+            return new Uri(baseUrl);
+        }
+
+        public string GetAbsUrl(string path)
+        {
+            if (path.Contains("://"))
+            {
+                return path;
+            }
+            if (_actionContextAccessor?.ActionContext == null)
+            {
+                _logger.LogError("No Context available on _actionContextAccessor");
+                return "";
+            }
+
+            IUrlHelper urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+            var uri = new Uri(path, UriKind.RelativeOrAbsolute);
+            if (uri.IsAbsoluteUri)
+            {
+                return path;
+            }
+
+            Uri combinedUri;
+            if (Uri.TryCreate(BaseUrl(urlHelper), path, out combinedUri))
+            {
+                return combinedUri.AbsoluteUri;
+            }
+
+            throw new Exception(string.Format("Could not create absolute url for {0} using baseUri{0}", path, BaseUrl(urlHelper)));
+        }
+
         public string GetTempDirectory()
         {
             return "/Temp/";
@@ -50,6 +93,12 @@ namespace Utilities.FileExtensions.AspNetCore
         {
             try
             {
+                if (_actionContextAccessor?.ActionContext == null)
+                {
+                    _logger.LogError("No Context available on _actionContextAccessor");
+                    return "";
+                }
+
                 IUrlHelper url = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
                 var actionUrl = url.Content(path);
                 var request = _httpContextAccessor.HttpContext.Request;
@@ -67,6 +116,11 @@ namespace Utilities.FileExtensions.AspNetCore
 
         public string GetUrl(string action, object parameters)
         {
+            if (_actionContextAccessor?.ActionContext == null)
+            {
+                _logger.LogError("No Context available on _actionContextAccessor");
+                return "";
+            }
             IUrlHelper url = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
 
             var actionUrl = url.Action(action, parameters);
@@ -82,6 +136,11 @@ namespace Utilities.FileExtensions.AspNetCore
 
         public string GetUrlRoute(string route, object parameters)
         {
+            if (_actionContextAccessor?.ActionContext == null)
+            {
+                _logger.LogError("No Context available on _actionContextAccessor");
+                return "";
+            }
             IUrlHelper url = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
 
             var actionUrl = url.RouteUrl(route, parameters);
@@ -96,6 +155,7 @@ namespace Utilities.FileExtensions.AspNetCore
 
         public string MapPath(string path)
         {
+            //_logger.LogInformation("MapPath path=[" + path + "]");
             path = path.Trim();
             path = path.Replace('\\', Path.DirectorySeparatorChar);
             path = path.Replace('/', Path.DirectorySeparatorChar);
@@ -106,6 +166,7 @@ namespace Utilities.FileExtensions.AspNetCore
 
             if (path.StartsWith(netPath) || path.Contains(dirPath))
             {
+                //_logger.LogInformation("MapPath network or full path=[" + path + "]");
                 return path;
             }
 
@@ -114,6 +175,7 @@ namespace Utilities.FileExtensions.AspNetCore
 
             if (path.First() == '~')
             {
+                //_logger.LogInformation("MapPath starts with ~");
                 path = path.Substring(1);
             }
 
@@ -122,50 +184,52 @@ namespace Utilities.FileExtensions.AspNetCore
                 path = Path.DirectorySeparatorChar + path;
             }
 
+
+            //_logger.LogInformation("MapPath checking path=[" + path + "]");
+
             var pths = path.Split(Path.DirectorySeparatorChar);
-            var pt = _fileServerProvider.GetProvider(pths[1]) as PhysicalFileProvider;
 
-
-            if (pt != null)
+            var subPath = "";
+            for(var a=2; a<pths.Length; a++)
             {
-                return Path.Join(pt.Root, path);
-                //if (_siteSettings.DocumentsDirectory.Contains(netPath) || _siteSettings.DocumentsDirectory.Contains("." + Path.DirectorySeparatorChar) || _siteSettings.DocumentsDirectory.Contains(dirPath))
-                //{
-                //    path = path.Substring(10);
-                //    var finPath = Path.Join(_siteSettings.DocumentsDirectory, path);
-                //    return finPath;
-                //}
+                subPath = subPath + Path.DirectorySeparatorChar + pths[a] ;
             }
-            //path.Contains(".\\") ||
 
 
+            //_logger.LogInformation("MapPath looking for mapping for [" + pths[1] + "]");
 
-            //if (_siteSettings.DocumentsPath.Contains("\\\\") || _siteSettings.DocumentsPath.Contains(".\\") || _siteSettings.DocumentsPath.Contains(":\\"))
+            var pt = _fileServerProvider.GetProvider(pths[1]) as PhysicalFileProvider;
+            var pt2 = _fileServerProvider.GetProvider("/" + pths[1]) as PhysicalFileProvider;
+            var pt3 = _fileServerProvider.GetProvider("\\" + pths[1]) as PhysicalFileProvider;
+
+            //if (path.Contains("documents") && pt==null)
             //{
-            //    //app.UseFileServer(new FileServerOptions
-            //    //{
-            //    //    FileProvider = new PhysicalFileProvider(settings.DocumentsPath),
-            //    //    RequestPath = new PathString("/Documents"),
-            //    //    EnableDirectoryBrowsing = false
-            //    //});
+            //    throw new Exception("Chris expected documents to be mapped to a PhysicalFileProvider pths[1]=[" + pths[1] + "] pt2 exists = [" + (pt2!=null) + "]");
             //}
 
 
+            //_logger.LogInformation("MapPath pt = " + (pt==null ? "is null" : "found provider"));
+            //_logger.LogInformation("MapPath pt2 = " + (pt2 == null ? "is null" : "found provider"));
+            //_logger.LogInformation("MapPath pt3 = " + (pt3 == null ? "is null" : "found provider"));
 
+            pt = pt ?? pt2 ?? pt3;
 
+            var finPath = "";
+            if (pt != null)
+            {
+                finPath = Path.GetFullPath(Path.Join(pt.Root, subPath));
 
-            //string webRootPath = _webHostEnvironment.WebRootPath;
-            string contentRootPath = _webHostEnvironment.ContentRootPath;
+            } else
+            {
+                string contentRootPath = _webHostEnvironment.ContentRootPath;
+                //_logger.LogInformation("MapPath contentRootPath = [" + contentRootPath + "]");
+                finPath = Path.GetFullPath(Path.Join(contentRootPath, path));
 
-            //string path = "";
-            //path = Path.Combine(webRootPath, "CSS");
+            }
 
-
-
-            return Path.Join(contentRootPath, path);
-
-            //throw new NotImplementedException();
-            //throw new NotImplementedException();
+            //_logger.LogInformation("MapPath finPath = [" + finPath + "]");
+            return finPath;
+           
         }
     }
 }

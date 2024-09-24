@@ -4,11 +4,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Collections;
 using System.Data;
+using System.ComponentModel.DataAnnotations;
 
 namespace Utilities.Poco
 {
@@ -370,7 +370,14 @@ namespace Utilities.Poco
             var newItem = Create<TItem>();
             foreach (var p in item.GetPropertyNames(onlyBaseTypes: true, onlyWritable: true))
             {
-                newItem.SetValue(p, item.GetValue(p));
+                try
+                {
+                    newItem.SetValue(p, item.GetValue(p));
+                }
+                catch
+                {
+
+                }
             }
 
             return newItem;
@@ -383,7 +390,14 @@ namespace Utilities.Poco
             }
             foreach(var p in item.GetPropertyNames(onlyBaseTypes: true, onlyWritable: true))
             {
-                newItem.SetValue(p, item.GetValue(p));
+                try
+                {
+                    newItem.SetValue(p, item.GetValue(p));
+                }
+                catch
+                {
+
+                }
             }
         }
 
@@ -443,7 +457,7 @@ namespace Utilities.Poco
             return prop?.PropertyType ?? typeof(string);
         }
 
-        public static void SetValue<TItem>(this TItem item, string propertyName, object value, Dictionary<string, string> mappings = null)
+        private static void SetValue<TItem>(this TItem item, string propertyName, object value, Dictionary<string, string> mappings = null)
         {
             try
             {
@@ -527,9 +541,9 @@ namespace Utilities.Poco
         {
             var itm = item.GetProperty(propertyName, mappings);
             IEnumerable<object> attrs = (from ca in itm.GetCustomAttributes(true) where ca.GetType().FullName.Contains("ColumnAttribute") select ca).ToList();
-            
 
             DisplayAttribute attr2 = itm.GetCustomAttributes(typeof(DisplayAttribute), true).FirstOrDefault() as DisplayAttribute;
+
             if ((attr2 != null))
             {
                 return attr2.Name;
@@ -605,12 +619,15 @@ namespace Utilities.Poco
                     props = (from p in props where p.CanWrite select p).ToList();
                 }
 
+            var DisplayAttributeType = typeof(DisplayAttribute);
+            var UIHintAttributeType = typeof(UIHintAttribute);
+
                 var lst = (from p in props
-                           where !p.GetCustomAttributes(typeof(UIHintAttribute), true).Any() && (
+                           where !p.GetCustomAttributes(UIHintAttributeType, true).Any() && (
                            (from  ca in p.GetCustomAttributes(true)
                                                   where ca.GetType().FullName.Contains("ColumnAttribute")
                                                 select ca).Any() || 
-                                p.GetCustomAttributes(typeof(DisplayAttribute), true).Any() || 
+                                p.GetCustomAttributes(DisplayAttributeType, true).Any() || 
                                 p.GetCustomAttributes(typeof(DisplayNameAttribute), true).Any())
                            select p).ToList();
 
@@ -646,7 +663,9 @@ namespace Utilities.Poco
                         }
                     }
 
-                    var attr2 = itm.GetCustomAttributes(typeof(DisplayAttribute), true).FirstOrDefault() as DisplayAttribute;
+            DisplayAttribute attr2 = itm.GetCustomAttributes(typeof(DisplayAttribute), true).FirstOrDefault() as DisplayAttribute;
+
+                   // var attr2 = itm.GetCustomAttributes(typeof(DisplayAttribute), true).FirstOrDefault() as DisplayAttribute;
                     if ((attr2 != null) && !dic.ContainsKey(attr2.Name))
                     {
                         dic.Add(attr2.Name, itm.Name);

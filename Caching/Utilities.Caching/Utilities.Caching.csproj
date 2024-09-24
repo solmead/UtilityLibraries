@@ -5,8 +5,8 @@
 	  <TargetFrameworks>netstandard2.0;net462;net472;net48</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 
-	  <VersionSuffix Condition="'$(DesignTimeBuild)' != 'true'">7.2.$([System.DateTime]::UtcNow.Date.Subtract($([System.DateTime]::Parse("2000-01-01"))).TotalDays).$([System.Math]::Floor($([MSBuild]::Divide($([System.DateTime]::UtcNow.TimeOfDay.TotalSeconds), 1.32))))</VersionSuffix>
-	  <VersionSuffix Condition="'$(DesignTimeBuild)' == 'true'">7.2.0.0</VersionSuffix>
+	  <VersionSuffix Condition="'$(DesignTimeBuild)' != 'true'">7.4.$([System.DateTime]::UtcNow.Date.Subtract($([System.DateTime]::Parse("2000-01-01"))).TotalDays).$([System.Math]::Floor($([MSBuild]::Divide($([System.DateTime]::UtcNow.TimeOfDay.TotalSeconds), 1.32))))</VersionSuffix>
+	  <VersionSuffix Condition="'$(DesignTimeBuild)' == 'true'">7.4.0.0</VersionSuffix>
 	  <AssemblyVersion Condition=" '$(VersionSuffix)' == '' ">0.0.0.1</AssemblyVersion>
 	  <AssemblyVersion Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</AssemblyVersion>
 	  <Version Condition=" '$(VersionSuffix)' == '' ">0.0.1.0</Version>
@@ -30,10 +30,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
-    <PackageReference Include="Utilities.CollectionExtensions" Version="2.8.8417.48560" />
-    <PackageReference Include="Utilities.SerializeExtensions" Version="6.6.5" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Text.Json" Version="7.0.3" />
+    <PackageReference Include="Utilities.CollectionExtensions" Version="2.8.8598.48308" />
+    <PackageReference Include="Utilities.SerializeExtensions" Version="6.8.8650.5946" />
   </ItemGroup>
 
   <ItemGroup>

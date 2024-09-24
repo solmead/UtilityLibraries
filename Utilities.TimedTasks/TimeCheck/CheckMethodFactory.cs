@@ -22,7 +22,7 @@ namespace Utilities.TimedTasks.TimeCheck
                 
                     try
                     {
-                        var types = Core.getAssemblyTypes();
+                        var types = Core.AssemblyTypes;
                         var lst = (from t in types
                                    where t.GetInterfaces().Contains(typeof(ICheck))
                                    select (ICheck)Create(t)).ToList();

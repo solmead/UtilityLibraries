@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-namespace Utilities.Dapper
+namespace Utilities.Dapper.TypeHandlers
 {
     class CustomTypeMap : SqlMapper.ITypeMap
     {
@@ -23,13 +23,13 @@ namespace Utilities.Dapper
             this.type = type;
             this.tail = tail;
         }
-        public System.Reflection.ConstructorInfo FindConstructor(string[] names, Type[] types)
+        public ConstructorInfo FindConstructor(string[] names, Type[] types)
         {
             return tail.FindConstructor(names, types);
         }
 
         public SqlMapper.IMemberMap GetConstructorParameter(
-            System.Reflection.ConstructorInfo constructor, string columnName)
+            ConstructorInfo constructor, string columnName)
         {
             return tail.GetConstructorParameter(constructor, columnName);
         }
@@ -61,7 +61,7 @@ namespace Utilities.Dapper
             this.columnName = columnName;
         }
         public string ColumnName { get { return columnName; } }
-        public System.Reflection.FieldInfo Field { get { return member as FieldInfo; } }
+        public FieldInfo Field { get { return member as FieldInfo; } }
         public Type MemberType
         {
             get
@@ -74,8 +74,8 @@ namespace Utilities.Dapper
                 }
             }
         }
-        public System.Reflection.ParameterInfo Parameter { get { return null; } }
-        public System.Reflection.PropertyInfo Property { get { return member as PropertyInfo; } }
+        public ParameterInfo Parameter { get { return null; } }
+        public PropertyInfo Property { get { return member as PropertyInfo; } }
     }
 }
 

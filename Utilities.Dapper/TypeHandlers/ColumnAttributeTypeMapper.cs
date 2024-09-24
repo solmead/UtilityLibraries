@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 
-namespace Utilities.Dapper
+namespace Utilities.Dapper.TypeHandlers
 {
     public class ColumnAttributeTypeMapper<T> : FallBackTypeMapper
     {

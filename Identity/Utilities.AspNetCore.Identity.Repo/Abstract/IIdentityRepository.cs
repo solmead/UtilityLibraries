@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
 using Utilities.AspNetCore.Identity.Repo.Models;
 
 namespace Utilities.AspNetCore.Identity.Repo.Abstract

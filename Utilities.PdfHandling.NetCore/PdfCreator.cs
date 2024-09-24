@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
+using System.ServiceModel;
 using System.Threading.Tasks;
-using HiQPdf;
 using Microsoft.Extensions.Logging;
 
 namespace Utilities.PdfHandling.NetCore
 {
+    [Obsolete("No longer used, now setup when Configurator called", true)]
     public class PdfCreator : IPdfCreation
     {
 
@@ -21,29 +19,10 @@ namespace Utilities.PdfHandling.NetCore
             _logger = logger;
         }
 
-
+        [Obsolete("No longer Supported", true)]
         public void SavePdfFromHtml(string html, string baseUrl, FileInfo file, PageOrientation orientation = PageOrientation.Portrait)
         {
-            //Log("SavePdfFromUrl Start Url:" + url + " file:" + file.FullName);
-            if (!file.Directory.Exists)
-            {
-                file.Directory.Create();
-            }
-            if (file.Exists)
-            {
-                file.Delete();
-            }
-            var data = GetPdfFromHtml(html, baseUrl, orientation);
-            if (data != null)
-            {
-                var st = file.OpenWrite();
-                st.Write(data, 0, data.Length);
-                st.Close();
-            }
-            file.Refresh();
-
-
-            //Log("SavePdfFromUrl End");
+            throw new Exception("No longer Supported");
         }
 
         public void SavePdfFromUrl(string url, FileInfo file, PageOrientation orientation = PageOrientation.Portrait)
@@ -94,134 +73,77 @@ namespace Utilities.PdfHandling.NetCore
             //Log("SavePdfFromUrl End");
         }
 
+        [Obsolete("No longer Supported", true)]
         public byte[] GetPdfFromHtml(string html, string baseUrl, PageOrientation orientation = PageOrientation.Portrait)
         {
-
-
-            var htmlToPdfConverter = new HtmlToPdf()
-            {
-                SerialNumber = HiQPDFSerial,
-                BrowserWidth = 1300,
-                //LayoutWithHinting = true,
-                TriggerMode = ConversionTriggerMode.WaitTime,
-                WaitBeforeConvert = 5,
-                HtmlLoadedTimeout = 2400
-            };
-            htmlToPdfConverter.Document.PageSize = PdfPageSize.Letter;
-            htmlToPdfConverter.Document.Margins = new PdfMargins(5);
-            htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Portrait;
-            if (orientation == PageOrientation.Landscape)
-            {
-                htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Landscape;
-            }
-
-            byte[] pdfBuffer;
-
-            pdfBuffer = htmlToPdfConverter.ConvertHtmlToMemory(html, baseUrl);
-
-            return pdfBuffer;
+            throw new Exception("No longer Supported");
         }
         public byte[] GetPdfFromUrl(string url, PageOrientation orientation = PageOrientation.Portrait)
         {
-            //Log("GetPdfFromUrl Start Url:" + url);
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
-            byte[] pdfBuffer = null;
-
-            if (url.Contains("?"))
-            {
-                url = url + "&DisplayPdfOn=true";
-            }
-            else
-            {
-                url = url + "?DisplayPdfOn=true";
-            }
+            //try
+            //{
+            //    _logger.LogInformation("Utilities.PdfHandling.NetCore.PdfCreator.GetPdfFromUrl calling temp webservice");
 
 
-            var htmlToPdfConverter = new HtmlToPdf()
-            {
-                SerialNumber = HiQPDFSerial,
-                BrowserWidth = 1300,
-                //LayoutWithHinting = true,
-                TriggerMode = ConversionTriggerMode.WaitTime,
-                WaitBeforeConvert = 5,
-                HtmlLoadedTimeout = 2400
-            };
-            htmlToPdfConverter.Document.PageSize = PdfPageSize.Letter;
-            htmlToPdfConverter.Document.Margins = new PdfMargins(5);
-            htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Portrait;
-            if (orientation == PageOrientation.Landscape)
-            {
-                htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Landscape;
-            }
+            //    var bhbind = new BasicHttpsBinding();// BasicHttpSecurityMode.Transport);
+            //    bhbind.MaxBufferSize = int.MaxValue;
+            //    bhbind.MaxReceivedMessageSize = int.MaxValue;
+            //    bhbind.OpenTimeout = new TimeSpan(12, 0, 0);
+            //    bhbind.ReceiveTimeout = new TimeSpan(12, 0, 0);
+            //    bhbind.SendTimeout = new TimeSpan(12, 0, 0);
+            //    bhbind.CloseTimeout = new TimeSpan(12, 0, 0);
+            //    bhbind.ReaderQuotas.MaxStringContentLength = int.MaxValue;
+            //    bhbind.ReaderQuotas.MaxNameTableCharCount = int.MaxValue;
+            //    bhbind.ReaderQuotas.MaxDepth = int.MaxValue;
+            //    bhbind.ReaderQuotas.MaxArrayLength = int.MaxValue;
+            //    bhbind.ReaderQuotas.MaxBytesPerRead = int.MaxValue;
+            //    EndpointAddress endpointAddress = new EndpointAddress("https://webservices-ext.uc.edu/nightride/PdfCreate.svc");
+            //    using (var us = new PdfCreateService.PdfCreateServiceClient(bhbind, endpointAddress))
+            //    {
+            //        us.InnerChannel.OperationTimeout = new TimeSpan(0, 10, 0);
+            //        var arr = us.GetPdfFromUrl(url, (PdfCreateService.PageOrientation)orientation);
 
-
-            //Log("htmlToPdfConverter.ConvertUrlToMemory Before");
-            try
-            {
-                pdfBuffer = htmlToPdfConverter.ConvertUrlToMemory(url);
-            }
-            catch (Exception e)
-            {
-                //e.LogToElmah();
-                throw e;
-            }
-            //Log("htmlToPdfConverter.ConvertUrlToMemory After");
-
-
-            //Log("GetPdfFromUrl End");
-            return pdfBuffer;
+            //        _logger.LogInformation("Utilities.PdfHandling.NetCore.PdfCreator.GetPdfFromUrl temp webservice returned [" + arr.Length + "] bytes");
+            //        return arr;
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    _logger.LogError(ex, "Utilities.PdfHandling.NetCore.PdfCreator.GetPdfFromUrl Error -> " +  ex.ToString());
+            //} 
+            return null;
         }
-        public Task<byte[]> GetPdfFromUrlAsync(string url, PageOrientation orientation = PageOrientation.Portrait)
+        public async Task<byte[]> GetPdfFromUrlAsync(string url, PageOrientation orientation = PageOrientation.Portrait)
         {
-            //Log("GetPdfFromUrl Start Url:" + url);
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            //try
+            //{
+            //    _logger.LogInformation("Utilities.PdfHandling.NetCore.PdfCreator.GetPdfFromUrlAsync calling temp webservice");
 
-            byte[] pdfBuffer = null;
-
-            if (url.Contains("?"))
-            {
-                url = url + "&DisplayPdfOn=true";
-            }
-            else
-            {
-                url = url + "?DisplayPdfOn=true";
-            }
-
-
-            var htmlToPdfConverter = new HtmlToPdf()
-            {
-                SerialNumber = HiQPDFSerial,
-                BrowserWidth = 1300,
-                //LayoutWithHinting = true,
-                TriggerMode = ConversionTriggerMode.WaitTime,
-                WaitBeforeConvert = 5,
-                HtmlLoadedTimeout = 2400
-            };
-            htmlToPdfConverter.Document.PageSize = PdfPageSize.Letter;
-            htmlToPdfConverter.Document.Margins = new PdfMargins(5);
-            htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Portrait;
-            if (orientation == PageOrientation.Landscape)
-            {
-                htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Landscape;
-            }
-
-
-            //Log("htmlToPdfConverter.ConvertUrlToMemory Before");
-            try
-            {
-                pdfBuffer = htmlToPdfConverter.ConvertUrlToMemory(url);
-            }
-            catch (Exception e)
-            {
-                //e.LogToElmah();
-                throw e;
-            }
-            //Log("htmlToPdfConverter.ConvertUrlToMemory After");
-
-
-            //Log("GetPdfFromUrl End");
-            return Task.FromResult(pdfBuffer);
+            //    var bhbind = new BasicHttpsBinding();// BasicHttpSecurityMode.Transport);
+            //    bhbind.MaxBufferSize = int.MaxValue;
+            //    bhbind.MaxReceivedMessageSize = int.MaxValue;
+            //    bhbind.OpenTimeout = new TimeSpan(12, 0, 0);
+            //    bhbind.ReceiveTimeout = new TimeSpan(12, 0, 0);
+            //    bhbind.SendTimeout = new TimeSpan(12, 0, 0);
+            //    bhbind.CloseTimeout = new TimeSpan(12, 0, 0);
+            //    bhbind.ReaderQuotas.MaxStringContentLength = int.MaxValue;
+            //    bhbind.ReaderQuotas.MaxNameTableCharCount = int.MaxValue;
+            //    bhbind.ReaderQuotas.MaxDepth = int.MaxValue;
+            //    bhbind.ReaderQuotas.MaxArrayLength = int.MaxValue;
+            //    bhbind.ReaderQuotas.MaxBytesPerRead = int.MaxValue;
+            //    EndpointAddress endpointAddress = new EndpointAddress("https://webservices-ext.uc.edu/nightride/PdfCreate.svc");
+            //    using (var us = new PdfCreateService.PdfCreateServiceClient(bhbind, endpointAddress))
+            //    {
+            //        us.InnerChannel.OperationTimeout = new TimeSpan(0, 10, 0);
+            //        var arr = await us.GetPdfFromUrlAsync(url, (PdfCreateService.PageOrientation)orientation);
+            //        _logger.LogInformation("Utilities.PdfHandling.NetCore.PdfCreator.GetPdfFromUrlAsync temp webservice returned [" + arr.Length + "] bytes");
+            //        return arr;
+            //    }
+            //} catch (Exception ex)
+            //{
+            //    _logger.LogError(ex, "Utilities.PdfHandling.NetCore.PdfCreator.GetPdfFromUrl Error -> " + ex.ToString());
+            //}
+            return null;
         }
 
 
@@ -239,7 +161,7 @@ namespace Utilities.PdfHandling.NetCore
         }
         public Task<FileInfo> CombineFilesAsync(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)
         {
-            return Core.CombineFilesAsync(fileList, toDirectory, fileName);
+            return Core.CombineFilesAsync(fileList, toDirectory, fileName, (msg) => _logger.LogInformation(msg));
         }
         public FileInfo CombineFiles(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)
         {
