@@ -148,7 +148,7 @@ namespace Utilities.Rest.Base
                 {
                     return Result.Ok(s);
                 }
-                return Result.Fail(s);
+                return Result.Fail($"Remote Call Failure: {s}");
             }
             catch (Exception ex)
             {
@@ -247,6 +247,9 @@ namespace Utilities.Rest.Base
                 {
                     client = await clientSetup(client) ?? client;
                 }
+                var st = await content!.ReadAsStringAsync();
+                _logger.LogDebug($"RestBaseClient.PutStringAsync [{url}] [{st}]");
+
 
                 var httpResponse = await client.PutAsync(url, content);
                 var s = httpResponse.Content.ReadAsStringAsync().Result;
@@ -254,7 +257,7 @@ namespace Utilities.Rest.Base
                 {
                     return Result.Ok(s);
                 }
-                return Result.Fail(s);
+                return Result.Fail($"Remote Call Failure: {s}");
             }
             catch (Exception ex)
             {
@@ -358,7 +361,7 @@ namespace Utilities.Rest.Base
                 {
                     return Result.Ok(s);
                 }
-                return Result.Fail(s);
+                return Result.Fail($"Remote Call Failure: {s}");
             }
             catch (Exception ex)
             {
@@ -526,7 +529,7 @@ namespace Utilities.Rest.Base
                 {
                     return Result.Ok(s);
                 }
-                return Result.Fail(s);
+                return Result.Fail($"Remote Call Failure: {s}");
             }
             catch (Exception ex)
             {

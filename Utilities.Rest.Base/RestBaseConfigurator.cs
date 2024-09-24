@@ -90,23 +90,21 @@ namespace Utilities.Rest.Base
                HttpStatusCode.GatewayTimeout // 504
             };
 
-
-
             var policy = Policy.Handle<HttpRequestException>()
                 .Or<TimeoutRejectedException>()
                 .OrResult<HttpResponseMessage>(r =>
                 {
                     var err = httpStatusCodesWorthRetrying.Contains(r.StatusCode);
-                    if (useLoggingForClients)
+                    if (useLoggingForClients || err)
                     {
-                        logger.LogError($"OnResult Running for httpStatusCode: {r.StatusCode}!");
+                        logger.LogError($"{config.ClientName} - OnResult Running for httpStatusCode: {r.StatusCode}!");
                     }
                     return err;
                 })
                 .WaitAndRetryAsync(config.MaxRetries ?? 2, retryAttempt => TimeSpan.FromSeconds(config.RetrySeconds(retryAttempt)),
                 (exception, timeSpan, retryCount, context) =>
                 {
-                    logger.LogError($"Wait and Retry Occuring: timeSpan: {timeSpan}, currentRetryCount {retryCount}");
+                    logger.LogError($"{config.ClientName} - Wait and Retry Occuring: timeSpan: {timeSpan}, currentRetryCount {retryCount}");
                 });
 
             return policy;
