@@ -251,6 +251,14 @@ namespace Utilities.Swagger.Generators
                     data.AppendLine("                      }");
                     data.AppendLine("           ");
                 }
+                else if (_swaggerFilterGen.IsEnum(paramInfo.DataType))
+                {
+
+                    data.AppendLine("                      if(typeof it." + paramInfo.Name + " === 'string') {");
+                    data.AppendLine("                           it." + paramInfo.Name + " = " + paramInfo.DataType + "[it." + paramInfo.Name + " as keyof typeof " + paramInfo.DataType + "];");
+                    data.AppendLine("                      }");
+                    data.AppendLine("           ");
+                }
 
                 data.Append(GetDateCheckCallSet("it." + paramInfo.Name, paramInfo.DataType));
 

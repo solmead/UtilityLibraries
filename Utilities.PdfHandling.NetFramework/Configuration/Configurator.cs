@@ -10,6 +10,7 @@ namespace Utilities.PdfHandling.NetFramework.Configuration
 {
     public static class Configurator
     {
+        public static PdfConfig config = null;
 
         public static void InitilizePdfHandling(this IKernel kernel, Action<PdfConfig> setupAction)
         {
@@ -17,10 +18,10 @@ namespace Utilities.PdfHandling.NetFramework.Configuration
             kernel.Bind<IPdfCreation>().To<PdfCreation>();
 
 
-            Core.config = Core.config ?? new PdfConfig();
+            config = config ?? new PdfConfig();
             if (setupAction != null)
             {
-                setupAction(Core.config);
+                setupAction(config);
             }
 
         }

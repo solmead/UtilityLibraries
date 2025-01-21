@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!--<TargetFramework>netstandard2.0</TargetFramework>-->
-	  <TargetFrameworks>netstandard2.0;net462;net472;net48</TargetFrameworks>
+	  <TargetFrameworks>netstandard2.0;net48</TargetFrameworks>
 	  <VersionSuffix Condition="'$(DesignTimeBuild)' != 'true'">4.0.$([System.DateTime]::UtcNow.Date.Subtract($([System.DateTime]::Parse("2000-01-01"))).TotalDays).$([System.Math]::Floor($([MSBuild]::Divide($([System.DateTime]::UtcNow.TimeOfDay.TotalSeconds), 1.32))))</VersionSuffix>
 	  <VersionSuffix Condition="'$(DesignTimeBuild)' == 'true'">4.0.0.0</VersionSuffix>
 	  <AssemblyVersion Condition=" '$(VersionSuffix)' == '' ">0.0.0.1</AssemblyVersion>
@@ -21,17 +21,23 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="PackNuget.bat" />
+    <Compile Remove="Connected Services\**" />
+    <EmbeddedResource Remove="Connected Services\**" />
+    <None Remove="Connected Services\**" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="PackNuget.bat" />
+  </ItemGroup>
+
+  <!--<ItemGroup>
     <PackageReference Include="Microsoft.Windows.Compatibility" Version="5.0.2" />
     <PackageReference Include="System.ServiceModel.Duplex" Version="4.10.0" />
     <PackageReference Include="System.ServiceModel.Http" Version="4.10.0" />
     <PackageReference Include="System.ServiceModel.NetTcp" Version="4.10.0" />
     <PackageReference Include="System.ServiceModel.Security" Version="4.10.0" />
     <PackageReference Include="Utilities.FileExtensions" Version="3.5.9008.49459" />
-  </ItemGroup>
+  </ItemGroup>-->
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
     <DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>

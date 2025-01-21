@@ -2,6 +2,7 @@
 using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -232,7 +233,7 @@ namespace Utilities.Swagger.Generators
                 if (_swaggerFilterGen.IsArray(paramInfo.DataType))
                 {
                     var subType = _swaggerFilterGen.ArraySubType(paramInfo.DataType);
-                    if (!_swaggerFilterGen.IsPrimitive(subType) && !_swaggerFilterGen.IsEnum(subType))
+                    if (!_swaggerFilterGen.IsPrimitive(subType) && !_swaggerFilterGen.IsDate(subType) && !_swaggerFilterGen.IsEnum(subType))
                     {
                         data.AppendLine("                      if(it." + paramInfo.Name + "!=null) {");
                         data.AppendLine("                           var subArray_" + subType + " = new Array<" + subType + ">();");
@@ -247,10 +248,18 @@ namespace Utilities.Swagger.Generators
 
 
                 }
-                else if (!_swaggerFilterGen.IsPrimitive(paramInfo.DataType) && !_swaggerFilterGen.IsEnum(paramInfo.DataType))
+                else if (!_swaggerFilterGen.IsPrimitive(paramInfo.DataType) && !_swaggerFilterGen.IsDate(paramInfo.DataType) && !_swaggerFilterGen.IsEnum(paramInfo.DataType))
                 {
                     data.AppendLine("                      if(it." + paramInfo.Name + "!=null) {");
                     data.AppendLine("                           it." + paramInfo.Name + " = " + paramInfo.DataType + ".convertFrom(it." + paramInfo.Name + ");");
+                    data.AppendLine("                      }");
+                    data.AppendLine("           ");
+                } 
+                else if (_swaggerFilterGen.IsEnum(paramInfo.DataType))
+                {
+
+                    data.AppendLine("                      if(typeof it." + paramInfo.Name + " === 'string') {");
+                    data.AppendLine("                           it." + paramInfo.Name + " = " + paramInfo.DataType + "[it." + paramInfo.Name + " as keyof typeof " + paramInfo.DataType + "];");
                     data.AppendLine("                      }");
                     data.AppendLine("           ");
                 }
@@ -266,10 +275,12 @@ namespace Utilities.Swagger.Generators
             var enums = objectParams.Values.Where((op) => _swaggerFilterGen.IsEnum(op.DataType)).Select((p) => p.DataType).ToList();
             var modules = objectParams.Values.Where((op) => !_swaggerFilterGen.IsEnum(op.DataType) &&
                                 !_swaggerFilterGen.IsPrimitive(op.DataType) &&
+                                !_swaggerFilterGen.IsDate(op.DataType) &&
                                 !_swaggerFilterGen.IsArray(op.DataType)).Select((p) => p.DataType).ToList();
             var arrays = objectParams.Values.Where((op) => _swaggerFilterGen.IsGenericArray(op.DataType)).Select((p) => _swaggerFilterGen.ArraySubType(p.DataType)).ToList();
             var modules2 = arrays.Where((op) => !_swaggerFilterGen.IsEnum(op) &&
                                 !_swaggerFilterGen.IsPrimitive(op) &&
+                                !_swaggerFilterGen.IsDate(op) &&
                                 !_swaggerFilterGen.IsArray(op)).Select((p) => p).ToList();
 
             modules.AddRange(modules2);
@@ -314,7 +325,7 @@ namespace Utilities.Swagger.Generators
                     data.AppendLine("                      " + "     " + variableName + " = newArray;");
                     data.AppendLine("                      " + "}");
                 }
-                else if (!_swaggerFilterGen.IsPrimitive(subType) && !_swaggerFilterGen.IsEnum(subType) && !_swaggerFilterGen.IsArray(subType))
+                else if (!_swaggerFilterGen.IsPrimitive(subType) && !_swaggerFilterGen.IsDate(subType) && !_swaggerFilterGen.IsEnum(subType) && !_swaggerFilterGen.IsArray(subType))
                 {
                     data.AppendLine("                      if (" + variableName + "!=null) {");
                     data.AppendLine("                      " + "     " + variableName + ".forEach((item) => {");
@@ -330,7 +341,8 @@ namespace Utilities.Swagger.Generators
         }
 
         // public void WriteRemoteCall(string namespaceName, OperationType operation, string functionString, Dictionary<string, ObjParamInfo> objectParams, string paramString, string paramCallString, string funcType, bool hasBody, string bodyName, string origUrl, string finalUrl)
-        public void WriteRemoteCall(string namespaceName, OperationType operation, string functionString, Dictionary<string, ObjParamInfo> objectParams, string url, string? messages = null)
+        public void WriteRemoteCall(string namespaceName, OperationType operation, string functionString,
+            Dictionary<string, ObjParamInfo> objectParams, string url, string? messages = null)
         {
             var data = new StringBuilder();
             var paramList = objectParams.Values.ToList();
@@ -341,16 +353,19 @@ namespace Utilities.Swagger.Generators
             {
                 if (!p.IsReturned)
                 {
-                    var param = p.Name + (p.IsNullable ? "?" : "") + ": " + p.DataType;// + (p.IsNullable ? " = " + _swaggerFilterGen.DefaultValue(p.DataType) : "");
+                    var param = p.Name + (p.IsNullable ? "?" : "") + ": " +
+                                p.DataType; // + (p.IsNullable ? " = " + _swaggerFilterGen.DefaultValue(p.DataType) : "");
                     if (paramString != "")
                     {
                         paramString = paramString + ", ";
                         paramCallString = paramCallString + ", ";
                     }
+
                     paramString = paramString + param;
                     paramCallString = paramCallString + p.Name;
                 }
             }
+
             var bodyParam = paramList.FirstOrDefault((p) => p.IsBody);
             var funcParam = paramList.FirstOrDefault((p) => p.IsReturned);
 
@@ -359,9 +374,11 @@ namespace Utilities.Swagger.Generators
             var bodyName = bodyParam?.Name ?? "data";
 
 
-            data.AppendLine("          public get" + functionString + "Url(" + paramString + (paramString != "" ? ", " : "") + "options?: any): string {");
+            data.AppendLine("          public get" + functionString + "Url(" + paramString +
+                            (paramString != "" ? ", " : "") + "options?: any): string {");
 
-            data.AppendLine("                //" + messages?.Replace(Environment.NewLine, Environment.NewLine + "                //"));
+            data.AppendLine("                //" +
+                            messages?.Replace(Environment.NewLine, Environment.NewLine + "                //"));
 
             //data.AppendLine("               var origUrl = '" + origUrl + "';");
             data.AppendLine("               var url = " + url + ";");
@@ -383,71 +400,102 @@ namespace Utilities.Swagger.Generators
 
 
 
-            data.AppendLine("          public " + functionString.ToCamelCasing() + "(" + paramString + (paramString != "" ? ", " : "") + "options?: any): Observable<" + funcType + "> {");
-            data.AppendLine("               var url = this.get" + functionString + "Url(" + paramCallString + (paramCallString != "" ? ", " : "") + "options);");
+            data.AppendLine("          public " + functionString.ToCamelCasing() + "(" + paramString +
+                            (paramString != "" ? ", " : "") + "options?: any): Observable<" + funcType + "> {");
+            data.AppendLine("               var url = this.get" + functionString + "Url(" + paramCallString +
+                            (paramCallString != "" ? ", " : "") + "options);");
             if (!hasBody)
             {
                 data.AppendLine("               var data = null;");
             }
 
+            var emitPipe = true;
 
             if (operation == OperationType.Get)
             {
-                data.AppendLine("               return this._httpClient.get<" + funcType + ">(url" + (hasBody ? ", " + bodyName : "") + ")");
-            }
-            if (operation == OperationType.Post)
-            {
-                data.AppendLine("               return this._httpClient.post<" + funcType + ">(url" + (hasBody ? ", " + bodyName : ", null") + ")");
-            }
-            if (operation == OperationType.Put)
-            {
-                data.AppendLine("               return this._httpClient.put<" + funcType + ">(url" + (hasBody ? ", " + bodyName : ", null") + ")");
-            }
-            if (operation == OperationType.Delete)
-            {
-                data.AppendLine("               return this._httpClient.delete<" + funcType + ">(url" + (hasBody ? ", " + bodyName : "") + ")");
-            }
-
-            data.AppendLine("                    .pipe(");
-            data.AppendLine("                          map((value) => {");
-            data.AppendLine("                                ");
-
-            if (!_swaggerFilterGen.IsPrimitive(funcType) && !(funcType == "any" || funcType == "void"))
-            {
-                data.AppendLine("");
-
-                //data.AppendLine("debugger;");
-                if (_swaggerFilterGen.IsArray(funcType))
+                if (hasBody)
                 {
-                    var subType = _swaggerFilterGen.ArraySubType(funcType);
-                    if (!_swaggerFilterGen.IsPrimitive(subType) && !(subType == "any" || subType == "void"))
-                    {
-                        data.AppendLine("                                var newArray = new Array<" + subType + ">();");
-                        data.AppendLine("                                value.forEach((item) => {");
-                        data.AppendLine("                                      var newItem = " + subType + ".convertFrom(item);");
-                        data.AppendLine("                                      newArray.push(newItem);");
-                        data.AppendLine("                                });");
-                        data.AppendLine("                                var value2 = newArray;");
-                    } else
-                    {
-                        data.AppendLine("                                var value2 = value;");
-                    }
+                    emitPipe = false;
+                    data.AppendLine("               throw Error('Get with Body not supported');");
+                    //data.AppendLine("               return this._httpClient.get<" + funcType + ">(url" + (hasBody ? ", " + bodyName : "") + ")");
                 }
                 else
                 {
-                    data.AppendLine("                                var value2 = " + funcType + ".convertFrom(value);");
+                    data.AppendLine("               return this._httpClient.get<" + funcType + ">(url)");
                 }
 
-                //data.AppendLine("debugger;");
-                data.AppendLine("                                value = value2;");
-                data.AppendLine("");
+
+
             }
 
+            if (operation == OperationType.Post)
+            {
+                data.AppendLine("               return this._httpClient.post<" + funcType + ">(url" +
+                                (hasBody ? ", " + bodyName : ", null") + ")");
+            }
 
-            data.AppendLine("                                return value;");
-            data.AppendLine("                          }),");
-            data.AppendLine("                          catchError(this.handleError)");
-            data.AppendLine("                    );");
+            if (operation == OperationType.Put)
+            {
+                data.AppendLine("               return this._httpClient.put<" + funcType + ">(url" +
+                                (hasBody ? ", " + bodyName : ", null") + ")");
+            }
+
+            if (operation == OperationType.Delete)
+            {
+                data.AppendLine("               return this._httpClient.delete<" + funcType + ">(url" +
+                                (hasBody ? ", " + bodyName : "") + ")");
+            }
+
+            if (emitPipe)
+            {
+
+
+                data.AppendLine("                    .pipe(");
+                data.AppendLine("                          map((value) => {");
+                data.AppendLine("                                ");
+
+                if (!_swaggerFilterGen.IsPrimitive(funcType) && !(funcType == "any" || funcType == "void"))
+                {
+                    data.AppendLine("");
+
+                    //data.AppendLine("debugger;");
+                    if (_swaggerFilterGen.IsArray(funcType))
+                    {
+                        var subType = _swaggerFilterGen.ArraySubType(funcType);
+                        if (!_swaggerFilterGen.IsPrimitive(subType) && !(subType == "any" || subType == "void"))
+                        {
+                            data.AppendLine("                                var newArray = new Array<" + subType +
+                                            ">();");
+                            data.AppendLine("                                value.forEach((item) => {");
+                            data.AppendLine("                                      var newItem = " + subType +
+                                            ".convertFrom(item);");
+                            data.AppendLine("                                      newArray.push(newItem);");
+                            data.AppendLine("                                });");
+                            data.AppendLine("                                var value2 = newArray;");
+                        }
+                        else
+                        {
+                            data.AppendLine("                                var value2 = value;");
+                        }
+                    }
+                    else
+                    {
+                        data.AppendLine("                                var value2 = " + funcType +
+                                        ".convertFrom(value);");
+                    }
+
+                    //data.AppendLine("debugger;");
+                    data.AppendLine("                                value = value2;");
+                    data.AppendLine("");
+                }
+
+
+                data.AppendLine("                                return value;");
+                data.AppendLine("                          }),");
+                data.AppendLine("                          catchError(this.handleError)");
+                data.AppendLine("                    );");
+            }
+
             data.AppendLine("          }");
             data.AppendLine("");
             data.AppendLine("          public async  " + functionString.ToCamelCasing() + "Async(" + paramString + (paramString != "" ? ", " : "") + "options?: any): Promise<" + funcType + "> {");
@@ -494,10 +542,12 @@ namespace Utilities.Swagger.Generators
             var enums = objectParams.Values.Where((op) => _swaggerFilterGen.IsEnum(op.DataType)).Select((p) => p.DataType).ToList();
             var modules = objectParams.Values.Where((op) => !_swaggerFilterGen.IsEnum(op.DataType) &&
                                 !_swaggerFilterGen.IsPrimitive(op.DataType) &&
+                                !_swaggerFilterGen.IsDate(op.DataType) &&
                                 !_swaggerFilterGen.IsArray(op.DataType)).Select((p) => p.DataType).ToList();
             var arrays = objectParams.Values.Where((op) => _swaggerFilterGen.IsGenericArray(op.DataType)).Select((p) => _swaggerFilterGen.ArraySubType(p.DataType)).ToList();
             var modules2 = arrays.Where((op) => !_swaggerFilterGen.IsEnum(op) &&
                                 !_swaggerFilterGen.IsPrimitive(op) &&
+                                !_swaggerFilterGen.IsDate(op) &&
                                 !_swaggerFilterGen.IsArray(op)).Select((p) => p).ToList();
 
             modules.AddRange(modules2);
@@ -560,10 +610,12 @@ namespace Utilities.Swagger.Generators
             var enums = objectParams.Values.Where((op) => _swaggerFilterGen.IsEnum(op.DataType)).Select((p) => p.DataType).ToList();
             var modules = objectParams.Values.Where((op) => !_swaggerFilterGen.IsEnum(op.DataType) &&
                                 !_swaggerFilterGen.IsPrimitive(op.DataType) &&
+                                !_swaggerFilterGen.IsDate(op.DataType) &&
                                 !_swaggerFilterGen.IsArray(op.DataType)).Select((p) => p.DataType).ToList();
             var arrays = objectParams.Values.Where((op) => _swaggerFilterGen.IsGenericArray(op.DataType)).Select((p) => _swaggerFilterGen.ArraySubType(p.DataType)).ToList();
             var modules2 = arrays.Where((op) => !_swaggerFilterGen.IsEnum(op) &&
-                                !_swaggerFilterGen.IsPrimitive(op) &&
+                                !_swaggerFilterGen.IsPrimitive(op) && 
+                                !_swaggerFilterGen.IsDate(op) &&
                                 !_swaggerFilterGen.IsArray(op)).Select((p) => p).ToList();
 
             modules.AddRange(modules2);

@@ -121,6 +121,12 @@ namespace Utilities.FileExtensions.AspNetCore
                 _logger.LogError("No Context available on _actionContextAccessor");
                 return "";
             }
+            if (_httpContextAccessor?.HttpContext == null)
+            {
+                _logger.LogError("No Context available on _httpContextAccessor");
+                return "";
+            }
+
             IUrlHelper url = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
 
             var actionUrl = url.Action(action, parameters);
@@ -173,13 +179,13 @@ namespace Utilities.FileExtensions.AspNetCore
             path = path.Replace(netPath, "" + Path.DirectorySeparatorChar);
 
 
-            if (path.First() == '~')
+            if (path?.FirstOrDefault() == '~')
             {
                 //_logger.LogInformation("MapPath starts with ~");
                 path = path.Substring(1);
             }
 
-            if (path.First() != Path.DirectorySeparatorChar)
+            if (path?.FirstOrDefault() != Path.DirectorySeparatorChar)
             {
                 path = Path.DirectorySeparatorChar + path;
             }
