@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	  <Configurations>Debug;Release;Dev;QA;Scan;Prod</Configurations>
+	  <GenerateDocumentationFile>True</GenerateDocumentationFile>
+	  <NoWarn>$(NoWarn);1591</NoWarn>
+	  <VersionSuffix Condition="'$(DesignTimeBuild)' != 'true'">6.0.$([System.DateTime]::UtcNow.Date.Subtract($([System.DateTime]::Parse("2000-01-01"))).TotalDays).$([System.Math]::Floor($([MSBuild]::Divide($([System.DateTime]::UtcNow.TimeOfDay.TotalSeconds), 1.32))))</VersionSuffix>
+	  <VersionSuffix Condition="'$(DesignTimeBuild)' == 'true'">6.0.0.0</VersionSuffix>
+	  <AssemblyVersion Condition=" '$(VersionSuffix)' == '' ">0.0.0.1</AssemblyVersion>
+	  <AssemblyVersion Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</AssemblyVersion>
+	  <Version Condition=" '$(VersionSuffix)' == '' ">0.0.1.0</Version>
+	  <Version Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</Version>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+	
+  <ItemGroup>
+    <Compile Remove="CheckBoxExtensions.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Utilities.EnumExtensions" Version="6.3.8539.49024" />
+    <PackageReference Include="Utilities.Poco" Version="2.8.8622.54432" />
+  </ItemGroup>
+
+</Project>

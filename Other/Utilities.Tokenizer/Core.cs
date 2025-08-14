@@ -48,10 +48,20 @@ namespace Utilities.Tokenizer
                 formulaEvaluate = c.GetNextBetween("{[", "]}");
             }
             //c = c.RemoveBetween("{[", "]}");
-
-            foreach (var key in tokens.Keys)
+            var dataEvaluate = c.GetNextBetween("[/", "/]");
+            while (!string.IsNullOrWhiteSpace(formulaEvaluate))
             {
-                c = c.Replace("[/" + key + "/]", tokens[key]);
+                var finEval = "";
+                if (tokens.ContainsKey(dataEvaluate))
+                {
+                    finEval = tokens[dataEvaluate];
+                }
+                else
+                {
+                    finEval = "[/" + dataEvaluate + "/]";
+                }
+                c = c.Replace("[/" + dataEvaluate + "/]", finEval);
+                dataEvaluate = c.GetNextBetween("[/", "/]");
             }
             //c = c.RemoveBetween("[/", "/]");
             return c;

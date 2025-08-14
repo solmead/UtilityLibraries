@@ -42,7 +42,7 @@ namespace Utilities.ExcelLibrary.Excel
         public DataTable ImportToDataTable<tt>(FileInfo fileInfo, Dictionary<string, string> columnMapping = null) where tt : class
         {
             var file = new XLWorkbook(fileInfo.FullName);
-            var sheet = file.Worksheets.Worksheet(0);
+            var sheet = file.Worksheets.First();
             var tp = typeof(tt);
             var item = (tt)tp.Assembly.CreateInstance(tp.FullName, true);
             IXLRow headerLine = null;
@@ -55,7 +55,7 @@ namespace Utilities.ExcelLibrary.Excel
                 var line = sheet.Row(cnt); // file.Lines(cnt)
                 foreach (var col in line.Cells())
                 {
-                    if ((item.DoesPropertyExist(col.Value.ToString().Trim()) || (columnMapping != null && columnMapping.ContainsKey(col.Value.ToString().Trim()))))
+                    if (item.DoesPropertyExist(col.Value.ToString().Trim(), columnMapping))
                     {
                         headerLine = line;
                         headerLineNumber = cnt;

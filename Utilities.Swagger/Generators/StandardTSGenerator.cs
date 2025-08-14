@@ -251,6 +251,21 @@ namespace Utilities.Swagger.Generators
                     data.AppendLine("                      }");
                     data.AppendLine("           ");
                 }
+                else if (_swaggerFilterGen.IsEnum(paramInfo.DataType))
+                {
+
+                    data.AppendLine("                      if(typeof it." + paramInfo.Name + " === 'string') {");
+
+                    data.AppendLine("                           const arr = (<string> it." + paramInfo.Name + ").split(',').map(item => item.trim());");
+                    data.AppendLine("                           it." + paramInfo.Name + " = 0");
+                    data.AppendLine("                           arr.forEach(item => {");
+                    data.AppendLine("                                 it." + paramInfo.Name + " = it." + paramInfo.Name + "! | " + paramInfo.DataType + "[item as keyof typeof " + paramInfo.DataType + "];");
+                    data.AppendLine("                           });");
+
+                    //data.AppendLine("                           it." + paramInfo.Name + " = " + paramInfo.DataType + "[it." + paramInfo.Name + " as keyof typeof " + paramInfo.DataType + "];");
+                    data.AppendLine("                      }");
+                    data.AppendLine("           ");
+                }
 
                 data.Append(GetDateCheckCallSet("it." + paramInfo.Name, paramInfo.DataType));
 
@@ -348,6 +363,10 @@ namespace Utilities.Swagger.Generators
                     paramCallString = paramCallString + p.Name;
                 }
             }
+
+            var cookieParams = paramList.Where((p) => p.Location == ParameterLocation.Cookie).ToList();
+            var headerParams = paramList.Where((p) => p.Location == ParameterLocation.Header).ToList();
+
             var bodyParam = paramList.FirstOrDefault((p) => p.IsBody);
             var funcParam = paramList.FirstOrDefault((p) => p.IsReturned);
 
@@ -383,22 +402,41 @@ namespace Utilities.Swagger.Generators
             {
                 data.AppendLine("               var data = null;");
             }
+            //(url: string, seqNum?: number, sendData?: any, successCallback?: (data: any, seq?: number) => any, errorCallback?: (jqXHR: JQueryXHR, textStatus: string, errorThrown: string) => any, beforeSend?: (jqXHR: JQueryXHR) => any)
+            //getCallAsync<TT>(url: string, seqNum?: number, sendData?: any, beforeSend?: (jqXHR: JQueryXHR) => any)
+            var additionalStuff = "";
+
+            if (headerParams.Any())
+            {
+                additionalStuff = additionalStuff + ", (req: JQueryXHR)=>{\r\n";
+                foreach(var p in headerParams)
+                {
+                    additionalStuff = additionalStuff + "                         req.setRequestHeader('" + p.Name + "', " + p.Name + ");\r\n";
+                }
+                additionalStuff = additionalStuff + "                         }";
+            }
+            var bData = bodyName;
+            if (string.IsNullOrEmpty(bData))
+            {
+                bData = "null";
+            }
+
 
             if (operation == OperationType.Get)
             {
-                data.AppendLine("               var value = await ApiLibrary.getCallAsync<" + funcType + ">(url, 0, " + bodyName + ");");
+                data.AppendLine("               var value = await ApiLibrary.getCallAsync<" + funcType + ">(url, 0, " + bData + additionalStuff + ");");
             }
             if (operation == OperationType.Post)
             {
-                data.AppendLine("               var value = await ApiLibrary.postCallAsync<" + funcType + ">(url, 0, " + bodyName + ");");
+                data.AppendLine("               var value = await ApiLibrary.postCallAsync<" + funcType + ">(url, 0, " + bData + additionalStuff + ");");
             }
             if (operation == OperationType.Put)
             {
-                data.AppendLine("               var value = await ApiLibrary.putCallAsync<" + funcType + ">(url, 0, " + bodyName + ");");
+                data.AppendLine("               var value = await ApiLibrary.putCallAsync<" + funcType + ">(url, 0, " + bData + additionalStuff + ");");
             }
             if (operation == OperationType.Delete)
             {
-                data.AppendLine("               var value = await ApiLibrary.deleteCallAsync<" + funcType + ">(url, 0, " + bodyName + ");");
+                data.AppendLine("               var value = await ApiLibrary.deleteCallAsync<" + funcType + ">(url, 0, " + bData + additionalStuff + ");");
             }
             if (!(funcType == "string" || funcType == "number" || funcType == "boolean" || funcType == "any" || funcType == "void"))
             {

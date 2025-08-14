@@ -27,7 +27,7 @@
   <ItemGroup>
     <PackageReference Include="Utilities.Poco" Version="2.8.9006.47455" />
 	  <PackageReference Include="Utilities.KeyValueStore" Version="1.2.9006.47540" />
-	  <PackageReference Include="Utilities.AutoInitilization" Version="1.0.9008.41612" />
+	  <PackageReference Include="Utilities.AutoInitilization" Version="1.0.9166.40679" />
   </ItemGroup>
 
 	<ItemGroup>

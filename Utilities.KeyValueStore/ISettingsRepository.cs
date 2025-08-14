@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,5 +17,8 @@ namespace Utilities.KeyValueStore
         TT GetValueSeperate<TT>(string name, TT defaultValue = null) where TT : class;
         string GetValueString(string name, string defaultValue = "");
         bool GetValueBool(string name, bool defaultValue = false);
+
+        decimal GetValueDecimal(string name, decimal defaultValue = 0);
+
     }
 }

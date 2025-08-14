@@ -1,6 +1,8 @@
 ﻿using Utilities.SerializeExtensions;
 using Utilities.Poco;
 using Microsoft.Extensions.Logging;
+using System.Numerics;
+using System;
 
 namespace Utilities.KeyValueStore.Concrete
 {
@@ -93,6 +95,15 @@ namespace Utilities.KeyValueStore.Concrete
             var s = GetValueString(name, defaultValue.ToString());
 
             return bool.TryParse(s, out bool b) ? b : defaultValue;
+        }
+
+        public virtual decimal GetValueDecimal(string name, decimal defaultValue = 0)
+        {
+            var s= GetValueString(name, defaultValue.ToString());
+
+            var res = decimal.TryParse(s, out decimal b) ? b : defaultValue;
+
+            return res;
         }
 
     }

@@ -50,11 +50,17 @@ namespace Utilities.Rest.Base
 
             if (useLoggingForClients)
             {
-                conClient = conClient.ConfigurePrimaryHttpMessageHandler(() => new LoggingHandler(new HttpClientHandler
+                conClient = conClient.ConfigurePrimaryHttpMessageHandler(() => new HttpClientLoggingHandler(new HttpClientHandler
                 {
                     //Added so that responses are decompressed upon recieving.  This can be removed if we remove the Accept-Encoding gzip above.  
                     AutomaticDecompression = DecompressionMethods.GZip
                 }));
+
+                HttpClientLoggingHandler.WriteLine = (msg) =>
+                {
+                    logger.LogDebug(msg);
+                };
+
             } else
             {
                 conClient = conClient.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler

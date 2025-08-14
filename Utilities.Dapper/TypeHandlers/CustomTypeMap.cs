@@ -16,7 +16,13 @@ namespace Utilities.Dapper.TypeHandlers
         private readonly SqlMapper.ITypeMap tail;
         public void Map(string columnName, string memberName)
         {
-            members[columnName] = new MemberMap(type.GetMember(memberName).Single(), columnName);
+            var it = type.GetMember(memberName).FirstOrDefault();
+            if (it==null)
+            {
+                throw new Exception("Member Name [" + memberName + "] not found in object [" + type.ToString() + "]");
+            }
+
+            members[columnName] = new MemberMap(it, columnName);
         }
         public CustomTypeMap(Type type, SqlMapper.ITypeMap tail)
         {

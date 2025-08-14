@@ -22,7 +22,9 @@ namespace Utilities.JsonExtensions.Converters
                     return null;
                 case JsonTokenType.String:
                     var s = reader.GetString();
-                    return null;
+                    var t = new DateTime();
+                    return DateTime.TryParse(s, out t) ?
+                        t : throw new Exception($"unable to parse {s} to DateTime");
                 default:
                     DateTime value;
                     reader.TryGetDateTime(out value);

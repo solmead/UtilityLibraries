@@ -12,46 +12,46 @@ namespace Utilities.Logging
     public static class Log
     {
 
-        private static Logger _baseLogger;
+        //private static Logger _baseLogger;
 
         public static ILogUserRepository userRepo { get; set; }
 
 
-        [Obsolete("Please use ILogger from now on")]
-        public static Logger Logger { 
-            get => _baseLogger;
-            set => _baseLogger = value;
-        }
+        //[Obsolete("Please use ILogger from now on")]
+        //public static Logger Logger { 
+        //    get => _baseLogger;
+        //    set => _baseLogger = value;
+        //}
 
-        private static Logger _logger
-        {
-            get
-            {
-                if (_baseLogger == null)
-                {
-                    _baseLogger = LogManager.GetCurrentClassLogger();
-                }
-
-
-                if (!isLoaded)
-                {
-                    isLoaded = true;
+        //private static Logger _logger
+        //{
+        //    get
+        //    {
+        //        if (_baseLogger == null)
+        //        {
+        //            _baseLogger = LogManager.GetCurrentClassLogger();
+        //        }
 
 
-                    //LogManager.LoadConfiguration("Content/NLog.config");
-                    //var logFac = logger.Factory.LoadConfiguration("Content/NLog.config");
-                }
+        //        if (!isLoaded)
+        //        {
+        //            isLoaded = true;
 
-                return _baseLogger;
-            }
-        }
+
+        //            //LogManager.LoadConfiguration("Content/NLog.config");
+        //            //var logFac = logger.Factory.LoadConfiguration("Content/NLog.config");
+        //        }
+
+        //        return _baseLogger;
+        //    }
+        //}
         private static bool isLoaded = false;
 
-        [Obsolete("Please use ILogger from now on")]
-        public static void AddProperty(string name, string value)
-        {
-            Logger = _logger.WithProperty(name, value);
-        }
+        //[Obsolete("Please use ILogger from now on")]
+        //public static void AddProperty(string name, string value)
+        //{
+        //    Logger = _logger.WithProperty(name, value);
+        //}
 
 
 
@@ -80,45 +80,45 @@ namespace Utilities.Logging
             return st;
         }
 
-        [Obsolete("Please use Microsoft.Extensions.Logging.ILogger from now on")]
-        public static void Trace(string msg)
-        {
-            _logger.Trace(getMessage(msg));
-        }
-        [Obsolete("Please use Microsoft.Extensions.Logging.ILogger from now on")]
-        public static void Debug(string msg)
-        {
-            _logger.Debug(getMessage(msg));
-        }
-        [Obsolete("Please use Microsoft.Extensions.Logging.ILogger from now on")]
-        public static void Info(string msg)
-        {
-            _logger.Info(getMessage(msg));
-        }
-        [Obsolete("Please use Microsoft.Extensions.Logging.ILogger from now on")]
-        public static void Warn(string msg)
-        {
-            //var lei = new LogEventInfo()
+        //[Obsolete("Please use Microsoft.Extensions.Logging.ILogger from now on")]
+        //public static void Trace(string msg)
+        //{
+        //    _logger.Trace(getMessage(msg));
+        //}
+        //[Obsolete("Please use Microsoft.Extensions.Logging.ILogger from now on")]
+        //public static void Debug(string msg)
+        //{
+        //    _logger.Debug(getMessage(msg));
+        //}
+        //[Obsolete("Please use Microsoft.Extensions.Logging.ILogger from now on")]
+        //public static void Info(string msg)
+        //{
+        //    _logger.Info(getMessage(msg));
+        //}
+        //[Obsolete("Please use Microsoft.Extensions.Logging.ILogger from now on")]
+        //public static void Warn(string msg)
+        //{
+        //    //var lei = new LogEventInfo()
 
 
-            _logger.Warn(getMessage(msg));
-        }
-        [Obsolete("Please use Microsoft.Extensions.Logging.ILogger from now on")]
-        public static void Error(Exception ex)
-        {
+        //    _logger.Warn(getMessage(msg));
+        //}
+        //[Obsolete("Please use Microsoft.Extensions.Logging.ILogger from now on")]
+        //public static void Error(Exception ex)
+        //{
             
-            _logger.Error(getMessage(ex.ToString()));
-        }
-        [Obsolete("Please use Microsoft.Extensions.Logging.ILogger from now on")]
-        public static void Error(string msg)
-        {
-            _logger.Error(getMessage(msg));
-        }
-        [Obsolete("Please use Microsoft.Extensions.Logging.ILogger from now on")]
-        public static void Fatal(string msg)
-        {
-            _logger.Fatal(getMessage(msg));
-        }
+        //    _logger.Error(getMessage(ex.ToString()));
+        //}
+        //[Obsolete("Please use Microsoft.Extensions.Logging.ILogger from now on")]
+        //public static void Error(string msg)
+        //{
+        //    _logger.Error(getMessage(msg));
+        //}
+        //[Obsolete("Please use Microsoft.Extensions.Logging.ILogger from now on")]
+        //public static void Fatal(string msg)
+        //{
+        //    _logger.Fatal(getMessage(msg));
+        //}
         internal static string GetConfiguredMainLogFile(string targetName = "asyncFile")
         {
             
