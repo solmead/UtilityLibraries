@@ -31,4 +31,7 @@
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
     <DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
   </PropertyGroup>
+	<PropertyGroup Condition=" '$(TargetFramework)' == 'net8.0'">
+		<DefineConstants>NET8</DefineConstants>
+	</PropertyGroup>
 </Project>

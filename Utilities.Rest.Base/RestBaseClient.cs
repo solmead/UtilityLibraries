@@ -92,7 +92,14 @@ namespace Utilities.Rest.Base
         }
 
 
-
+        private void LogError(Exception ex, string message)
+        {
+            try
+            {
+                _logger.LogError(ex, message);
+            } catch { 
+            }
+        }
 
 
 
@@ -126,9 +133,10 @@ namespace Utilities.Rest.Base
             catch (Exception ex)
             {
                 var exceptionInfo = ex.ToString();// + ", Inner Exception " + ex.InnerException.ToString();
-                _logger.LogError(ex, $"Error when calling RestBaseClient.GetAsync [{url}]: {exceptionInfo}");
+                var exString = $"Error when calling RestBaseClient.GetAsync for [{_restSettings.ClientName}] in [{this.GetType().Name}] [{url}]: {exceptionInfo}";
+                LogError(ex, exString);
 
-                return Result.Fail($"Exception Occurred: {exceptionInfo}");
+                return Result.Fail($"Exception Occurred: {exString}");
             }
         }
 
@@ -154,8 +162,10 @@ namespace Utilities.Rest.Base
             {
                 var exceptionInfo = ex.ToString() + ", Inner Exception " + ex.InnerException?.ToString();
                 var tme = GetTimeElapsed();
-                _logger.LogError(ex, $"Error when calling RestBaseClient.GetStringAsync [{url}] Time:[{tme}] : {exceptionInfo}");
-                return Result.Fail(exceptionInfo);
+
+                var exString = $"Error when calling RestBaseClient.GetStringAsync for [{_restSettings.ClientName}] in [{this.GetType().Name}] [{url}]: Time:[{tme}] :  {exceptionInfo}";
+                LogError(ex, exString);
+                return Result.Fail(exString);
             }
             finally
             {
@@ -196,9 +206,9 @@ namespace Utilities.Rest.Base
             catch (Exception ex)
             {
                 var exceptionInfo = ex.ToString();// + ", Inner Exception " + ex.InnerException.ToString();
-                _logger.LogError(ex, $"Error when calling RestBaseClient.PutAsync [{url}]: {exceptionInfo}");
-
-                return Result.Fail($"Exception Occurred: {exceptionInfo}");
+                var exString = $"Error when calling RestBaseClient.PutAsync for [{_restSettings.ClientName}] in [{this.GetType().Name}] [{url}]: {exceptionInfo}";
+                _logger.LogError(ex, exString);
+                return Result.Fail($"Exception Occurred: {exString}");
             }
         }
         protected async Task<Result<TT?>> PutAsync<TT>(string url, object data, DataFormatEnum dataFormat, JsonSerializerOptions? options = null, Func<HttpClient, Task<HttpClient>>? clientSetup = null)
@@ -230,10 +240,9 @@ namespace Utilities.Rest.Base
             {
                 var exceptionInfo = ex.ToString();// + ", Inner Exception " + ex.InnerException.ToString();
                 var tme = GetTimeElapsed();
-                //_logger.LogError(ex, $"Error when calling RestBaseClient.GetStringAsync [{url}] Time:[{tme}] : {exceptionInfo}");
-                _logger.LogError(ex, $"Error when calling RestBaseClient.PutAsync [{url}] Time:[{tme}] : {exceptionInfo}");
-
-                return Result.Fail($"Exception Occurred: {exceptionInfo}");
+                var exString = $"Error when calling RestBaseClient.PutAsync for [{_restSettings.ClientName}] in [{this.GetType().Name}] [{url}]: Time:[{tme}] :  {exceptionInfo}";
+                LogError(ex, exString);
+                return Result.Fail(exString);
             }
         }
 
@@ -247,7 +256,12 @@ namespace Utilities.Rest.Base
                 {
                     client = await clientSetup(client) ?? client;
                 }
-                var st = await content!.ReadAsStringAsync();
+
+                var st = "";
+                if (content != null)
+                {
+                    st = await content.ReadAsStringAsync();
+                }
                 _logger.LogDebug($"RestBaseClient.PutStringAsync [{url}] [{st}]");
 
 
@@ -262,9 +276,10 @@ namespace Utilities.Rest.Base
             catch (Exception ex)
             {
                 var exceptionInfo = ex.ToString() + ", Inner Exception " + ex.InnerException?.ToString();
-                _logger.LogError(ex, $"Error when calling RestBaseClient.PutStringAsync [{url}]: {exceptionInfo}");
-
-                return Result.Fail(exceptionInfo);
+                var tme = GetTimeElapsed();
+                var exString = $"Error when calling RestBaseClient.PutStringAsync for [{_restSettings.ClientName}] in [{this.GetType().Name}] [{url}]: Time:[{tme}] :  {exceptionInfo}";
+                LogError(ex, exString);
+                return Result.Fail(exString);
             }
             finally
             {
@@ -303,9 +318,10 @@ namespace Utilities.Rest.Base
             catch (Exception ex)
             {
                 var exceptionInfo = ex.ToString();// + ", Inner Exception " + ex.InnerException.ToString();
-                _logger.LogError(ex, $"Error when calling RestBaseClient.PostAsync [{url}]: {exceptionInfo}");
-
-                return Result.Fail($"Exception Occurred: {exceptionInfo}");
+                var tme = GetTimeElapsed();
+                var exString = $"Error when calling RestBaseClient.PostAsync for [{_restSettings.ClientName}] in [{this.GetType().Name}] [{url}]: Time:[{tme}] :  {exceptionInfo}";
+                LogError(ex, exString);
+                return Result.Fail(exString);
             }
         }
         protected async Task<Result<TT?>> PostAsync<TT>(string url, object data, DataFormatEnum dataFormat, JsonSerializerOptions? options = null, Func<HttpClient, Task<HttpClient>>? clientSetup = null)
@@ -337,9 +353,10 @@ namespace Utilities.Rest.Base
             catch (Exception ex)
             {
                 var exceptionInfo = ex.ToString();// + ", Inner Exception " + ex.InnerException.ToString();
-                _logger.LogError(ex, $"Error when calling RestBaseClient.PostAsync [{url}]: {exceptionInfo}");
-
-                return Result.Fail($"Exception Occurred: {exceptionInfo}");
+                var tme = GetTimeElapsed();
+                var exString = $"Error when calling RestBaseClient.PostAsync for [{_restSettings.ClientName}] in [{this.GetType().Name}] [{url}]: Time:[{tme}] :  {exceptionInfo}";
+                LogError(ex, exString);
+                return Result.Fail(exString);
             }
         }
 
@@ -354,6 +371,12 @@ namespace Utilities.Rest.Base
                 {
                     client = await clientSetup(client) ?? client;
                 }
+                var st = "";
+                if (content != null)
+                {
+                    st = await content.ReadAsStringAsync();
+                }
+                _logger.LogDebug($"RestBaseClient.PostStringAsync [{url}] [{st}]");
                 var httpResponse = await client.PostAsync(url, content);
 
                 var s = httpResponse.Content.ReadAsStringAsync().Result;
@@ -367,10 +390,9 @@ namespace Utilities.Rest.Base
             {
                 var exceptionInfo = ex.ToString() + ", Inner Exception " + ex.InnerException?.ToString();
                 var tme = GetTimeElapsed();
-                //_logger.LogError(ex, $"Error when calling RestBaseClient.GetStringAsync [{url}] Time:[{tme}] : {exceptionInfo}");
-                _logger.LogError(ex, $"Error when calling RestBaseClient.PutStringAsync [{url}] Time:[{tme}] : {exceptionInfo}");
-
-                return Result.Fail(exceptionInfo);
+                var exString = $"Error when calling RestBaseClient.PostStringAsync for [{_restSettings.ClientName}] in [{this.GetType().Name}] [{url}]: Time:[{tme}] :  {exceptionInfo}";
+                LogError(ex, exString);
+                return Result.Fail(exString);
             }
             finally
             {
@@ -426,9 +448,10 @@ namespace Utilities.Rest.Base
             catch (Exception ex)
             {
                 var exceptionInfo = ex.ToString();// + ", Inner Exception " + ex.InnerException.ToString();
-                _logger.LogError(ex, $"Error when calling RestBaseClient.DeleteAsync [{url}]: {exceptionInfo}");
-
-                return Result.Fail($"Exception Occurred: {exceptionInfo}");
+                var tme = GetTimeElapsed();
+                var exString = $"Error when calling RestBaseClient.DeleteAsync for [{_restSettings.ClientName}] in [{this.GetType().Name}] [{url}]: Time:[{tme}] :  {exceptionInfo}";
+                LogError(ex, exString);
+                return Result.Fail(exString);
             }
         }
         protected async Task<Result> DeleteAsync(string url, object data, DataFormatEnum dataFormat, JsonSerializerOptions? options = null, Func<HttpClient, Task<HttpClient>>? clientSetup = null)
@@ -449,9 +472,10 @@ namespace Utilities.Rest.Base
             catch (Exception ex)
             {
                 var exceptionInfo = ex.ToString();// + ", Inner Exception " + ex.InnerException.ToString();
-                _logger.LogError(ex, $"Error when calling RestBaseClient.DeleteAsync [{url}]: {exceptionInfo}");
-
-                return Result.Fail($"Exception Occurred: {exceptionInfo}");
+                var tme = GetTimeElapsed();
+                var exString = $"Error when calling RestBaseClient.DeleteAsync for [{_restSettings.ClientName}] in [{this.GetType().Name}] [{url}]: Time:[{tme}] :  {exceptionInfo}";
+                LogError(ex, exString);
+                return Result.Fail(exString);
             }
         }
 
@@ -484,9 +508,10 @@ namespace Utilities.Rest.Base
             catch (Exception ex)
             {
                 var exceptionInfo = ex.ToString();// + ", Inner Exception " + ex.InnerException.ToString();
-                _logger.LogError(ex, $"Error when calling RestBaseClient.DeleteAsync [{url}]: {exceptionInfo}");
-
-                return Result.Fail($"Exception Occurred: {exceptionInfo}");
+                var tme = GetTimeElapsed();
+                var exString = $"Error when calling RestBaseClient.DeleteAsync for [{_restSettings.ClientName}] in [{this.GetType().Name}] [{url}]: Time:[{tme}] :  {exceptionInfo}";
+                LogError(ex, exString);
+                return Result.Fail(exString);
             }
         }
         protected async Task<Result> DeleteAsync(string url, Func<HttpClient, Task<HttpClient>>? clientSetup = null)
@@ -505,9 +530,10 @@ namespace Utilities.Rest.Base
             catch (Exception ex)
             {
                 var exceptionInfo = ex.ToString();// + ", Inner Exception " + ex.InnerException.ToString();
-                _logger.LogError(ex, $"Error when calling RestBaseClient.DeleteAsync [{url}]: {exceptionInfo}");
-
-                return Result.Fail($"Exception Occurred: {exceptionInfo}");
+                var tme = GetTimeElapsed();
+                var exString = $"Error when calling RestBaseClient.DeleteAsync for [{_restSettings.ClientName}] in [{this.GetType().Name}] [{url}]: Time:[{tme}] :  {exceptionInfo}";
+                LogError(ex, exString);
+                return Result.Fail(exString);
             }
         }
 
@@ -522,6 +548,12 @@ namespace Utilities.Rest.Base
                 {
                     client = await clientSetup(client) ?? client;
                 }
+                var st = "";
+                if (content != null)
+                {
+                    st = await content.ReadAsStringAsync();
+                }
+                _logger.LogDebug($"RestBaseClient.DeleteStringAsync [{url}] [{st}]");
                 var httpResponse = await client.DeleteAsync(url, content);
 
                 var s = httpResponse.Content.ReadAsStringAsync().Result;
@@ -535,10 +567,9 @@ namespace Utilities.Rest.Base
             {
                 var exceptionInfo = ex.ToString() + ", Inner Exception " + ex.InnerException?.ToString();
                 var tme = GetTimeElapsed();
-                //_logger.LogError(ex, $"Error when calling RestBaseClient.GetStringAsync [{url}] Time:[{tme}] : {exceptionInfo}");
-                _logger.LogError(ex, $"Error when calling RestBaseClient.DeleteStringAsync [{url}] Time:[{tme}] : {exceptionInfo}");
-
-                return Result.Fail(exceptionInfo);
+                var exString = $"Error when calling RestBaseClient.DeleteStringAsync for [{_restSettings.ClientName}] in [{this.GetType().Name}] [{url}]: Time:[{tme}] :  {exceptionInfo}";
+                LogError(ex, exString);
+                return Result.Fail(exString);
             }
             finally
             {

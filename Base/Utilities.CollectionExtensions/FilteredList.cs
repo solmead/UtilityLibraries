@@ -4,13 +4,13 @@ using System.Linq.Dynamic;
 
 namespace System.Collections.Extensions
 {
+    public enum OrderDirectionEnum
+    {
+        Asc = 0,
+        Desc = 1
+    }
     public class FilteredInfo
     {
-        public enum OrderDirectionEnum
-        {
-            Asc,
-            Desc
-        }
 
         public FilteredInfo()
         {
@@ -50,7 +50,7 @@ namespace System.Collections.Extensions
         private IQueryable<tt> _baseData;
 
 
-        public delegate IQueryable<tt> QueryableFunction(int? page, int? pageSize, string sortColumn, FilteredInfo.OrderDirectionEnum? orderDirection);
+        public delegate IQueryable<tt> QueryableFunction(int? page, int? pageSize, string sortColumn, OrderDirectionEnum? orderDirection);
 
         private QueryableFunction getFilteredData = null;
 
@@ -85,7 +85,7 @@ namespace System.Collections.Extensions
             }
             if (Info.OrderDirection == null)
             {
-                Info.OrderDirection = FilteredInfo.OrderDirectionEnum.Asc;
+                Info.OrderDirection = OrderDirectionEnum.Asc;
             }
 
         }
@@ -97,7 +97,7 @@ namespace System.Collections.Extensions
             //Info.Page = 1;
 
 
-            getFilteredData = (int? page, int? pageSize, string sortColumn, FilteredInfo.OrderDirectionEnum? orderDirection) =>
+            getFilteredData = (int? page, int? pageSize, string sortColumn, OrderDirectionEnum? orderDirection) =>
             {
                 return GetFilteredDataFromBase(page, pageSize, sortColumn, orderDirection);
             };
@@ -121,7 +121,7 @@ namespace System.Collections.Extensions
             }
             if (Info.OrderDirection == null)
             {
-                Info.OrderDirection = FilteredInfo.OrderDirectionEnum.Asc;
+                Info.OrderDirection = OrderDirectionEnum.Asc;
             }
 
 
@@ -138,7 +138,7 @@ namespace System.Collections.Extensions
 
 
 
-        private IQueryable<tt> GetFilteredDataFromBase(int? page, int? pageSize, string sortColumn, FilteredInfo.OrderDirectionEnum? orderDirection)
+        private IQueryable<tt> GetFilteredDataFromBase(int? page, int? pageSize, string sortColumn, OrderDirectionEnum? orderDirection)
         {
             if (page > TotalPages)
             {

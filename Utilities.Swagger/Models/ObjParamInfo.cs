@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.OpenApi.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,5 +21,8 @@ namespace Utilities.Swagger.Models
 
         public bool IsReturned { get; set; } = false;
         public bool IsBody { get; set; } = false;
+
+
+        public ParameterLocation? Location { get; set; }
     }
 }

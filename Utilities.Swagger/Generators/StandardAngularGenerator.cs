@@ -55,7 +55,7 @@ namespace Utilities.Swagger.Generators
             if (isRepo)
             {
                 data.AppendLine("import { Injectable } from '@angular/core';");
-                data.AppendLine("import { HttpClient, HttpErrorResponse } from '@angular/common/http';");
+                data.AppendLine("import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';");
                 data.AppendLine("import {Observable, throwError} from 'rxjs';");
                 data.AppendLine("import { map, catchError } from 'rxjs/operators';");
                 data.AppendLine("import { AlertService } from '@/services/Alert.service';");
@@ -257,9 +257,21 @@ namespace Utilities.Swagger.Generators
                 } 
                 else if (_swaggerFilterGen.IsEnum(paramInfo.DataType))
                 {
-
                     data.AppendLine("                      if(typeof it." + paramInfo.Name + " === 'string') {");
-                    data.AppendLine("                           it." + paramInfo.Name + " = " + paramInfo.DataType + "[it." + paramInfo.Name + " as keyof typeof " + paramInfo.DataType + "];");
+                    data.AppendLine("                           const arr = (<string> it." + paramInfo.Name + ").split(',').map(item => item.trim());");
+                    data.AppendLine("                           it." + paramInfo.Name + " = 0");
+                    data.AppendLine("                           arr.forEach(item => {");
+                    data.AppendLine("                                 it." + paramInfo.Name + " = it." + paramInfo.Name + "! | " + paramInfo.DataType + "[item as keyof typeof " + paramInfo.DataType + "];");
+                    data.AppendLine("                           });");
+
+
+                    //const arr = (< string > it.sources).split(",").map(item => item.trim()); ;
+                    //arr.forEach(item => {
+                    //    it.sources = it.sources | LocationSourceEnum[item as keyof typeof LocationSourceEnum];
+                    //});
+
+
+                    //data.AppendLine("                           it." + paramInfo.Name + " = " + paramInfo.DataType + "[it." + paramInfo.Name + " as keyof typeof " + paramInfo.DataType + "];");
                     data.AppendLine("                      }");
                     data.AppendLine("           ");
                 }
@@ -365,6 +377,8 @@ namespace Utilities.Swagger.Generators
                     paramCallString = paramCallString + p.Name;
                 }
             }
+            var cookieParams = paramList.Where((p) => p.Location == ParameterLocation.Cookie).ToList();
+            var headerParams = paramList.Where((p) => p.Location == ParameterLocation.Header).ToList();
 
             var bodyParam = paramList.FirstOrDefault((p) => p.IsBody);
             var funcParam = paramList.FirstOrDefault((p) => p.IsReturned);
@@ -409,6 +423,28 @@ namespace Utilities.Swagger.Generators
                 data.AppendLine("               var data = null;");
             }
 
+            var additionalStuff = "";
+
+            if (headerParams.Any())
+            {
+                data.AppendLine("               var headers:HttpHeaders = new HttpHeaders();");
+                var st = "if (";
+                foreach (var p in headerParams)
+                {
+                    st = st + "(" + p.Name + " != null && " + p.Name + " != '') || ";
+                }
+                st = st + "false) {";
+                data.AppendLine("               " + st);
+                data.AppendLine("                    headers = new HttpHeaders({");
+                foreach (var p in headerParams)
+                {
+                    data.AppendLine("                           '" + p.Name + "': " + p.Name + ",");
+                }
+                data.AppendLine("                     })");
+                data.AppendLine("               }");
+                additionalStuff = additionalStuff + ", { headers }";
+            }
+
             var emitPipe = true;
 
             if (operation == OperationType.Get)
@@ -421,7 +457,7 @@ namespace Utilities.Swagger.Generators
                 }
                 else
                 {
-                    data.AppendLine("               return this._httpClient.get<" + funcType + ">(url)");
+                    data.AppendLine("               return this._httpClient.get<" + funcType + ">(url" + additionalStuff + ")");
                 }
 
 
@@ -431,19 +467,19 @@ namespace Utilities.Swagger.Generators
             if (operation == OperationType.Post)
             {
                 data.AppendLine("               return this._httpClient.post<" + funcType + ">(url" +
-                                (hasBody ? ", " + bodyName : ", null") + ")");
+                                (hasBody ? ", " + bodyName : ", null") + additionalStuff + ")");
             }
 
             if (operation == OperationType.Put)
             {
                 data.AppendLine("               return this._httpClient.put<" + funcType + ">(url" +
-                                (hasBody ? ", " + bodyName : ", null") + ")");
+                                (hasBody ? ", " + bodyName : ", null") + additionalStuff + ")");
             }
 
             if (operation == OperationType.Delete)
             {
                 data.AppendLine("               return this._httpClient.delete<" + funcType + ">(url" +
-                                (hasBody ? ", " + bodyName : "") + ")");
+                                (hasBody ? ", " + bodyName : "") + additionalStuff + ")");
             }
 
             if (emitPipe)

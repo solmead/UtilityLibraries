@@ -2,6 +2,7 @@
 using NLog;
 using NLog.Targets;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -40,6 +41,7 @@ namespace Utilities.Logging
 
         public static void Init(string logPath, ILogUserRepository userRepo, string fileName = "logFile.txt")
         {
+            Debug.WriteLine("Utilities.Logging Init called [" + logPath + "] filename=[" + fileName + "]");
             FileInfo fi = null;
             try
             {
@@ -56,30 +58,20 @@ namespace Utilities.Logging
 
                 logPath = logPath.Replace("\\", "/");
 
-                //\\itdata.ad.uc.edu\EAS\applications\production\webapps2\grantsdashboard\Documents\logs\logFile.txt
-                //\\itdata.ad.uc.edu\EAS\applications\production\webapps2\grantsdashboard\Documents\logs\logFile.{#}.txt
-                //            return System.Web.Hosting.HostingEnvironment.MapPath(basePath);
-
-                //var di = new DirectoryInfo(HostingEnvironment.MapPath("/Documents/Logs/"));
-
-
-
-
                 if (Path.DirectorySeparatorChar != '/')
                 {
                     logPath = logPath.Replace('/', Path.DirectorySeparatorChar);
                 }
+                Debug.WriteLine("Utilities.Logging Init mapping [" + logPath + "] filename=[" + fileName + "]");
 
-
-
-
-
-                    fi = new FileInfo(userRepo.MapPath(logPath + Path.DirectorySeparatorChar + fileName));
+                fi = new FileInfo(userRepo.MapPath(logPath + Path.DirectorySeparatorChar + fileName));
                 logLocation = fi;
                 if (!fi.Directory.Exists)
                 {
                     fi.Directory.Create();
                 }
+                Debug.WriteLine("Utilities.Logging Init Logging file at [" + fi.FullName + "]");
+                Debug.WriteLine("Utilities.Logging Init Archive files at [" + fi.FullName.Replace(fi.Extension, ".{#}" + fi.Extension) + "]");
 
                 fTarget.ArchiveFileName = fi.FullName.Replace(fi.Extension, ".{#}" + fi.Extension);
                 fTarget.FileName = fi.FullName;

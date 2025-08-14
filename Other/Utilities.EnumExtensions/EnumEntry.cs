@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Utilities.EnumExtensions
 {
-    public class EnumEntry<tEnum> where tEnum : struct, IConvertible
+    public class EnumEntry<tEnum> where tEnum : struct, System.Enum
     {
         public tEnum Value { get; set; }
         public int Number { get; set; }

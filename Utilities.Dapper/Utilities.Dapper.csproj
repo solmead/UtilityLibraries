@@ -1,17 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+	  <!--<TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>-->
 
-	  <VersionSuffix Condition="'$(DesignTimeBuild)' != 'true'">2.8.$([System.DateTime]::UtcNow.Date.Subtract($([System.DateTime]::Parse("2000-01-01"))).TotalDays).$([System.Math]::Floor($([MSBuild]::Divide($([System.DateTime]::UtcNow.TimeOfDay.TotalSeconds), 1.32))))</VersionSuffix>
-	  <VersionSuffix Condition="'$(DesignTimeBuild)' == 'true'">2.8.0.0</VersionSuffix>
-	  <AssemblyVersion Condition=" '$(VersionSuffix)' == '' ">0.0.0.1</AssemblyVersion>
-	  <AssemblyVersion Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</AssemblyVersion>
-	  <Version Condition=" '$(VersionSuffix)' == '' ">0.0.1.0</Version>
-	  <Version Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</Version>
+	  <TargetFrameworks>net8.0</TargetFrameworks>
+	  <ImplicitUsings>enable</ImplicitUsings>
+	  <Nullable>enable</Nullable>
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	  
 
-	<RuntimeIdentifiers>win10-x64;osx.10.11-x64;ubuntu.16.04-x64</RuntimeIdentifiers>
-	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	<Authors>Solmead Productions</Authors>
 	<Company>Solmead Productions</Company>
 	<Copyright>Copyright © 2023</Copyright>
@@ -19,6 +16,16 @@
 	<RepositoryUrl>https://github.com/solmead/UtilityLibraries</RepositoryUrl>
 	<PackageProjectUrl>https://github.com/solmead/UtilityLibraries</PackageProjectUrl>
 	<PackageLicenseUrl>https://github.com/solmead/UtilityLibraries</PackageLicenseUrl>
+
+
+
+	  <VersionSuffix Condition="'$(DesignTimeBuild)' != 'true'">2.9.$([System.DateTime]::UtcNow.Date.Subtract($([System.DateTime]::Parse("2000-01-01"))).TotalDays).$([System.Math]::Floor($([MSBuild]::Divide($([System.DateTime]::UtcNow.TimeOfDay.TotalSeconds), 1.32))))</VersionSuffix>
+	  <VersionSuffix Condition="'$(DesignTimeBuild)' == 'true'">2.9.0.0</VersionSuffix>
+
+	  <AssemblyVersion Condition=" '$(VersionSuffix)' == '' ">0.0.0.1</AssemblyVersion>
+	  <AssemblyVersion Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</AssemblyVersion>
+	  <Version Condition=" '$(VersionSuffix)' == '' ">0.0.1.0</Version>
+	  <Version Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,19 +33,24 @@
   </ItemGroup>
 
   <ItemGroup>
-	<PackageReference Include="Dapper" Version="2.1.35" />
-	<PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
-	<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
-	<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+	<PackageReference Include="Dapper" Version="2.1.66" />
+	<PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.1" />
+	<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.3" />
 	<!--<PackageReference Include="System.Data.SqlClient" Version="4.8.5" />-->
   </ItemGroup>
-	
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+  <!--<PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
 	<DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
   </PropertyGroup>
 	<PropertyGroup Condition=" '$(TargetFramework)' == 'net6.0'">
 		<DefineConstants>NET_6</DefineConstants>
 	</PropertyGroup>
+	<PropertyGroup Condition=" '$(TargetFramework)' == 'net8.0'">
+		<DefineConstants>NET_6</DefineConstants>
+	</PropertyGroup>-->
 
 </Project>

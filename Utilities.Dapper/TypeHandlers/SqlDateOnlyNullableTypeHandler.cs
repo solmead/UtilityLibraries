@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Utilities.Dapper.TypeHandlers
 {
-    #if NET_6
+    //#if NET_6
     public class SqlDateOnlyNullableTypeHandler : SqlMapper.TypeHandler<DateOnly?>
     {
         public override void SetValue(IDbDataParameter parameter, DateOnly? time)
@@ -23,5 +23,5 @@ namespace Utilities.Dapper.TypeHandlers
             return DateOnly.FromDateTime((DateTime)value);
         }
     }
-    #endif
+    //#endif
 }

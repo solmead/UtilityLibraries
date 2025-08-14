@@ -152,12 +152,12 @@ namespace Utilities.Dapper
             }
 
 
-            #if NET_6
+            //#if NET_6
             SqlMapper.AddTypeHandler(new SqlTimeOnlyTypeHandler());
             SqlMapper.AddTypeHandler(new SqlDateOnlyTypeHandler());
             SqlMapper.AddTypeHandler(new SqlTimeOnlyNullableTypeHandler());
             SqlMapper.AddTypeHandler(new SqlDateOnlyNullableTypeHandler());
-#endif
+//#endif
         }
 
     }

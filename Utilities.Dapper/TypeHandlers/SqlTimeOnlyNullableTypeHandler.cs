@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Utilities.Dapper.TypeHandlers
 {
 
-    #if NET_6
+    //#if NET_6
     public class SqlTimeOnlyNullableTypeHandler : SqlMapper.TypeHandler<TimeOnly?>
     {
         public override void SetValue(IDbDataParameter parameter, TimeOnly? time)
@@ -22,5 +22,5 @@ namespace Utilities.Dapper.TypeHandlers
             return (value==null ? null : TimeOnly.FromTimeSpan((TimeSpan)value));
         }
     }
-    #endif
+    //#endif
 }

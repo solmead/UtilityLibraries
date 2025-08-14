@@ -42,7 +42,7 @@ namespace Utilities.TimedTasks
             var s = _timedTaskRepository.GetSettingValue("Global_TimedTasks_" + name + "_Last" + _checkMethod.ToString() + "CheckDate", DateTime.Now.AddYears(-2).ToString());
             DateTime dt;
             DateTime.TryParse(s, out dt);
-            _timedTaskRepository.SetSettingValue("Global_TimedTasks_" + name + "_Last" + _checkMethod.ToString() + "CheckDate", dt.ToString());
+            //_timedTaskRepository.SetSettingValue("Global_TimedTasks_" + name + "_Last" + _checkMethod.ToString() + "CheckDate", dt.ToString());
             return dt;
         }
 

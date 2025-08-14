@@ -38,46 +38,50 @@ namespace Utilities.Swagger
         public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
         {
             _logger.LogInformation("SwaggerFilterGen - Apply");
-
-            var profiles = SwaggerConfiguration.profileServices.Values.ToList();
-            profiles = profiles ?? new List<SwaggerGenProfile>();
-
-            if (!profiles.Any())
+            try
             {
-                profiles.Add(new SwaggerStandardConfig());
-            }
+                var profiles = SwaggerConfiguration.profileServices.Values.ToList();
+                profiles = profiles ?? new List<SwaggerGenProfile>();
 
-            foreach(var profile in profiles)
+                if (!profiles.Any())
+                {
+                    profiles.Add(new SwaggerStandardConfig());
+                }
+
+                foreach (var profile in profiles)
+                {
+                    var generator = profile.GetFileGenerator(_logger, this);
+                    generator.StartSwaggerGen();
+
+                    WriteComponents(generator, swaggerDoc.Components);
+
+
+                    WriteNamespaces(generator, swaggerDoc.Paths);
+
+                    generator.EndSwaggerGen();
+
+                }
+
+
+                //data.AppendLine("");
+                //data.AppendLine("");
+                //data.AppendLine("");
+                //WriteNamespaces(data, swaggerDoc.Paths);
+
+                //data.AppendLine("//}");
+
+
+                //_fileHandler.SaveFile(path, filename, dataArray);
+
+                //throw new System.NotImplementedException();
+                string jsonString = JsonSerializer.Serialize(swaggerDoc);
+
+                //var a = 0;
+                // swaggerDoc
+            } catch(Exception ex)
             {
-                var generator = profile.GetFileGenerator(_logger, this);
-                generator.StartSwaggerGen();
-
-                WriteComponents(generator, swaggerDoc.Components);
-
-
-                WriteNamespaces(generator, swaggerDoc.Paths);
-
-                generator.EndSwaggerGen();
-
+                _logger.LogError(ex, ex.ToString());
             }
-
-
-            //data.AppendLine("");
-            //data.AppendLine("");
-            //data.AppendLine("");
-            //WriteNamespaces(data, swaggerDoc.Paths);
-
-            //data.AppendLine("//}");
-
-
-            //_fileHandler.SaveFile(path, filename, dataArray);
-
-            //throw new System.NotImplementedException();
-            string jsonString = JsonSerializer.Serialize(swaggerDoc);
-
-            //var a = 0;
-            // swaggerDoc
-
 
             _logger.LogInformation("SwaggerFilterGen - Finished");
 
@@ -203,8 +207,13 @@ namespace Utilities.Swagger
             //operation.Operation.Parameters.First().In
 
 
-            var requiredParams = (from p in operation.Operation.Parameters where p.Schema.Default == null || IsNullable(p.Schema) select p).ToList();
-            var optionalParams = (from p in operation.Operation.Parameters where p.Schema.Default != null && !IsNullable(p.Schema) select p).ToList();
+            var requiredParams = (from p 
+                                  in operation.Operation.Parameters 
+                                  where (p.Schema.Default == null || IsNullable(p.Schema)) && (p.In== ParameterLocation.Path || p.In == ParameterLocation.Query) 
+                                  select p).ToList();
+            var optionalParams = (from p 
+                                  in operation.Operation.Parameters 
+                                  where (p.Schema.Default != null && !IsNullable(p.Schema)) || p.In == ParameterLocation.Header || p.In == ParameterLocation.Cookie select p).ToList();
 
 
             var paramString = "";
@@ -215,7 +224,8 @@ namespace Utilities.Swagger
                 {
                     Name =  p.Name,
                     DataType = HandleType(p.Schema),
-                    IsNullable = IsNullable(p.Schema)
+                    IsNullable = IsNullable(p.Schema) || (p.Name.ToUpper()=="UCKEY"),
+                    Location = p.In
                 });
             }
             var pname = "data";
@@ -238,7 +248,7 @@ namespace Utilities.Swagger
                     {
                         Name = pname,
                         DataType = tpe,
-                        IsNullable = true,
+                        IsNullable = true ,
                         IsBody = true
                     });
                 }
@@ -250,7 +260,8 @@ namespace Utilities.Swagger
                 {
                     Name = p.Name,
                     DataType = HandleType(p.Schema),
-                    IsNullable = IsNullable(p.Schema)
+                    IsNullable = IsNullable(p.Schema) || (p.Name.ToUpper() == "UCKEY"),
+                    Location = p.In
                 });
             }
             if (!string.IsNullOrWhiteSpace(funcType))
@@ -487,23 +498,48 @@ namespace Utilities.Swagger
 
             return sb.ToString();
         }
-
+        public static string RemoveBetween(string Content, string BeginChar, string EndChar)
+        {
+            int i = Content.IndexOf(BeginChar);
+            int cnt = 0;
+            while (i >= 0 && cnt < 10000)
+            {
+                var E = Content.IndexOf(EndChar, i + BeginChar.Length);
+                if (E > i + BeginChar.Length)
+                {
+                    Content = Content.Substring(0, i) + Content.Substring(E + EndChar.Length);
+                }
+                else
+                {
+                    cnt = 10001;
+                }
+                i = Content.IndexOf(BeginChar);
+            }
+            return Content;
+        }
         private string GetFunctionName((string Name, OpenApiPathItem Path) entry, OpenApiOperation operation)
         {
-            var arr1 = entry.Name.Split("{");
+            var tstr = RemoveBetween(entry.Name, "{", "}");
+
+
+
+            //var arr1 = entry.Name.Split("{");
+            var arr1 = tstr.Split("?");
             var arr2 = arr1[0].Split("/");
 
             var last = operation.OperationId;
+            var pos = arr2.Length - 1;
 
-            if (string.IsNullOrEmpty(last))
+            while (string.IsNullOrEmpty(last))
             {
-                last = arr2[arr2.Length - 1];
+                last = arr2[pos];
+                pos = pos - 1;
+                if(pos<0)
+                {
+                    break;
+                }
             }
 
-            if (string.IsNullOrEmpty(last) && arr2.Length >= 2)
-            {
-                last = arr2[arr2.Length - 2];
-            }
             return last;
         }
 
@@ -517,9 +553,25 @@ namespace Utilities.Swagger
 
             var paramLst = GetAllParams(entry, operation, appendOperation).ToDictionary((p) => p.Name, (p) => p); ;
 
+            if (paramLst.Any((p) => p.Value.Name == "UCKey")){
+                var a = 0;
+            }
+            //if (paramLst.Any((p) => p.Value.Name == "OrderDirection"))
+            //{
+            //    var a = 0;
+            //}
+
             //var url = entry.Name;
             var url = ("\"" + entry.Name.Replace("{", "\" + ").Replace("}", " + \"") + "\"");
 
+            //(string Name, OpenApiPathItem Path) entry, OpenApiOperation operation
+            messages.AppendLine("Name = " + entry.Name);
+            messages.AppendLine("OperationId = " + operation.Operation.OperationId);
+
+            if (entry.Name.Contains("/Categories") && entry.Name.Contains("{id}"))
+            {
+                var aaa = 1;
+            }
 
             var funcName = GetFunctionName(entry, operation.Operation);
 
@@ -528,9 +580,13 @@ namespace Utilities.Swagger
                 funcName = operation.Name.ToString() + funcName;
             }
 
-            if (funcName.Contains("saveAttack"))
+            //if (funcName.Contains("saveAttack"))
+            //{
+            //    var a = 1;
+            //}
+            if (string.IsNullOrWhiteSpace(funcName))
             {
-                var a = 1;
+                var dd = 1;
             }
 
 
@@ -577,14 +633,20 @@ namespace Utilities.Swagger
         public void WriteSchema(IFileGenerator generator, string key, OpenApiSchema schema)
         {
             var title = schema.Title ?? key;
+
+            if (IsEnum(schema) && schema.Nullable)
+            {
+                title =  key ?? schema.Title;
+            }
+
             var type = GetTypeName(schema);
 
             generator.StartSchemas(title);
 
-            //if (key.Contains("."))
-            //{
-            //    key = key.Substring(key.IndexOf(".") + 1);
-            //}
+            if (title.Contains(","))
+            {
+                title = title.Substring(0, title.IndexOf(","));
+            }
             if (title.Contains("."))
             {
                 title = title.Substring(title.LastIndexOf(".") + 1);
@@ -602,6 +664,9 @@ namespace Utilities.Swagger
             }
 
             Objects.Add(title);
+            if (title.Contains("OrderDirectionEnum")){
+                var a = 1;
+            }
             if (!IsEnum(schema))
             {
                 var paramDic = new Dictionary<string, ObjParamInfo>();
@@ -722,6 +787,10 @@ namespace Utilities.Swagger
                 type = it.Title;
             }
 
+            if (type.Contains(","))
+            {
+                type = type.Substring(0, type.IndexOf(","));
+            }
             if (type.Contains("."))
             {
                 type = type.Substring(type.LastIndexOf(".") + 1);

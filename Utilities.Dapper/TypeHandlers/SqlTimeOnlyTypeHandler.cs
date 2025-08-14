@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Utilities.Dapper.TypeHandlers
 {
 
-    #if NET_6
+    //#if NET_6
     public class SqlTimeOnlyTypeHandler : SqlMapper.TypeHandler<TimeOnly>
     {
         public override TimeOnly Parse(object value)
@@ -31,5 +31,5 @@ namespace Utilities.Dapper.TypeHandlers
             parameter.Value = value;
         }
     }
-    #endif
+    //#endif
 }

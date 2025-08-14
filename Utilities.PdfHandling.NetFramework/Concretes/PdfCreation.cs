@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using PDFWebService;
 using Utilities.FileExtensions;
 using Utilities.PdfHandling.NetFramework.Configuration;
+using System.Security.Policy;
 
 namespace Utilities.PdfHandling.NetFramework.Concretes
 {
@@ -24,6 +25,7 @@ namespace Utilities.PdfHandling.NetFramework.Concretes
 
         private string GetEndPointUrl()
         {
+
             if (Configurator.config.CurrentServer == ServerEnum.Development)
             {
                 return "https://webservices-webdev2.uc.edu/pdfservices/PDFHandling.svc";
@@ -48,6 +50,7 @@ namespace Utilities.PdfHandling.NetFramework.Concretes
 
         public async Task SavePdfFromUrlAsync(string url, FileInfo file, PageOrientation orientation = PageOrientation.Portrait)
         {
+            _logger.LogInformation("SavePdfFromUrlAsync server=[" + Configurator.config.CurrentServer.ToString() + "] url=[" + url + "]");
             //Log("SavePdfFromUrl Start Url:" + url + " file:" + file.FullName);
             if (!file.Directory.Exists)
             {
@@ -139,7 +142,7 @@ namespace Utilities.PdfHandling.NetFramework.Concretes
         {
             try
             {
-                _logger.LogInformation("Utilities.PdfHandling.NetFramework.PdfCreation.GetPdfFromUrlAsync calling webservice");
+                _logger.LogInformation("GetPdfFromUrlAsync server=[" + Configurator.config.CurrentServer.ToString() + "] url=[" + url + "] using webservice");
 
                 var bhbind = new BasicHttpsBinding();// BasicHttpSecurityMode.Transport);
                 bhbind.MaxBufferSize = int.MaxValue;
@@ -154,6 +157,8 @@ namespace Utilities.PdfHandling.NetFramework.Concretes
                 bhbind.ReaderQuotas.MaxArrayLength = int.MaxValue;
                 bhbind.ReaderQuotas.MaxBytesPerRead = int.MaxValue;
                 EndpointAddress endpointAddress = new EndpointAddress(GetEndPointUrl());
+
+                _logger.LogInformation("GetPdfFromUrlAsync endpointAddress=[" + endpointAddress.Uri.ToString() + "] url=[" + url + "] using webservice");
                 using (var us = new PDFWebService.PdfServiceClient(bhbind, endpointAddress))
                 {
                     us.InnerChannel.OperationTimeout = new TimeSpan(0, 10, 0);
@@ -171,6 +176,7 @@ namespace Utilities.PdfHandling.NetFramework.Concretes
 
         public async Task<FileInfo> CombineFilesAsync(List<FileInfo> fileList, DirectoryInfo toDirectory, string fileName)
         {
+            _logger.LogInformation("CombineFilesAsync server=[" + Configurator.config.CurrentServer.ToString() + "] using webservice");
             var bhbind = new BasicHttpBinding(BasicHttpSecurityMode.Transport);
             bhbind.MaxBufferSize = int.MaxValue;
             bhbind.MaxReceivedMessageSize = int.MaxValue;
@@ -184,6 +190,8 @@ namespace Utilities.PdfHandling.NetFramework.Concretes
             bhbind.ReaderQuotas.MaxArrayLength = int.MaxValue;
             bhbind.ReaderQuotas.MaxBytesPerRead = int.MaxValue;
             EndpointAddress endpointAddress = new EndpointAddress(GetEndPointUrl());
+
+            _logger.LogInformation("CombineFilesAsync endpointAddress=[" + endpointAddress.Uri.ToString() + "] using webservice");
             var ps = new PDFWebService.PdfServiceClient(bhbind, endpointAddress);
 
             var fileData = new List<FileItem>();
