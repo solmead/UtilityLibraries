@@ -24,7 +24,7 @@ namespace Utilities.JsonExtensions.Converters
                     var s = reader.GetString();
                     var t = new DateTime();
                     return DateTime.TryParse(s, out t) ?
-                        t : throw new Exception($"unable to parse {s} to DateTime");
+                        t : null;
                 default:
                     DateTime value;
                     reader.TryGetDateTime(out value);

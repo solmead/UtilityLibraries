@@ -93,6 +93,20 @@ namespace Utilities.TimedTasks
                 foreach (var hand in Handlers)
                 {
                     await hand.TriggerAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+            }
+            IsTriggering = false;
+
+
+        }
+
+        public void TriggerTasks()
+        {
+            var t = new Task(async () =>
             {
                 try
                 {
@@ -109,18 +123,3 @@ namespace Utilities.TimedTasks
 
     }
 }
-
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-            }
-            IsTriggering = false;
-
-
-        }
-
-        public void TriggerTasks()
-        {
-            var t = new Task(async () =>

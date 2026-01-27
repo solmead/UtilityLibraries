@@ -48,7 +48,18 @@ namespace Utilities.TimedTasks
             var loadedAssemblies = new HashSet<string>();
             var assembliesToCheck = new Queue<Assembly>();
 
-            assembliesToCheck.Enqueue(Assembly.GetEntryAssembly());
+            var ass = Assembly.GetEntryAssembly();
+            if (ass!=null)
+            {
+                assembliesToCheck.Enqueue(ass);
+            } else
+            {
+                var assList = AppDomain.CurrentDomain.GetAssemblies();
+                foreach(var ass2 in assList)
+                {
+                    assembliesToCheck.Enqueue(ass2);
+                }
+            }
 
             while (assembliesToCheck.Any())
             {
