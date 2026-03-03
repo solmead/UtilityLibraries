@@ -25,6 +25,7 @@ namespace Utilities.TimedTasks
 
         int DayToRun { get; }
 
+        Boolean Enabled { get; }
 
         Func<DateTime, Task> HandleEventAsync { get; }
 

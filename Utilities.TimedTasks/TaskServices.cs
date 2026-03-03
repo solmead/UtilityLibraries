@@ -92,6 +92,7 @@ namespace Utilities.TimedTasks
             {
                 foreach (var hand in Handlers)
                 {
+                    
                     await hand.TriggerAsync();
                 }
             }

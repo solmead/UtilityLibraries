@@ -105,8 +105,11 @@ namespace Utilities.TimedTasks
 
                     if (await CheckConcurrency(tsk))
                     {
-                        _logger.LogInformation("Running Task [" + tsk.Name + "] on Instance [" + Core.Instance.InstanceId + "]");
-                        await tsk.HandleEventAsync(lcd);
+                        if (tsk.Enabled)
+                        {
+                            _logger.LogInformation("Running Task [" + tsk.Name + "] on Instance [" + Core.Instance.InstanceId + "]");
+                            await tsk.HandleEventAsync(lcd);
+                        }
                     }
                 }
             }

@@ -27,6 +27,11 @@ namespace Utilities.TimedTasks
 
         public abstract Func<DateTime, Task> HandleEventAsync { get; }
 
+        public Boolean Enabled {
+            get => Boolean.Parse(_keyValueRepository.GetSettingValue(Name + "_Enabled", "true"));
+            set => _keyValueRepository.SetSettingValue(Name + "_Enabled", value.ToString());
+        }
+
         protected void PutInTestingMode()
         {
 
@@ -38,7 +43,7 @@ namespace Utilities.TimedTasks
             _keyValueRepository.SetSettingValue("GLOBAL_TIMEDTASKS_" + Name + "_LASTUTILITIES.TIMEDTASKS.TIMECHECK.CHECKS.DailyCHECKCHECKDATE".ToUpper(), DateTime.Now.AddMonths(-10).ToString());
             _keyValueRepository.SetSettingValue("GLOBAL_TIMEDTASKS_" + Name + "_LASTUTILITIES.TIMEDTASKS.TIMECHECK.CHECKS.MonthlyCHECKCHECKDATE".ToUpper(), DateTime.Now.AddMonths(-10).ToString());
 
-
+            Enabled = true;
         }
         public TimedTaskBase(IKeyValueRepository keyValueRepository,  ILogger logger,
             CallRateEnum? callRate = CallRateEnum.Weekly,
